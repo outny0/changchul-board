@@ -11,10 +11,17 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:#1a1a2e;font-size:13px;}
 
 /* HEADER */
-.hdr{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);padding:0 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);min-height:54px;flex-wrap:wrap;}
+.hdr{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);padding:8px 20px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.hdr-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .hdr-title{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0;}
 .hdr-date{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0;}
 .hdr-pills{display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;}
+.hdr-graph{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.hg-team{display:flex;align-items:center;gap:6px;}
+.hg-name{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);min-width:38px;white-space:nowrap;}
+.hg-bar-wrap{flex:1;background:rgba(255,255,255,.1);border-radius:4px;height:6px;overflow:hidden;}
+.hg-fill{height:100%;border-radius:4px;transition:width .4s;}
+.hg-val{font-size:10px;color:rgba(255,255,255,.8);min-width:52px;text-align:right;white-space:nowrap;}
 .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap;}
 .p-gray{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15);}
 .p-blue{background:rgba(91,184,232,.2);color:#93d7f6;border:1px solid rgba(91,184,232,.3);}
@@ -58,8 +65,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-kd{font-size:15px;font-weight:700;}
 .tc-ksub{font-size:10px;color:#9ca3af;}
 .tc-teachers{border-top:1px solid #f3f4f6;}
-.tc-thead{display:grid;grid-template-columns:1fr 80px 50px 50px 50px 52px;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
-.tc-teacher{display:grid;grid-template-columns:1fr 80px 50px 50px 50px 52px;padding:5px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.tc-thead{display:grid;grid-template-columns:1fr 80px 46px 46px 52px;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
+.tc-teacher{display:grid;grid-template-columns:1fr 80px 46px 46px 52px;padding:5px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
 .tc-teacher:last-child{border-bottom:none;}
 .tc-tname{color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tc-tid{color:#9ca3af;font-size:10px;}
@@ -463,15 +470,29 @@ function tryRender() {
 function renderHeader(data) {
   var tot={target:0,pay:0,end:0,wd:0};
   TEAM_NAMES.forEach(function(nm){var m=data.teams[nm];tot.target+=m.target;tot.pay+=m.monthPayment;tot.end+=m.monthEnd;tot.wd+=m.withdrawal;});
-  var rate=tot.target>0?Math.round(tot.pay/tot.target*100):0;
+  var realPay=Math.max(0,tot.pay-tot.wd);
+  var rate=tot.target>0?Math.round(realPay/tot.target*100):0;
   var rCls=rate>=100?'p-green':rate>=80?'p-amber':'p-pink';
   document.getElementById('hdrPills').innerHTML=
     '<span class="pill '+rCls+'">달성률 '+rate+'%</span>'+
-    '<span class="pill p-gray">월목표 '+tot.target+'</span>'+
-    '<span class="pill p-blue">월결제 '+tot.pay+'</span>'+
-    '<span class="pill p-violet">실제결제 '+(Math.max(0,tot.pay-tot.wd))+'</span>'+
-    '<span class="pill p-gray">실제종료 '+tot.end+'</span>'+
-    '<span class="pill p-pink">청철 '+tot.wd+'</span>';
+    '<span class="pill p-gray">목표 '+tot.target+'</span>'+
+    '<span class="pill p-violet">실결제 '+realPay+'</span>'+
+    '<span class="pill p-blue">결제 '+tot.pay+'</span>'+
+    '<span class="pill p-pink">청철 '+tot.wd+'</span>'+
+    '<span class="pill p-gray">실종료 '+tot.end+'</span>';
+
+  // 팀별 진행 바
+  document.getElementById('hdrGraph').innerHTML=TEAM_NAMES.map(function(nm){
+    var m=data.teams[nm], cfg=TEAM_CFG[nm];
+    var tRealPay=Math.max(0,m.monthPayment-m.withdrawal);
+    var pct=m.target>0?Math.min(100,Math.round(tRealPay/m.target*100)):0;
+    var barColor=pct>=100?'#4ade80':pct>=80?'#fbbf24':cfg.bar;
+    return '<div class="hg-team">'+
+      '<span class="hg-name" style="color:'+cfg.bar+'">'+nm.replace('팀','')+'</span>'+
+      '<div class="hg-bar-wrap"><div class="hg-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'+
+      '<span class="hg-val">'+tRealPay+' / '+m.target+'</span>'+
+    '</div>';
+  }).join('');
 }
 
 function renderTeams(data) {
@@ -485,15 +506,12 @@ function renderTeams(data) {
     var tRows=teachers.map(function(t){
       var rate2=parseFloat(t.monthRate)||0;
       var rCls2=rate2>=70?'kv-good':rate2>=50?'kv-warn':'kv-bad';
-      var realCls=t.realPay>0?'':'';
       return '<div class="tc-teacher">'+
         '<span class="tc-tname">'+t.name+'</span>'+
         '<span class="tc-tid">'+t.teacherID+'</span>'+
         '<span class="tc-tnum">'+t.monthEnd+'</span>'+
-        '<span class="tc-tpay">'+t.monthPayment+'</span>'+
         '<span class="tc-tnum" style="color:#dc2626">'+t.withdrawal+'</span>'+
-        '<span class="tc-treal">'+t.realPay+'</span>'+
-        '<span class="tc-trate '+rCls2+'">'+t.monthRate+'</span>'+
+        '<span class="tc-treal '+rCls2+'">'+t.realPay+'</span>'+
       '</div>';
     }).join('');
 
@@ -509,7 +527,7 @@ function renderTeams(data) {
         '<div class="tc-kv"><div class="tc-kn">실제종료</div><div class="tc-kd">'+m.monthEnd+'</div></div>'+
       '</div>'+
       '<div class="tc-teachers">'+
-        '<div class="tc-thead"><span>이름</span><span>교사번호</span><span style="text-align:right">종료</span><span style="text-align:right">결제</span><span style="text-align:right">청철</span><span style="text-align:right">실결제</span></div>'+
+        '<div class="tc-thead"><span>이름</span><span>교사번호</span><span style="text-align:right">종료</span><span style="text-align:right">청철</span><span style="text-align:right">실결제</span></div>'+
         tRows+
       '</div>'+
     '</div>';
