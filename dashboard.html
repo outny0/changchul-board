@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>창출팀 실적 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<style>
+:root{--pink:#F72585;--blue:#5BB8E8;--bg:#f0f4f8;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:#1a1a2e;font-size:13px;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.3);min-height:58px;gap:10px;}
+.hdr-left{flex-shrink:0;}
+.hdr-title{font-size:14px;font-weight:700;color:#fff;}
+.hdr-date{font-size:11px;color:rgba(255,255,255,.5);}
+.hdr-center{display:flex;align-items:center;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+.p-gray{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15);}
+.p-blue{background:rgba(91,184,232,.2);color:#93d7f6;border:1px solid rgba(91,184,232,.3);}
+.p-red{background:rgba(247,37,133,.2);color:#ff80ab;border:1px solid rgba(247,37,133,.35);}
+.p-amber{background:rgba(255,160,0,.18);color:#ffcc80;border:1px solid rgba(255,160,0,.3);}
+.p-green{background:rgba(76,175,80,.2);color:#81c784;border:1px solid rgba(76,175,80,.3);}
+.p-violet{background:rgba(167,139,250,.2);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);}
+.hdr-right{flex-shrink:0;}
+.reload-btn{font-size:10px;color:rgba(255,255,255,.7);padding:5px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;transition:.15s;white-space:nowrap;}
+.reload-btn:hover{background:rgba(255,255,255,.18);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:3px;}
+
+/* PAGE */
+.page{padding:14px 18px;display:flex;flex-direction:column;gap:12px;}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;}
+
+/* TOP ROW: 4 cards + daily panel */
+.top-row{display:grid;grid-template-columns:repeat(4,1fr) 230px;gap:10px;align-items:stretch;}
+
+/* TEAM CARD */
+.team-card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.tc-hdr{padding:9px 13px 7px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:3px solid transparent;}
+.tc-name{font-size:13px;font-weight:700;}
+.tc-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;}
+.tc-summary{padding:9px 13px 7px;border-bottom:1px solid #f3f4f6;flex-shrink:0;}
+.srow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+.srow2{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;}
+.sitem{display:flex;flex-direction:column;}
+.slabel{font-size:10px;color:#6b7280;}
+.sval{font-size:13px;font-weight:600;color:#111827;}
+.sval-big{font-size:18px;}
+.prog-bg{height:5px;background:#f3f4f6;border-radius:3px;overflow:hidden;margin-top:5px;}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+
+/* teacher list */
+.tl-hdr{display:grid;grid-template-columns:1fr 44px 44px;padding:3px 13px;border-bottom:1px solid #f3f4f6;background:#fafafa;flex-shrink:0;}
+.tl-hdr span{font-size:9px;font-weight:700;color:#c4c9d4;letter-spacing:.04em;text-transform:uppercase;text-align:right;}
+.tl-hdr span:first-child{text-align:left;}
+.tl-rows{flex-shrink:0;}
+.ti{display:grid;grid-template-columns:1fr 44px 44px;align-items:center;padding:0 13px;height:27px;border-bottom:1px solid #f9fafb;}
+.ti-name{font-size:11px;color:#374151;font-weight:500;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ti-end{font-size:11px;color:#374151;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
+.ti-pay{font-size:11px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums;color:#9ca3af;}
+.ti-pay.plus{color:#16a34a;}
+.ti-empty{height:27px;border-bottom:1px solid #f9fafb;}
+.ti-skel{height:27px;border-bottom:1px solid #f9fafb;display:flex;align-items:center;padding:0 13px;}
+.skel-bar{height:8px;border-radius:4px;background:#f0f0f0;animation:shimmer 1.2s infinite;}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:1}}
+
+.tc-footer{display:flex;border-top:1px solid #f3f4f6;flex-shrink:0;}
+.fc{flex:1;text-align:center;padding:6px 4px;border-right:1px solid #f3f4f6;}
+.fc:last-child{border-right:none;}
+.fc-label{font-size:9px;color:#9ca3af;margin-bottom:2px;font-weight:600;}
+.fc-val{font-size:12px;font-weight:700;}
+
+/* TODAY PANEL (오른쪽 패널) */
+.rt-panel{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.rt-hdr{padding:9px 12px;background:linear-gradient(90deg,#0f3460,#16213e);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.rt-title{font-size:12px;font-weight:700;color:#fff;}
+.rt-list{overflow-y:auto;flex:1;}
+.rt-list::-webkit-scrollbar{width:3px;}
+.rt-list::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:2px;}
+.rt-item{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:7px;padding:6px 11px;border-bottom:1px solid #f9fafb;}
+.rt-item:last-child{border-bottom:none;}
+.rt-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.rt-name{font-size:11px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rt-prod{font-size:9px;color:#9ca3af;font-weight:600;}
+.rt-cnt{font-size:13px;font-weight:700;color:#111827;text-align:right;font-variant-numeric:tabular-nums;}
+.rt-team{font-size:9px;color:#9ca3af;text-align:right;}
+.rt-empty{padding:20px;text-align:center;color:#9ca3af;font-size:11px;}
+
+/* MID */
+.mid-row{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;}
+.kpi-grid{display:grid;grid-template-columns:repeat(2,138px);gap:7px;}
+.kpi-box{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.kpi-label{font-size:10px;color:#9ca3af;margin-bottom:3px;font-weight:600;}
+.kpi-val{font-size:22px;font-weight:700;color:#111827;}
+.kpi-sub{font-size:10px;color:#9ca3af;margin-top:2px;}
+.kv-bad{color:#dc2626;}
+.kv-warn{color:#d97706;}
+.kv-good{color:#16a34a;}
+.weekly-box{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:11px 13px;width:283px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-top:7px;}
+.wr{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.wr:last-child{margin-bottom:0;}
+.wt{font-size:11px;width:36px;flex-shrink:0;font-weight:600;}
+.wb{flex:1;height:6px;background:#f3f4f6;border-radius:3px;overflow:hidden;}
+.wf{height:100%;border-radius:3px;}
+.wn{font-size:10px;color:#6b7280;white-space:nowrap;}
+.wn b{color:#111827;}
+.chart-box{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:13px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;}
+.chart-ttl{font-size:12px;font-weight:700;color:#111827;}
+.chart-sub{font-size:10px;color:#9ca3af;}
+
+/* BOTTOM TABLE */
+.tbl-section{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.tbl-hdr{padding:9px 14px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;background:#fafafa;}
+.tbl-title{font-size:13px;font-weight:700;}
+.tab-row{display:flex;gap:4px;}
+.tab-btn{padding:3px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#6b7280;transition:.15s;}
+.tab-btn.on{background:var(--pink);color:#fff;}
+.tab-btn:hover:not(.on){background:#f3f4f6;color:#111827;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{padding:7px 11px;text-align:left;font-size:10px;font-weight:700;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;background:#f9fafb;border-bottom:1px solid #f3f4f6;white-space:nowrap;}
+td{padding:7px 11px;border-bottom:1px solid #f9fafb;font-size:12px;color:#374151;white-space:nowrap;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fef9ff;}
+.td-name{font-weight:600;color:#111827;}
+.t-badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600;}
+.bar-m{display:flex;align-items:center;gap:5px;}
+.bar-m-bg{width:55px;height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden;}
+.bar-m-f{height:100%;border-radius:2px;}
+.bar-m-v{font-size:11px;font-weight:600;color:#111827;}
+.rh{color:#16a34a;font-weight:700;}
+.rm{color:#d97706;font-weight:700;}
+.rl{color:#dc2626;font-weight:700;}
+.np{color:#16a34a;font-weight:700;}
+.footer-line{height:3px;background:linear-gradient(90deg,var(--pink),var(--blue));border-radius:2px;}
+
+/* DEBUG */
+#dbgPanel{position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:#0f0;font-family:monospace;font-size:10px;padding:6px 12px;max-height:70px;overflow-y:auto;z-index:9999;white-space:pre-wrap;word-break:break-all;display:none;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-title">창출팀 실적 대시보드</div>
+    <div class="hdr-date" id="hdrDate"></div>
+  </div>
+  <div class="hdr-center" id="hdrPills"></div>
+  <div class="hdr-right">
+    <div class="reload-btn" id="reloadBtn" onclick="loadData()">
+      <span class="spin" id="spin" style="display:none"></span>
+      <span id="reloadTxt">새로고침</span>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div>
+    <div class="sec-label">팀별 현황</div>
+    <div class="top-row" id="topRow"></div>
+  </div>
+  <div>
+    <div class="sec-label">전체 현황</div>
+    <div class="mid-row">
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="weekly-box">
+          <div class="sec-label" style="margin-bottom:9px;">월 결제 팀별 현황</div>
+          <div id="weeklyRows"></div>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-hdr">
+          <span class="chart-ttl">이번 달 일별 결제 현황</span>
+          <span class="chart-sub" id="chartSub">결제 백데이터 기준</span>
+        </div>
+        <canvas id="hourlyChart" height="150"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="tbl-section">
+    <div class="tbl-hdr">
+      <span class="tbl-title">교사별 세부 현황</span>
+      <div class="tab-row" id="tabRow"></div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>교사명</th><th>팀</th><th>월 종료수</th><th>오늘 예상종료</th>
+          <th>월 결제</th><th>오늘 결제</th><th>전환율</th><th>청철</th>
+        </tr></thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="footer-line"></div>
+</div>
+
+<div id="dbgPanel"></div>
+
+<script>
+// ─── 상수 ───────────────────────────────────────────────
+const FILE_ID         = '1BlgT3aH7MXpqoQGwUtcTO5reod0KmgbQ9S9iwuuIGqA';  // 월데이터요약
+const PAYMENT_FILE_ID = '1jqi8iThmxYkx3c0pjz-xZEbParnTVpdL-2MnrBNJJqY';  // 창출센터 결제 백데이터
+const DL_TOOL         = 'mcp__4c33ab1f-eb59-4167-b1ac-31f2668ea7ec__download_file_content';
+const TEAM_NAMES = ['땅이팀','다래팀','해태팀','단비팀'];
+const TC = {
+  '땅이팀':{hex:'#3b82f6',hdr:'#eff6ff',txt:'#2563eb',bar:'#3b82f6',bbg:'#dbeafe',btxt:'#1d4ed8',bdr:'#3b82f6'},
+  '다래팀':{hex:'#22c55e',hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'#22c55e'},
+  '해태팀':{hex:'#f59e0b',hdr:'#fffbeb',txt:'#d97706',bar:'#f59e0b',bbg:'#fef3c7',btxt:'#b45309',bdr:'#f59e0b'},
+  '단비팀':{hex:'#8b5cf6',hdr:'#f5f3ff',txt:'#7c3aed',bar:'#8b5cf6',bbg:'#ede9fe',btxt:'#6d28d9',bdr:'#8b5cf6'},
+};
+const MAX_T = 18;
+let chartInst = null, currentFilter = '전체', lastData = null;
+
+// ─── 날짜 ───────────────────────────────────────────────
+function getDate() {
+  var d = new Date(), p = function(n){return String(n).padStart(2,'0');};
+  return {
+    ymd  : d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()),
+    md   : (d.getMonth()+1)+'/'+d.getDate(),
+    day  : d.getDate(),
+    label: d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+'일월화수목금토'[d.getDay()]+')',
+  };
+}
+
+// ─── 디버그 ─────────────────────────────────────────────
+function dbg(msg) {
+  var p = document.getElementById('dbgPanel');
+  p.style.display = 'block';
+  p.textContent = msg;
+}
+
+// ─── 스켈레톤 ────────────────────────────────────────────
+function renderSkeleton() {
+  document.getElementById('hdrDate').textContent = getDate().label;
+  document.getElementById('hdrPills').innerHTML =
+    '<span class="pill p-gray">데이터 연결 중...</span>';
+
+  var row = document.getElementById('topRow');
+  row.innerHTML = '';
+  TEAM_NAMES.forEach(function(nm) {
+    var tc = TC[nm], skRows = '';
+    for (var i = 0; i < MAX_T; i++) {
+      skRows += '<div class="ti-skel"><div class="skel-bar" style="width:'+(50+Math.random()*40)+'%"></div></div>';
+    }
+    var card = document.createElement('div');
+    card.className = 'team-card';
+    card.style.cssText = 'border-top:3px solid '+tc.bdr;
+    card.innerHTML =
+      '<div class="tc-hdr" style="background:linear-gradient(180deg,'+tc.hdr+',#fff);border-bottom-color:'+tc.bdr+'">'+
+        '<span class="tc-name" style="color:'+tc.txt+'">'+nm+'</span>'+
+        '<span class="tc-badge" style="background:'+tc.bbg+';color:'+tc.btxt+'">-인</span>'+
+      '</div>'+
+      '<div class="tc-summary">'+
+        '<div class="srow2">'+
+          '<div class="sitem"><span class="slabel">오늘 예상종료</span><span class="sval">-건</span></div>'+
+          '<div class="sitem"><span class="slabel">오늘 결제</span><span class="sval" style="color:'+tc.txt+'">-건</span></div>'+
+        '</div>'+
+        '<div class="srow"><span class="slabel">월 결제</span><span class="sval sval-big" style="color:'+tc.txt+'">-건</span></div>'+
+        '<div class="prog-bg"><div class="prog-fill" style="width:0%;background:'+tc.bar+'"></div></div>'+
+      '</div>'+
+      '<div class="tl-hdr"><span>이름</span><span>오늘예상</span><span>오늘결제</span></div>'+
+      '<div class="tl-rows">'+skRows+'</div>'+
+      '<div class="tc-footer">'+
+        '<div class="fc"><div class="fc-label">월달성률</div><div class="fc-val" style="color:'+tc.txt+'">-</div></div>'+
+        '<div class="fc"><div class="fc-label">목표</div><div class="fc-val">-</div></div>'+
+        '<div class="fc"><div class="fc-label">월청철</div><div class="fc-val">-</div></div>'+
+      '</div>';
+    row.appendChild(card);
+  });
+
+  var panel = document.createElement('div');
+  panel.className = 'rt-panel';
+  panel.innerHTML =
+    '<div class="rt-hdr"><span class="rt-title">오늘 결제 현황</span></div>'+
+    '<div class="rt-empty">로딩 중...</div>';
+  row.appendChild(panel);
+
+  document.getElementById('kpiGrid').innerHTML =
+    ['월 목표','월 결제','오늘 예상종료','월 청철'].map(function(l){
+      return '<div class="kpi-box"><div class="kpi-label">'+l+'</div><div class="kpi-val">-</div><div class="kpi-sub">로딩 중</div></div>';
+    }).join('');
+
+  document.getElementById('weeklyRows').innerHTML =
+    TEAM_NAMES.map(function(t){
+      var tc=TC[t];
+      return '<div class="wr"><span class="wt" style="color:'+tc.txt+'">'+t.replace('팀','')+'</span>'+
+        '<div class="wb"><div class="wf" style="width:0%;background:'+tc.bar+'"></div></div>'+
+        '<span class="wn"><b>-</b> / -</span></div>';
+    }).join('');
+
+  document.getElementById('tblBody').innerHTML =
+    '<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:20px;">데이터 로딩 중...</td></tr>';
+
+  buildTabs(null);
+}
+
+// ─── 전체 CSV 파싱 (멀티라인 따옴표 셀 완전 지원) ────────
+function parseFullCSV(text) {
+  var rows = [], row = [], cur = '', inQ = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i+1] === '"') { cur += '"'; i++; }
+        else inQ = false;
+      } else { cur += ch; }
+    } else {
+      if      (ch === '"')  { inQ = true; }
+      else if (ch === ',')  { row.push(cur.trim()); cur = ''; }
+      else if (ch === '\r') { /* skip */ }
+      else if (ch === '\n') {
+        row.push(cur.trim()); cur = '';
+        rows.push(row); row = [];
+      } else { cur += ch; }
+    }
+  }
+  if (cur || row.length > 0) { row.push(cur.trim()); rows.push(row); }
+  return rows;
+}
+
+// ─── 월데이터요약 CSV 파싱 ──────────────────────────────
+// 행2: 그룹 헤더 (기본정보, 목표관리, 월실적 마감, 날짜별 그룹)
+//      → 오늘 날짜("M/D") 스캔해서 iGoal/iEnd 확정
+// 행3: 컬럼 레이블 → 교사번호, 교사명 컬럼 위치 확정
+// 행5~: 데이터
+//   팀 요약행: cols[1]='', cols[2]=팀명
+//   교사 행:  cols[1]=팀명, cols[2]=교사명
+// 월간 고정 인덱스(0-based): 6=목표결제수  9=종료수  10=결제  11=청철  13=전환율
+function parseCSV(text) {
+  var dt = getDate(), md = dt.md;
+  var rows = parseFullCSV(text);
+
+  var teams = {}, teachers = {};
+  TEAM_NAMES.forEach(function(t){
+    teams[t] = { name:t, monthTarget:0, monthEnd:0, monthPayment:0,
+                 withdrawal:0, monthRate:'0%', headcount:0,
+                 todayGoal:0, todayEnd:0, todayPay:0 };
+  });
+
+  // 월간 고정 인덱스
+  var iMTgt=6, iMEnd=9, iMPay=10, iWd=11, iRate=13;
+  // 오늘 일별 인덱스
+  var iGoal=-1, iEnd=-1;
+  // 교사번호 컬럼
+  var iTeacherID = -1;
+  var hdrFound = false, groupHdrScanned = false;
+
+  for (var ri = 0; ri < rows.length; ri++) {
+    var cols = rows[ri];
+    if (cols.length < 3) continue;
+    var c1 = (cols[1]||'').trim(), c2 = (cols[2]||'').trim();
+
+    // ── 행2: 그룹 헤더 스캔 → 오늘 날짜 컬럼 위치 확정
+    if (!groupHdrScanned && cols.some(function(c){ return c === '기본정보' || c === '월실적 마감'; })) {
+      groupHdrScanned = true;
+      cols.forEach(function(c, i){
+        var s = (c||'').trim();
+        if (s.indexOf(md) === 0 || s === md) {
+          iGoal = i;      // 예상종료 (날짜 그룹의 1번째)
+          iEnd  = i + 1;  // 실제종료
+        }
+      });
+      continue;
+    }
+
+    // ── 행3: 컬럼 레이블 → hdrFound, iTeacherID 확정
+    if (!hdrFound && cols.some(function(c){ return c.trim() === '교사명'; })) {
+      hdrFound = true;
+      cols.forEach(function(c, i){
+        if ((c||'').trim() === '교사번호') iTeacherID = i;
+      });
+      continue;
+    }
+
+    if (!hdrFound) continue;
+
+    // 빈 행, 추가 레이블 행 skip
+    if (!c2 || c2 === '팀명') continue;
+
+    // ── 팀 요약행
+    if (c1 === '' && TEAM_NAMES.indexOf(c2) >= 0) {
+      var td = teams[c2];
+      td.monthTarget  = parseInt((cols[iMTgt]||'').replace(/,/g,''))||0;
+      td.monthEnd     = parseInt((cols[iMEnd] ||'').replace(/,/g,''))||0;
+      td.monthPayment = parseInt((cols[iMPay] ||'').replace(/,/g,''))||0;
+      td.withdrawal   = parseInt((cols[iWd]   ||'').replace(/,/g,''))||0;
+      td.monthRate    = (cols[iRate]||'0%').trim();
+      td.todayGoal    = iGoal >= 0 ? (parseInt(cols[iGoal]||'')||0) : 0;
+      td.todayEnd     = iEnd  >= 0 ? (parseInt(cols[iEnd] ||'')||0) : 0;
+    }
+    // ── 교사 행
+    else if (TEAM_NAMES.indexOf(c1) >= 0 && c2 && !/^[\d,\.%\-~]/.test(c2)) {
+      teachers[c2] = {
+        name: c2, team: c1,
+        teacherID:    iTeacherID >= 0 ? (cols[iTeacherID]||'').trim() : '',
+        totalEnd:     parseInt((cols[iMEnd] ||'').replace(/,/g,''))||0,
+        monthPayment: parseInt((cols[iMPay] ||'').replace(/,/g,''))||0,
+        withdrawal:   parseInt((cols[iWd]   ||'').replace(/,/g,''))||0,
+        monthRate:    (cols[iRate]||'0%').trim(),
+        todayGoal:    iGoal >= 0 ? (parseInt(cols[iGoal]||'')||0) : 0,
+        todayEnd:     iEnd  >= 0 ? (parseInt(cols[iEnd] ||'')||0) : 0,
+        todayPay:     0,  // 결제 백데이터에서 채워짐
+      };
+      teams[c1].headcount++;
+    }
+  }
+
+  return {
+    teams   : teams,
+    teachers: Object.values(teachers),
+    dailyTotals: [],  // 결제 백데이터에서 채워짐
+    meta    : { iGoal:iGoal, iEnd:iEnd, iTeacherID:iTeacherID, md:md }
+  };
+}
+
+// ─── 결제 백데이터 CSV 파싱 ────────────────────────────
+// 행1: 교사번호 | 1 | 2 | ... | 30 | (blank) | 1주마감 | ... | 합계 | 청철 | 1개월
+// 행2~: 교사번호 | 일별결제수 | ... | 합계 | 청철 | ...
+function parsePaymentsCSV(text) {
+  var rows = parseFullCSV(text);
+  if (rows.length < 2) return { map:{}, dailyTotals:new Array(31).fill(0) };
+
+  var today = getDate().day;  // 오늘 날짜 (1~31)
+  var hdr = rows[0];
+
+  // 헤더에서 컬럼 인덱스 추출
+  var dayIdxs = {};   // day(1-31) → column index
+  var iMonthTotal = -1, iWd = -1;
+  hdr.forEach(function(v, i) {
+    var s = (v||'').trim();
+    var dayNum = parseInt(s);
+    if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31 && String(dayNum) === s) {
+      dayIdxs[dayNum] = i;
+    }
+    if (s === '합계' && iMonthTotal < 0) iMonthTotal = i;
+    if (s === '청철' && iWd < 0)         iWd = i;
+  });
+
+  var iToday = dayIdxs[today] !== undefined ? dayIdxs[today] : -1;
+  var dailyTotals = new Array(31).fill(0);
+  var map = {};  // 교사번호 → {todayPay, monthTotal, withdrawal}
+
+  for (var r = 1; r < rows.length; r++) {
+    var row = rows[r];
+    var id = (row[0]||'').trim();
+    // 교사번호: 숫자 5자리 이상
+    if (!id || !/^\d{5,}$/.test(id)) continue;
+
+    // 일별 합산 (전체 일별 트렌드용)
+    for (var d = 1; d <= 31; d++) {
+      if (dayIdxs[d] !== undefined) {
+        dailyTotals[d-1] += parseInt(row[dayIdxs[d]])||0;
+      }
+    }
+
+    map[id] = {
+      todayPay:   iToday      >= 0 ? (parseInt(row[iToday])      || 0) : 0,
+      monthTotal: iMonthTotal >= 0 ? (parseInt(row[iMonthTotal]) || 0) : 0,
+      withdrawal: iWd         >= 0 ? (parseInt(row[iWd])         || 0) : 0
+    };
+  }
+
+  return { map:map, dailyTotals:dailyTotals };
+}
+
+// ─── 결제 데이터 합치기 ─────────────────────────────────
+// 월데이터요약(예상종료/실제종료) + 결제 백데이터(결제/청철) → 통합 데이터
+function mergePaymentData(data, payResult) {
+  var payMap = payResult.map;
+  data.dailyTotals = payResult.dailyTotals;
+
+  // 교사별 결제 데이터 반영
+  data.teachers.forEach(function(t) {
+    var pay = payMap[t.teacherID];
+    if (pay) {
+      t.monthPayment = pay.monthTotal;  // 결제 백데이터 합계
+      t.withdrawal   = pay.withdrawal;  // 결제 백데이터 청철
+      t.todayPay     = pay.todayPay;    // 오늘 결제수
+    }
+    // 전환율 재계산 = 월결제 / 월실제종료
+    t.monthRate = t.totalEnd > 0
+      ? (t.monthPayment / t.totalEnd * 100).toFixed(1) + '%'
+      : '0%';
+  });
+
+  // 팀별 합계 재집계
+  TEAM_NAMES.forEach(function(nm) {
+    var tms = data.teachers.filter(function(t){ return t.team === nm; });
+    data.teams[nm].monthPayment = tms.reduce(function(s,t){ return s + t.monthPayment; }, 0);
+    data.teams[nm].withdrawal   = tms.reduce(function(s,t){ return s + t.withdrawal;   }, 0);
+    data.teams[nm].todayPay     = tms.reduce(function(s,t){ return s + t.todayPay;     }, 0);
+    // 팀 전환율 재계산
+    var tEnd = data.teams[nm].monthEnd;
+    var tPay = data.teams[nm].monthPayment;
+    data.teams[nm].monthRate = tEnd > 0
+      ? Math.round(tPay / tEnd * 100) + '%'
+      : '0%';
+  });
+
+  return data;
+}
+
+// ─── base64 추출 ─────────────────────────────────────────
+function extractBase64(res) {
+  if (!res) return '';
+  if (Array.isArray(res.content)) {
+    for (var i = 0; i < res.content.length; i++) {
+      var c = res.content[i];
+      if (!c || !c.text) continue;
+      try {
+        var inner = JSON.parse(c.text);
+        if (inner && typeof inner.content === 'string')     return inner.content;
+        if (inner && typeof inner.fileContent === 'string') return inner.fileContent;
+      } catch(e) {}
+      if (typeof c.text === 'string') return c.text;
+    }
+  }
+  if (typeof res.content === 'string')     return res.content;
+  if (typeof res.fileContent === 'string') return res.fileContent;
+  var best = '';
+  Object.keys(res).forEach(function(k){
+    if (typeof res[k] === 'string' && res[k].length > best.length) best = res[k];
+  });
+  return best;
+}
+
+function decodeB64(b64) {
+  try { return decodeURIComponent(escape(atob(b64))); }
+  catch(e) { return atob(b64); }
+}
+
+// ─── 렌더 ───────────────────────────────────────────────
+function renderAll(data) {
+  renderPills(data);
+  renderCards(data);
+  renderKPIs(data);
+  renderChart(data);
+  buildTabs(data);
+  renderTable(data, currentFilter);
+}
+
+function renderPills(data) {
+  var totTarget = TEAM_NAMES.reduce(function(s,t){return s+(data.teams[t].monthTarget||0);},0);
+  var totPay    = TEAM_NAMES.reduce(function(s,t){return s+(data.teams[t].monthPayment||0);},0);
+  var totWd     = TEAM_NAMES.reduce(function(s,t){return s+(data.teams[t].withdrawal||0);},0);
+  var totToday  = TEAM_NAMES.reduce(function(s,t){return s+(data.teams[t].todayGoal||0);},0);
+  var totTodayP = TEAM_NAMES.reduce(function(s,t){return s+(data.teams[t].todayPay||0);},0);
+  var rate = totTarget>0?Math.round(totPay/totTarget*100):0;
+  document.getElementById('hdrPills').innerHTML =
+    '<span class="pill p-gray">월달성률 <b>'+rate+'%</b></span>'+
+    '<span class="pill p-blue">월목표 <b>'+totTarget+'건</b></span>'+
+    '<span class="pill p-red">월결제 <b>'+totPay+'건</b></span>'+
+    '<span class="pill p-violet">오늘결제 <b>'+totTodayP+'건</b></span>'+
+    '<span class="pill p-amber">오늘예상 <b>'+totToday+'건</b></span>'+
+    '<span class="pill p-green">월청철 <b>'+totWd+'건</b></span>';
+}
+
+function renderCards(data) {
+  var row = document.getElementById('topRow');
+  row.innerHTML = '';
+
+  TEAM_NAMES.forEach(function(nm) {
+    var m=data.teams[nm], tc=TC[nm];
+    var tlist = data.teachers.filter(function(t){return t.team===nm;})
+      .sort(function(a,b){return b.monthPayment-a.monthPayment;});
+
+    var rowsHtml='';
+    tlist.forEach(function(t){
+      rowsHtml+='<div class="ti">'+
+        '<span class="ti-name">'+t.name+'</span>'+
+        '<span class="ti-end">'+(t.todayGoal>0?t.todayGoal:'-')+'</span>'+
+        '<span class="ti-pay'+(t.todayPay>0?' plus':'')+'">'+
+          (t.todayPay>0?'+'+t.todayPay:'-')+'</span>'+
+      '</div>';
+    });
+    for(var i=tlist.length;i<MAX_T;i++) rowsHtml+='<div class="ti-empty"></div>';
+
+    var pct = m.monthTarget>0?Math.min(100,Math.round(m.monthPayment/m.monthTarget*100)):0;
+
+    var card=document.createElement('div');
+    card.className='team-card';
+    card.style.cssText='border-top:3px solid '+tc.bdr;
+    card.innerHTML=
+      '<div class="tc-hdr" style="background:linear-gradient(180deg,'+tc.hdr+',#fff)">'+
+        '<span class="tc-name" style="color:'+tc.txt+'">'+nm+'</span>'+
+        '<span class="tc-badge" style="background:'+tc.bbg+';color:'+tc.btxt+'">'+m.headcount+'인</span>'+
+      '</div>'+
+      '<div class="tc-summary">'+
+        '<div class="srow2">'+
+          '<div class="sitem"><span class="slabel">오늘 예상종료</span><span class="sval">'+m.todayGoal+'건</span></div>'+
+          '<div class="sitem"><span class="slabel">오늘 결제</span><span class="sval" style="color:'+tc.txt+'">'+(m.todayPay>0?'+':'')+m.todayPay+'건</span></div>'+
+        '</div>'+
+        '<div class="srow"><span class="slabel">월 결제</span><span class="sval sval-big" style="color:'+tc.txt+'">'+m.monthPayment+'건</span></div>'+
+        '<div class="prog-bg"><div class="prog-fill" style="width:'+pct+'%;background:'+tc.bar+'"></div></div>'+
+      '</div>'+
+      '<div class="tl-hdr"><span>이름</span><span>오늘예상</span><span>오늘결제</span></div>'+
+      '<div class="tl-rows">'+rowsHtml+'</div>'+
+      '<div class="tc-footer">'+
+        '<div class="fc"><div class="fc-label">월달성률</div><div class="fc-val" style="color:'+tc.txt+'">'+m.monthRate+'</div></div>'+
+        '<div class="fc"><div class="fc-label">목표</div><div class="fc-val">'+m.monthTarget+'</div></div>'+
+        '<div class="fc"><div class="fc-label">월청철</div><div class="fc-val" style="color:#374151">'+m.withdrawal+'</div></div>'+
+      '</div>';
+    row.appendChild(card);
+  });
+
+  // 오른쪽: 오늘 결제 현황 패널
+  var todayPayers = data.teachers
+    .filter(function(t){ return (t.todayPay||0) > 0; })
+    .sort(function(a,b){ return 
