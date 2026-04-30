@@ -356,11 +356,11 @@ function parsePayCSV(text) {
         dailyTotals[d-1]+=v;
       }
     }
-    var monthTotal = iTotal>=0 ? (parseInt(row[iTotal])||0) : daySum;
+    var monthTotal = daySum;  // 일별 컬럼(1~30) 합산 고정 — 합계 컬럼 무시
     var withdrawal = iWd>=0   ? (parseInt(row[iWd])  ||0) : 0;
     map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily};
   }
-  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 합계방식:', iTotal>=0?'합계컬럼':'일별합산', '/ 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
+  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 월결제=일별합산 / 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
   return {map:map, dailyTotals:dailyTotals};
 }
 
