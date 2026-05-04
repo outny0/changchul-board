@@ -35,13 +35,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .card-cnt{font-size:11px;color:#9ca3af;font-weight:600;}
 
 /* ── 팀 색상 ────────────────────────────────────── */
-.team-accent-땅이팀{border-left:3px solid #3b82f6;}
-.team-accent-다래팀{border-left:3px solid #22c55e;}
-.team-accent-해태팀{border-left:3px solid #f59e0b;}
-.team-accent-단비팀{border-left:3px solid #8b5cf6;}
+.team-accent-땅이팀{border-left:3px solid #f97316;}
+.team-accent-다래팀{border-left:3px solid #ec4899;}
+.team-accent-해태팀{border-left:3px solid #eab308;}
+.team-accent-단비팀{border-left:3px solid #22c55e;}
 
 /* ── 선생님 행 ───────────────────────────────────── */
-.t-row{display:grid;grid-template-columns:130px 1fr 120px 36px;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid #f9fafb;transition:background .1s;}
+.t-row{display:grid;grid-template-columns:120px 1fr 70px 110px 36px;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid #f9fafb;transition:background .1s;}
 .t-row:last-child{border-bottom:none;}
 .t-row:hover{background:#fafafa;}
 .t-id{font-size:11px;color:#9ca3af;font-family:monospace;}
@@ -110,6 +110,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .info-banner b{font-weight:700;}
 
 .team-badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;}
+.tgt-small-inp{font-size:12px;font-weight:600;padding:5px 8px;border:1px solid #e5e7eb;border-radius:7px;background:#fff;width:100%;text-align:center;color:#111827;}
+.tgt-small-inp:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 2px rgba(139,92,246,.1);}
+.t-tgt-lbl{font-size:9px;color:#9ca3af;text-align:center;margin-bottom:2px;}
 </style>
 </head>
 <body>
@@ -170,6 +173,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
       <div class="tgt-total">
         <span class="tgt-total-lbl">전체 합계</span>
         <span class="tgt-total-val" id="tgtTotalVal">&mdash;</span>
+        <span class="tgt-total-lbl" style="margin-left:16px;">개인목표 합산</span>
+        <span class="tgt-total-val" id="indivTotalVal" style="color:#7c3aed;">&mdash;</span>
       </div>
       <button class="save-tgt-btn" id="saveTgtBtn" onclick="saveTargets()">이 달 목표 저장</button>
     </div>
@@ -198,10 +203,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 var STORAGE_KEY = 'changchul_settings';
 var TEAMS = ['땅이팀','다래팀','해태팀','단비팀'];
 var COLORS = {
-  '땅이팀':{hex:'#3b82f6',bg:'#dbeafe',txt:'#1d4ed8'},
-  '다래팀':{hex:'#22c55e',bg:'#dcfce7',txt:'#15803d'},
-  '해태팀':{hex:'#f59e0b',bg:'#fef3c7',txt:'#b45309'},
-  '단비팀':{hex:'#8b5cf6',bg:'#ede9fe',txt:'#6d28d9'},
+  '땅이팀':{hex:'#f97316',bg:'#fed7aa',txt:'#c2410c'},
+  '다래팀':{hex:'#ec4899',bg:'#fce7f3',txt:'#be185d'},
+  '해태팀':{hex:'#eab308',bg:'#fef08a',txt:'#a16207'},
+  '단비팀':{hex:'#22c55e',bg:'#dcfce7',txt:'#15803d'},
 };
 
 /* ── 데이터 ────────────────────────────────────────── */
@@ -246,6 +251,7 @@ function renderTeachers() {
         return '<div class="t-row">'+
           '<span class="t-id">'+esc(t.id)+'</span>'+
           '<span class="t-name">'+esc(t.name)+'</span>'+
+          '<div><div class="t-tgt-lbl">월목표</div><input class="tgt-small-inp" type="number" min="0" max="999" value="'+(t.target||0)+'" onchange="changeTarget(\''+esc(t.id)+'\',this.value)" oninput="updateTotal()"></div>'+
           '<select class="team-sel" onchange="changeTeam(\''+esc(t.id)+'\',this.value)">'+opts+'</select>'+
           '<button class="del-btn" onclick="deleteTeacher(\''+esc(t.id)+'\')" title="삭제">&#10005;</button>'+
         '</div>';
@@ -272,7 +278,7 @@ function addTeacher() {
     alert('이미 등록된 교사번호입니다 ('+id+')');
     document.getElementById('newId').select(); return;
   }
-  data.teachers.push({id:id,name:name,team:team});
+  data.teachers.push({id:id,name:name,team:team,target:0});
   saveData();
   document.getElementById('newId').value='';
   document.getElementById('newName').value='';
@@ -285,6 +291,11 @@ function deleteTeacher(id) {
   if (!t||!confirm('['+t.name+'] 선생님을 삭제할까요?')) return;
   data.teachers=data.teachers.filter(function(t){return t.id!==id;});
   saveData(); renderTeachers();
+}
+
+function changeTarget(id,val) {
+  var t=data.teachers.find(function(t){return t.id===id;});
+  if(t){t.target=parseInt(val)||0;saveData();}
 }
 
 function changeTeam(id,newTeam) {
@@ -312,6 +323,10 @@ function buildTargetGrid() {
 function updateTotal() {
   var sum=TEAMS.reduce(function(s,t){return s+(parseInt(document.getElementById('tgt-'+t).value)||0);},0);
   document.getElementById('tgtTotalVal').textContent=sum>0?sum+'건':'—';
+  // 개인목표 합산
+  var indivSum=data.teachers.reduce(function(s,t){return s+(parseInt(t.target)||0);},0);
+  var el=document.getElementById('indivTotalVal');
+  if(el)el.textContent=indivSum>0?indivSum+'건':'—';
 }
 
 function initMonthPicker() {
