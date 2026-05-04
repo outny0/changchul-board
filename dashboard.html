@@ -1218,8 +1218,10 @@ function renderLive() {
     if(team && manualTeamTotals[team]!==undefined) manualTeamTotals[team]++;
   });
 
-  // grandTotal: parseLiveCSV 전체 유효건 + 수기 전체건 (팀 배정 여부 무관)
-  var grandTotal = (d&&d.total?d.total:0) + manualEntries.length;
+  // grandTotal: 팀 배정된 건만 합산 (팀별 카드와 동일한 계산, 미배정 제외)
+  var csvTeamSum = d ? TEAM_NAMES.reduce(function(s,nm){return s+(d.teamTotals[nm]||0);},0) : 0;
+  var manualTeamSum = TEAM_NAMES.reduce(function(s,nm){return s+(manualTeamTotals[nm]||0);},0);
+  var grandTotal = csvTeamSum + manualTeamSum;
 
   // 헤더 pill
   var livePill = document.getElementById('liveHeaderPill');
@@ -1243,6 +1245,12 @@ function renderLive() {
   });
   var totEl=document.getElementById('liveTotalCnt');
   if(totEl) totEl.textContent=grandTotal+'건';
+
+  // liveStatus(시간 표시) 카운트도 grandTotal로 동기화
+  var statusEl=document.getElementById('liveStatus');
+  if(statusEl && statusEl.textContent.indexOf('총')>=0){
+    statusEl.textContent=statusEl.textContent.replace(/총 \d+건/, '총 '+grandTotal+'건');
+  }
 
   // 상품별 팀별
   var prodBody=document.getElementById('liveProdBody');
