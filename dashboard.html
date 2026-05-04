@@ -297,8 +297,15 @@ tbody tr:hover td{background:#f9fafb;}
     </div>
     <div class="tbl-wrap">
       <table>
-        <thead><tr>
-          <th>교사명</th><th>팀</th><th>개인목표</th><th>월 실제종료</th><th>결제수</th><th>청철</th><th>실제결제</th><th>전환율</th>
+        <thead><tr id="tblHead">
+          <th onclick="sortTable('name')" style="cursor:pointer;user-select:none;white-space:nowrap">교사명 <span id="si-name"></span></th>
+          <th onclick="sortTable('team')" style="cursor:pointer;user-select:none;white-space:nowrap">팀 <span id="si-team"></span></th>
+          <th onclick="sortTable('target')" style="cursor:pointer;user-select:none;white-space:nowrap">개인목표 <span id="si-target"></span></th>
+          <th onclick="sortTable('monthEnd')" style="cursor:pointer;user-select:none;white-space:nowrap">실제종료 <span id="si-monthEnd"></span></th>
+          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">결제수 <span id="si-monthPayment">▼</span></th>
+          <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap">청철 <span id="si-withdrawal"></span></th>
+          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap">실제결제 <span id="si-realPay"></span></th>
+          <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap">전환율 <span id="si-monthRate"></span></th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
@@ -324,6 +331,7 @@ var TEAM_CFG = {
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null};
 var currentFilter = '전체';
+var sortKey = 'monthPayment', sortDir = -1; // -1=내림차순, 1=오름차순
 
 function p2(n){return String(n).padStart(2,'0');}
 
@@ -851,10 +859,29 @@ function buildTabs() {
   }).join('');
 }
 function setFilter(f){currentFilter=f;var d=combineData();buildTabs();renderTable(d,f);}
+function sortTable(key){
+  if(sortKey===key){sortDir=-sortDir;}else{sortKey=key;sortDir=-1;}
+  var d=combineData();renderTable(d,currentFilter);
+}
 
 function renderTable(data, filter) {
   var teachers=filter==='전체'?data.teachers.slice():data.teachers.filter(function(t){return t.team===filter;});
-  teachers.sort(function(a,b){return b.monthPayment-a.monthPayment;});
+  // 정렬
+  teachers.sort(function(a,b){
+    var av,bv;
+    if(sortKey==='name'){av=a.name;bv=b.name;}
+    else if(sortKey==='team'){av=a.team;bv=b.team;}
+    else if(sortKey==='monthRate'){av=parseFloat(a.monthRate)||0;bv=parseFloat(b.monthRate)||0;}
+    else{av=a[sortKey]||0;bv=b[sortKey]||0;}
+    if(av<bv)return sortDir;
+    if(av>bv)return -sortDir;
+    return 0;
+  });
+  // 정렬 인디케이터 업데이트
+  ['name','team','target','monthEnd','monthPayment','withdrawal','realPay','monthRate'].forEach(function(k){
+    var el=document.getElementById('si-'+k);
+    if(el)el.textContent=k===sortKey?(sortDir===-1?'▼':'▲'):'';
+  });
   document.getElementById('tblBody').innerHTML=teachers.map(function(t){
     var cfg=TEAM_CFG[t.team]||TEAM_CFG['단비팀'];
     var rate=parseFloat(t.monthRate)||0;
@@ -862,7 +889,7 @@ function renderTable(data, filter) {
     return '<tr>'+
       '<td class="td-name">'+t.name+'</td>'+
       '<td><span class="t-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+t.team+'</span></td>'+
-      '<td style="color:#9ca3af;">'+(t.target>0?t.target:'-')+'</td>'+
+      '<td>'+(t.target>0?'<b>'+t.target+'</b>':'<span style="color:#d1d5db">-</span>')+'</td>'+
       '<td>'+t.monthEnd+'</td>'+
       '<td>'+t.monthPayment+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'(오늘)</span>':'')+'</td>'+
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
