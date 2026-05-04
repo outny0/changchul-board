@@ -218,6 +218,7 @@ tbody tr:hover td{background:#f9fafb;}
 // ─── 상수 ───────────────────────────────────────────────
 var PAYMENT_FILE_ID = '1BlgT3aH7MXpqoQGwUtcTO5reod0KmgbQ9S9iwuuIGqA';
 var V1_SHEET_NAME   = 'v1 가공';
+var V1_GID          = '1983914312';
 var PAYMENT_GID     = '1949444270';
 var TEAM_NAMES = ['땅이팀','다래팀','해태팀','단비팀'];
 var TEAM_CFG = {
@@ -672,7 +673,7 @@ function fetchV1() {
   var el=document.getElementById('v1Status'), spn=document.getElementById('v1Spin');
   el.textContent='불러오는 중...'; el.className='up-status';
   if(spn)spn.style.display='inline-block';
-  var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&sheet='+encodeURIComponent(V1_SHEET_NAME);
+  var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid='+V1_GID;
   console.log('[V1] fetch URL:', url);
   fetch(url,{redirect:'follow'}).then(function(r){
     if(!r.ok)throw new Error('HTTP '+r.status);
