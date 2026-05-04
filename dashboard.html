@@ -468,6 +468,14 @@ function combineData() {
   try{cfg=JSON.parse(localStorage.getItem('changchul_settings')||'{}');}catch(e){}
   var targets=cfg.targets&&cfg.targets[ym]?cfg.targets[ym]:{};
 
+  // localStorage 개인 목표 맵 (교사ID → 개인목표) 미리 구성
+  var localTargetMap={};
+  try{
+    if(cfg.teachers){cfg.teachers.forEach(function(t){
+      if(t.id) localTargetMap[String(t.id)]=parseInt(t.target)||0;
+    });}
+  }catch(e){}
+
   // 선생님설정: 구글시트 settings 우선, 없으면 localStorage
   var allowed=state.settings||{};
 
@@ -480,7 +488,7 @@ function combineData() {
     var info=allowed[tid];
     var mEnd=0;
     Object.keys(v.daily).forEach(function(ds){if(ds.slice(0,7)===ym)mEnd+=(v.daily[ds]||0);});
-    teacherMap[tid]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0,target:parseInt(info.target)||0};
+    teacherMap[tid]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0,target:localTargetMap[String(tid)]||parseInt(info.target)||0};
   });}
 
   // 결제: settings에 있는 선생님만
@@ -497,7 +505,7 @@ function combineData() {
   // settings에는 있지만 V1·결제 데이터가 없는 선생님도 포함
   Object.keys(allowed).forEach(function(tid){
     if(!teacherMap[tid]){
-      teacherMap[tid]={name:allowed[tid].name,team:allowed[tid].team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:parseInt(allowed[tid].target)||0};
+      teacherMap[tid]={name:allowed[tid].name,team:allowed[tid].team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:localTargetMap[String(tid)]||parseInt(allowed[tid].target)||0};
     }
   });
 
@@ -569,7 +577,7 @@ function combineData() {
       if(!tid) return;
       if(!teacherMap[tid]){
         var info=allowed[tid]||{};
-        teacherMap[tid]={name:info.name||n,team:info.team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:parseInt(info.target)||0};
+        teacherMap[tid]={name:info.name||n,team:info.team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:localTargetMap[String(tid)]||parseInt(info.target)||0};
       }
       var liveCnt = liveByName[n]||0;
       teacherMap[tid].monthPayment += liveCnt;
