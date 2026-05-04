@@ -156,8 +156,9 @@ tbody tr:hover td{background:#f9fafb;}
 .live-team-cnt{font-size:24px;font-weight:900;line-height:1;}
 .live-team-sub{font-size:10px;color:#9ca3af;margin-top:2px;}
 .live-timeline{border-top:1px solid #f3f4f6;padding-top:10px;}
-.live-tl-hdr{display:grid;grid-template-columns:80px repeat(4,1fr) 60px;font-size:10px;font-weight:700;color:#9ca3af;padding:4px 8px;background:#fafafa;border-radius:6px 6px 0 0;}
-.live-tl-row{display:grid;grid-template-columns:80px repeat(4,1fr) 60px;font-size:12px;padding:6px 8px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.live-tl-hdr{display:grid;grid-template-columns:38px repeat(4,30px) 36px;font-size:10px;font-weight:700;color:#9ca3af;padding:3px 6px;background:#fafafa;border-radius:6px 6px 0 0;gap:0;}
+.live-tl-row{display:grid;grid-template-columns:38px repeat(4,30px) 36px;font-size:11px;padding:4px 6px;border-bottom:1px solid #f9f9f9;align-items:center;gap:0;}
+.live-tl-divider{border-top:2px solid #e5e7eb;margin:2px 0;}
 .live-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);cursor:pointer;color:#15803d;}
 .live-sub-txt{font-size:11px;color:#9ca3af;margin-left:auto;}
 .live-empty{text-align:center;padding:24px;color:#9ca3af;font-size:12px;}
@@ -242,7 +243,7 @@ tbody tr:hover td{background:#f9fafb;}
           <!-- 시간대별 -->
           <div style="margin-top:10px;border-top:1px solid #f3f4f6;padding-top:8px;">
             <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:4px;">⏰ 시간대별</div>
-            <div class="live-tl-hdr"><span>시간</span><span style="text-align:right">땅이</span><span style="text-align:right">다래</span><span style="text-align:right">해태</span><span style="text-align:right">단비</span><span style="text-align:right">합계</span></div>
+            <div class="live-tl-hdr"><span>시간</span><span style="text-align:right;overflow:hidden">땅이</span><span style="text-align:right;overflow:hidden">다래</span><span style="text-align:right;overflow:hidden">해태</span><span style="text-align:right;overflow:hidden">단비</span><span style="text-align:right;overflow:hidden">합계</span></div>
             <div id="liveTlBody"><div class="live-empty">-</div></div>
           </div>
         </div>
@@ -1061,7 +1062,7 @@ function parseLiveCSV(text) {
     var rawTime  = String(r[iTime] ||'').trim();
     var rawTeach = String(r[iTeach]||'').replace(/♥/g,'').trim();
     var prod     = String(r[iProd] ||'').trim();
-    var time = rawTime.replace(/^\d{4}-\d{2}-\d{2}\s*/,'').slice(0,5);
+    var time = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'').slice(0,5);
     if(!time) continue;
 
     // 팀 결정: 이름→팀 매핑
@@ -1254,17 +1255,19 @@ function renderLive() {
   });
   var tlBody=document.getElementById('liveTlBody');
   if(tlBody){
+    var DIVIDER_HOURS=['14','18','21']; // 구분선 앞에 넣을 시간
     tlBody.innerHTML=LIVE_HOURS.map(function(hr){
       var row=byTimeWithManual[hr]||{};
       var tot=TEAM_NAMES.reduce(function(s,nm){return s+(row[nm]||0);},0);
       var hasData=tot>0;
-      return '<div class="live-tl-row" style="'+(hasData?'':'opacity:.4')+'">'+
-        '<span style="color:#6b7280;font-size:11px;">'+hr+':00</span>'+
+      var divider=DIVIDER_HOURS.indexOf(hr)>=0?'<div class="live-tl-divider"></div>':'';
+      return divider+'<div class="live-tl-row" style="'+(hasData?'':'opacity:.35')+'">'+
+        '<span style="color:#6b7280;font-size:10px;white-space:nowrap;">'+hr+'시</span>'+
         TEAM_NAMES.map(function(nm){
           var v=row[nm]||0;
-          return '<span style="text-align:right;font-weight:'+(v?700:400)+';color:'+(v?TEAM_CFG[nm].bar:'#d1d5db')+'">'+(v||'-')+'</span>';
+          return '<span style="text-align:right;font-weight:'+(v?700:400)+';color:'+(v?TEAM_CFG[nm].bar:'#d1d5db');'+font-size:11px;">'+(v||'-')+'</span>';
         }).join('')+
-        '<span style="text-align:right;font-weight:700;color:'+(hasData?'#1a1a2e':'#d1d5db')+';">'+(tot||'-')+'</span>'+
+        '<span style="text-align:right;font-weight:700;font-size:11px;color:'+(hasData?'#1a1a2e':'#d1d5db')+';">'+(tot||'-')+'</span>'+
       '</div>';
     }).join('');
   }
