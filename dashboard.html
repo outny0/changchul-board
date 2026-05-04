@@ -16,11 +16,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .hdr-date{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0;}
 .hdr-pills{display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;}
 .hdr-graph{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.hg-team{display:flex;align-items:center;gap:6px;}
-.hg-name{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);min-width:38px;white-space:nowrap;}
-.hg-bar-wrap{flex:1;background:rgba(255,255,255,.1);border-radius:4px;height:6px;overflow:hidden;}
+.hg-team{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border-radius:8px;padding:8px 12px;}
+.hg-left{flex:1;min-width:0;}
+.hg-name{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);white-space:nowrap;}
+.hg-bar-wrap{flex:1;background:rgba(255,255,255,.12);border-radius:4px;height:5px;overflow:hidden;}
 .hg-fill{height:100%;border-radius:4px;transition:width .4s;}
-.hg-val{font-size:10px;color:rgba(255,255,255,.8);min-width:52px;text-align:right;white-space:nowrap;}
+.hg-right{text-align:right;flex-shrink:0;}
 .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap;}
 .p-gray{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15);}
 .p-blue{background:rgba(91,184,232,.2);color:#93d7f6;border:1px solid rgba(91,184,232,.3);}
@@ -64,8 +65,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-kd{font-size:15px;font-weight:700;}
 .tc-ksub{font-size:10px;color:#9ca3af;}
 .tc-teachers{border-top:1px solid #f3f4f6;}
-.tc-thead{display:grid;grid-template-columns:1fr 80px 46px 46px 52px;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
-.tc-teacher{display:grid;grid-template-columns:1fr 80px 46px 46px 52px;padding:5px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.tc-thead{display:grid;grid-template-columns:1fr 48px 54px 48px;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
+.tc-teacher{display:grid;grid-template-columns:1fr 48px 54px 48px;padding:5px 10px;font-size:12px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.tc-tid-small{display:block;font-size:9px;color:#d1d5db;margin-top:1px;}
 .tc-teacher:last-child{border-bottom:none;}
 .tc-tname{color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tc-tid{color:#9ca3af;font-size:10px;}
@@ -146,6 +148,25 @@ tbody tr:hover td{background:#f9fafb;}
 .rl{color:#dc2626;font-weight:600;}
 
 .empty-note{text-align:center;padding:30px;color:#9ca3af;font-size:12px;}
+
+/* LIVE 결제 */
+.live-section{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.live-hdr{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f3f4f6;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2);animation:livepulse 1.5s infinite;}
+@keyframes livepulse{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.2);}50%{box-shadow:0 0 0 6px rgba(34,197,94,.08);}}
+.live-title{font-size:13px;font-weight:700;color:#1a1a2e;}
+.live-body{padding:12px 16px;}
+.live-team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
+.live-team-box{border-radius:8px;padding:10px 12px;text-align:center;border:1px solid #f3f4f6;}
+.live-team-name{font-size:10px;font-weight:700;margin-bottom:4px;}
+.live-team-cnt{font-size:24px;font-weight:900;line-height:1;}
+.live-team-sub{font-size:10px;color:#9ca3af;margin-top:2px;}
+.live-timeline{border-top:1px solid #f3f4f6;padding-top:10px;}
+.live-tl-hdr{display:grid;grid-template-columns:80px repeat(4,1fr) 60px;font-size:10px;font-weight:700;color:#9ca3af;padding:4px 8px;background:#fafafa;border-radius:6px 6px 0 0;}
+.live-tl-row{display:grid;grid-template-columns:80px repeat(4,1fr) 60px;font-size:12px;padding:6px 8px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.live-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);cursor:pointer;color:#15803d;}
+.live-sub-txt{font-size:11px;color:#9ca3af;margin-left:auto;}
+.live-empty{text-align:center;padding:24px;color:#9ca3af;font-size:12px;}
 </style>
 </head>
 <body>
@@ -197,6 +218,50 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="week-list" id="weekList"></div>
   </div>
 
+
+  <!-- 실시간 결제 현황 -->
+  <div>
+    <div class="sec-lbl">실시간 결제 현황</div>
+    <div class="live-section">
+      <div class="live-hdr">
+        <div class="live-dot"></div>
+        <span class="live-title">오늘의 실시간 결제</span>
+        <button class="live-btn" onclick="fetchLive()">새로고침</button>
+        <span class="live-sub" id="liveStatus">미연결</span>
+      </div>
+      <div class="live-body">
+        <div class="live-team-row" id="liveTeamRow">
+          <div class="live-team-box" style="background:#f9fafb;border:1px solid #f3f4f6;">
+            <div class="live-team-name" style="color:#9ca3af;">땅이팀</div>
+            <div class="live-team-cnt" style="color:#d1d5db;" id="liveCnt_땅이팀">-</div>
+            <div class="live-team-sub">건</div>
+          </div>
+          <div class="live-team-box" style="background:#f9fafb;border:1px solid #f3f4f6;">
+            <div class="live-team-name" style="color:#9ca3af;">다래팀</div>
+            <div class="live-team-cnt" style="color:#d1d5db;" id="liveCnt_다래팀">-</div>
+            <div class="live-team-sub">건</div>
+          </div>
+          <div class="live-team-box" style="background:#f9fafb;border:1px solid #f3f4f6;">
+            <div class="live-team-name" style="color:#9ca3af;">해태팀</div>
+            <div class="live-team-cnt" style="color:#d1d5db;" id="liveCnt_해태팀">-</div>
+            <div class="live-team-sub">건</div>
+          </div>
+          <div class="live-team-box" style="background:#f9fafb;border:1px solid #f3f4f6;">
+            <div class="live-team-name" style="color:#9ca3af;">단비팀</div>
+            <div class="live-team-cnt" style="color:#d1d5db;" id="liveCnt_단비팀">-</div>
+            <div class="live-team-sub">건</div>
+          </div>
+        </div>
+        <div class="live-timeline">
+          <div class="live-tl-hdr">
+            <span>시간</span><span style="text-align:right">땅이</span><span style="text-align:right">다래</span><span style="text-align:right">해태</span><span style="text-align:right">단비</span><span style="text-align:right">합계</span>
+          </div>
+          <div id="liveTlBody"><div class="live-empty">실시간 결제 데이터를 연결해주세요<br><span style="font-size:10px;color:#d1d5db;">구글시트 LIVE_GID 설정 후 이용 가능</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 교사별 세부 현황 -->
   <div class="tbl-section">
     <div class="tbl-hdr">
@@ -220,13 +285,14 @@ var PAYMENT_FILE_ID = '1BlgT3aH7MXpqoQGwUtcTO5reod0KmgbQ9S9iwuuIGqA';
 var V1_SHEET_NAME   = 'v1 가공';
 var V1_GID          = '1983914312';
 var SETTINGS_GID    = '572914637';
+var LIVE_GID        = '';  // 실시간 결제 시트 GID (추후 설정)
 var PAYMENT_GID     = '1949444270';
 var TEAM_NAMES = ['땅이팀','다래팀','해태팀','단비팀'];
 var TEAM_CFG = {
-  '땅이팀':{hdr:'#eff6ff',txt:'#2563eb',bar:'#3b82f6',dot:'#3b82f6',bbg:'#dbeafe',btxt:'#1d4ed8',bdr:'3px solid #3b82f6'},
-  '다래팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
-  '해태팀':{hdr:'#fffbeb',txt:'#d97706',bar:'#f59e0b',dot:'#f59e0b',bbg:'#fef3c7',btxt:'#b45309',bdr:'3px solid #f59e0b'},
-  '단비팀':{hdr:'#f5f3ff',txt:'#7c3aed',bar:'#8b5cf6',dot:'#8b5cf6',bbg:'#ede9fe',btxt:'#6d28d9',bdr:'3px solid #8b5cf6'},
+  '땅이팀':{hdr:'#fff7ed',txt:'#ea580c',bar:'#f97316',dot:'#f97316',bbg:'#fed7aa',btxt:'#c2410c',bdr:'3px solid #f97316'},
+  '다래팀':{hdr:'#fdf2f8',txt:'#db2777',bar:'#ec4899',dot:'#ec4899',bbg:'#fce7f3',btxt:'#be185d',bdr:'3px solid #ec4899'},
+  '해태팀':{hdr:'#fefce8',txt:'#ca8a04',bar:'#eab308',dot:'#eab308',bbg:'#fef08a',btxt:'#a16207',bdr:'3px solid #eab308'},
+  '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
 var state = {v1:null, pay:null, settings:null};
@@ -481,16 +547,27 @@ function renderHeader(data) {
     '<span class="pill p-pink">청철 '+tot.wd+'</span>'+
     '<span class="pill p-gray">실종료 '+tot.end+'</span>';
 
-  // 팀별 진행 바
+  // 팀별 진행 블록
   document.getElementById('hdrGraph').innerHTML=TEAM_NAMES.map(function(nm){
     var m=data.teams[nm], cfg=TEAM_CFG[nm];
     var tRealPay=Math.max(0,m.monthPayment-m.withdrawal);
     var pct=m.target>0?Math.min(100,Math.round(tRealPay/m.target*100)):0;
     var barColor=pct>=100?'#4ade80':pct>=80?'#fbbf24':cfg.bar;
+    var conv=m.monthEnd>0?(tRealPay/m.monthEnd*100).toFixed(0)+'%':'-';
     return '<div class="hg-team">'+
-      '<span class="hg-name" style="color:'+cfg.bar+'">'+nm.replace('팀','')+'</span>'+
-      '<div class="hg-bar-wrap"><div class="hg-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'+
-      '<span class="hg-val">'+tRealPay+' / '+m.target+'</span>'+
+      '<div class="hg-left">'+
+        '<div class="hg-name" style="color:'+cfg.bar+'">'+nm+'</div>'+
+        '<div style="display:flex;align-items:baseline;gap:3px;margin-top:3px;">'+
+          '<span style="font-size:18px;font-weight:800;color:#fff;line-height:1;">'+tRealPay+'</span>'+
+          '<span style="font-size:11px;color:rgba(255,255,255,.4);">/ '+m.target+'건</span>'+
+        '</div>'+
+        '<div class="hg-bar-wrap" style="margin-top:5px;"><div class="hg-fill" style="width:'+pct+'%;background:'+barColor+'"></div></div>'+
+        '<div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px;">종료 '+m.monthEnd+'건 · 전환 '+conv+'</div>'+
+      '</div>'+
+      '<div class="hg-right">'+
+        '<div style="font-size:22px;font-weight:900;color:'+barColor+';line-height:1;">'+pct+'%</div>'+
+        '<div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;">달성률</div>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
@@ -504,14 +581,15 @@ function renderTeams(data) {
     var rCls=rate>=100?'kv-good':rate>=80?'kv-warn':'kv-bad';
 
     var tRows=teachers.map(function(t){
-      var rate2=parseFloat(t.monthRate)||0;
-      var rCls2=rate2>=70?'kv-good':rate2>=50?'kv-warn':'kv-bad';
+      var conv=t.monthEnd>0?(t.realPay/t.monthEnd*100).toFixed(0)+'%':'-';
+      var rCls2=t.monthEnd>0?(t.realPay/t.monthEnd>=0.7?'kv-good':t.realPay/t.monthEnd>=0.5?'kv-warn':'kv-bad'):'';
       return '<div class="tc-teacher">'+
-        '<span class="tc-tname">'+t.name+'</span>'+
-        '<span class="tc-tid">'+t.teacherID+'</span>'+
+        '<span class="tc-tname">'+t.name+
+          '<span class="tc-tid-small">'+t.teacherID+'</span>'+
+        '</span>'+
         '<span class="tc-tnum">'+t.monthEnd+'</span>'+
-        '<span class="tc-tnum" style="color:#dc2626">'+t.withdrawal+'</span>'+
         '<span class="tc-treal '+rCls2+'">'+t.realPay+'</span>'+
+        '<span class="tc-tnum '+rCls2+'" style="font-size:11px;">'+conv+'</span>'+
       '</div>';
     }).join('');
 
@@ -527,7 +605,7 @@ function renderTeams(data) {
         '<div class="tc-kv"><div class="tc-kn">실제종료</div><div class="tc-kd">'+m.monthEnd+'</div></div>'+
       '</div>'+
       '<div class="tc-teachers">'+
-        '<div class="tc-thead"><span>이름</span><span>교사번호</span><span style="text-align:right">종료</span><span style="text-align:right">청철</span><span style="text-align:right">실결제</span></div>'+
+        '<div class="tc-thead"><span>이름</span><span style="text-align:right">종료</span><span style="text-align:right">실결제</span><span style="text-align:right">전환율</span></div>'+
         tRows+
       '</div>'+
     '</div>';
@@ -817,6 +895,98 @@ document.getElementById('hdrDate').textContent=getDate().label;
 fetchSettings();
 fetchV1();
 fetchPay();
+// ─── 실시간 결제 fetch ────────────────────────────────────
+// 구글시트 형식: 시간(HH:MM) | 팀명 | 교사명 | 교사번호 | 건수
+function fetchLive() {
+  var el=document.getElementById('liveStatus');
+  if(!LIVE_GID){el.textContent='GID 미설정';return;}
+  el.textContent='불러오는 중...';
+  var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid='+LIVE_GID;
+  fetch(url,{redirect:'follow'}).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(function(text){
+    state.live=parseLiveCSV(text);
+    var tot=Object.values(state.live.teamTotals).reduce(function(s,v){return s+v;},0);
+    el.textContent='✓ 총 '+tot+'건 ('+new Date().toTimeString().slice(0,5)+' 기준)';
+    renderLive();
+  }).catch(function(err){
+    el.textContent='오류: '+err.message;
+  });
+}
+
+function parseLiveCSV(text) {
+  var rows=[];
+  text.split('\n').forEach(function(line){
+    var cols=[],cur='',inQ=false;
+    for(var i=0;i<line.length;i++){var ch=line[i];
+      if(inQ){if(ch==='"')inQ=false;else cur+=ch;}
+      else{if(ch==='"')inQ=true;else if(ch===','){cols.push(cur.trim());cur='';}else cur+=ch;}}
+    cols.push(cur.trim()); rows.push(cols);
+  });
+  if(rows.length<2)return{teamTotals:{},timeline:[]};
+  var hdr=rows[0];
+  // 컬럼 찾기: 시간, 팀, 건수
+  var iTime=-1,iTeam=-1,iCnt=-1;
+  hdr.forEach(function(h,i){
+    var s=h.trim();
+    if(s==='시간'||s==='입력시간')iTime=i;
+    if(s==='팀'||s==='팀명')iTeam=i;
+    if(s==='건수'||s==='결제수')iCnt=i;
+  });
+  if(iTime<0)iTime=0; if(iTeam<0)iTeam=1; if(iCnt<0)iCnt=4;
+
+  var teamTotals={'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0};
+  var byTime={};
+  for(var i=1;i<rows.length;i++){
+    var r=rows[i];
+    var t=String(r[iTime]||'').trim();
+    var team=String(r[iTeam]||'').trim();
+    var cnt=parseInt(r[iCnt])||0;
+    if(!t||!team||!TEAM_NAMES.includes(team))continue;
+    // 시간대(HH 단위)
+    var hr=t.slice(0,2)||'??';
+    if(!byTime[hr])byTime[hr]={'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0};
+    byTime[hr][team]=(byTime[hr][team]||0)+cnt;
+    if(teamTotals[team]!==undefined)teamTotals[team]+=cnt;
+  }
+  var timeline=Object.keys(byTime).sort().map(function(hr){return{hr:hr,teams:byTime[hr]};});
+  return{teamTotals:teamTotals,timeline:timeline};
+}
+
+function renderLive() {
+  if(!state.live)return;
+  var cfg=TEAM_CFG;
+  // 팀별 총합
+  TEAM_NAMES.forEach(function(nm){
+    var el=document.getElementById('liveCnt_'+nm);
+    if(!el)return;
+    var cnt=state.live.teamTotals[nm]||0;
+    var c=TEAM_CFG[nm];
+    el.parentElement.style.background=c.hdr;
+    el.parentElement.style.border='1px solid '+c.bar+'40';
+    el.previousElementSibling.style.color=c.txt;
+    el.style.color=c.bar;
+    el.textContent=cnt;
+  });
+  // 타임라인
+  var tl=state.live.timeline;
+  var body=document.getElementById('liveTlBody');
+  if(!tl.length){body.innerHTML='<div class="live-empty">데이터 없음</div>';return;}
+  body.innerHTML=tl.map(function(row){
+    var tot=TEAM_NAMES.reduce(function(s,nm){return s+(row.teams[nm]||0);},0);
+    return '<div class="live-tl-row">'+
+      '<span style="color:#6b7280;">'+row.hr+':00~</span>'+
+      TEAM_NAMES.map(function(nm){
+        var v=row.teams[nm]||0;
+        return '<span style="text-align:right;font-weight:'+(v?'700':'400')+';color:'+(v?TEAM_CFG[nm].bar:'#d1d5db')+';">'+( v||'-')+'</span>';
+      }).join('')+
+      '<span style="text-align:right;font-weight:700;">'+tot+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+
 </script>
 </body>
 </html>
