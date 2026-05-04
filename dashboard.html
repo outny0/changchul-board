@@ -225,7 +225,7 @@ tbody tr:hover td{background:#f9fafb;}
           </div>
           <!-- 수기 결제 입력 -->
           <div style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:8px;">
-            <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:6px;">✏️ 수기 결제 입력</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:#9ca3af;">✏️ 수기 결제 입력</span><button onclick="clearManualEntries()" style="font-size:9px;padding:2px 8px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">전체 초기화</button></div>
             <div style="display:grid;grid-template-columns:1fr 70px 1fr auto;gap:5px;margin-bottom:6px;" id="manualInputRow">
               <input id="manualName" placeholder="선생님 이름" list="manualNameList"
                 style="font-size:11px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;">
@@ -993,9 +993,6 @@ function parseLiveCSV(text) {
     });
   }
 
-  // 수기 배정 로드
-  var manualAssign={};
-  try{manualAssign=JSON.parse(localStorage.getItem('liveManualAssign')||'{}');}catch(e){}
 
   var teamTotals={'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0};
   var byTime={}, products={}, teamProducts={}, feed=[], total=0, skipped=0, unassigned=[];
@@ -1019,14 +1016,8 @@ function parseLiveCSV(text) {
     // 팀 결정: 이름→팀 or 수기배정
     var rowKey = 'r'+i;
     var team = nameToTeam[normName(rawTeach)]||'';
-    if(!team && manualAssign[rowKey]) team = manualAssign[rowKey];
-
-    // 팀 미배정 → 수기입력 대기열
-    if(!team || !rawTeach) {
-      unassigned.push({key:rowKey, time:time, teacher:rawTeach, product:prod, manualTeam:manualAssign[rowKey]||''});
-      // 수기 배정된 경우 통계에는 포함
-      if(!team){total++;continue;}
-    }
+    // 팀 미배정이면 피드에 포함하지 않음 (수기 입력으로 처리)
+    if(!team || !rawTeach) { total++; continue; }
 
     var hr = time.slice(0,2);
     if(teamTotals[team]!==undefined) teamTotals[team]++;
@@ -1042,7 +1033,7 @@ function parseLiveCSV(text) {
 
   console.log('[Live] 총'+total+'건 / 제외'+skipped+'건 / 미배정'+unassigned.length+'건');
   var productList=Object.keys(products).sort(function(a,b){return products[b]-products[a];});
-  return{teamTotals:teamTotals,byTime:byTime,products:products,teamProducts:teamProducts,productList:productList,feed:feed,total:total,unassigned:unassigned};
+  return{teamTotals:teamTotals,byTime:byTime,products:products,teamProducts:teamProducts,productList:productList,feed:feed,total:total};
 }
 
 // ─── 수기 결제 입력 ──────────────────────────────────────
@@ -1085,6 +1076,12 @@ function deleteManualEntry(id) {
   try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
   all = all.filter(function(e){ return e.id !== id; });
   localStorage.setItem(MANUAL_KEY, JSON.stringify(all));
+  renderLive();
+}
+
+function clearManualEntries() {
+  if(!confirm('수기 입력한 결제 내역을 모두 삭제할까요?')) return;
+  localStorage.removeItem(MANUAL_KEY);
   renderLive();
 }
 
