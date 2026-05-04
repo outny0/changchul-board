@@ -536,7 +536,7 @@ function calcWeekData(week, data) {
 
 // ─── 렌더 함수들 ────────────────────────────────────────
 function tryRender() {
-  if(!state.settings){
+  if(state.settings===null||state.settings===undefined){
     document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">선생님 설정 불러오는 중...</span>';
     return;
   }
@@ -785,6 +785,15 @@ function parseSettingsCSV(text) {
   // 헤더 못찾으면 기본값: A=☆ B=팀 C=이름 D=# E=교사번호
   if(tidCol<0){hdrRow=0;teamCol=1;nameCol=2;tidCol=4;}
 
+  // target 컬럼 탐색 (있을 경우)
+  var tgtCol=-1;
+  if(hdrRow>=0){
+    for(var c=0;c<rows[hdrRow].length;c++){
+      var h2=String(rows[hdrRow][c]||'').trim();
+      if(h2==='목표'||h2==='target'||h2==='월목표')tgtCol=c;
+    }
+  }
+
   var result={};
   for(var i=hdrRow+1;i<rows.length;i++){
     var row=rows[i];
@@ -792,7 +801,8 @@ function parseSettingsCSV(text) {
     var team=String(row[teamCol]||'').trim();
     var name=String(row[nameCol]||'').trim();
     if(!tid||!/^\d+$/.test(tid))continue;
-    result[tid]={name:name,team:team};
+    var tgt=tgtCol>=0?parseInt(row[tgtCol])||0:0;
+    result[tid]={name:name,team:team,target:tgt};
   }
   console.log('[Settings] 파싱 완료:', Object.keys(result).length,'명');
   return result;
@@ -809,14 +819,14 @@ function fetchSettings() {
     tryRender();
   }).catch(function(err){
     console.warn('[Settings] fetch 실패, localStorage 사용:', err.message);
+    var s={};
     try{
       var cfg=JSON.parse(localStorage.getItem('changchul_settings')||'{}');
       if(cfg.teachers){
-        var s={};
-        cfg.teachers.forEach(function(t){if(t.id)s[t.id]={name:t.name,team:t.team};});
-        state.settings=s;
+        cfg.teachers.forEach(function(t){if(t.id)s[t.id]={name:t.name,team:t.team,target:parseInt(t.target)||0};});
       }
     }catch(e){}
+    state.settings=s;
     tryRender();
   });
 }
