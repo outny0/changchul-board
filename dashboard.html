@@ -4,7 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>창출팀 월요약 대시보드</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--pink:#F72585;--blue:#5BB8E8;--bg:#f0f4f8;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -158,7 +157,7 @@ tbody tr:hover td{background:#f9fafb;}
       <div class="hdr-date" id="hdrDate"></div>
     </div>
     <div class="hdr-pills" id="hdrPills">
-      <span class="pill p-gray">V1 가공파일을 선택해 주세요</span>
+      <span class="pill p-gray">데이터 불러오는 중...</span>
     </div>
   </div>
   <div class="hdr-graph" id="hdrGraph"></div>
@@ -166,17 +165,17 @@ tbody tr:hover td{background:#f9fafb;}
 
 <div class="upload-bar">
   <div class="up-item">
-    <span class="up-label">📊 V1 가공</span>
-    <label class="file-btn">파일 선택<input class="file-input" type="file" accept=".xlsx" onchange="onV1File(this)"></label>
-    <span class="up-status" id="v1Status">미선택</span>
+    <span class="up-label">📊 V1 종료</span>
+    <button class="pay-btn" onclick="fetchV1()"><span class="spn" id="v1Spin" style="display:none"></span>새로고침</button>
+    <span class="up-status" id="v1Status">불러오는 중...</span>
   </div>
   <div class="vd"></div>
   <div class="up-item">
     <span class="up-label">💳 결제</span>
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
-    <span class="up-status" id="payStatus">미로드</span>
+    <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">V1 파일은 한 번 선택하면 브라우저에 저장됩니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#dc2626;background:none;border:none;cursor:pointer;text-decoration:underline;">캐시 초기화</button></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button></span>
 </div>
 
 <div class="page">
@@ -218,6 +217,7 @@ tbody tr:hover td{background:#f9fafb;}
 <script>
 // ─── 상수 ───────────────────────────────────────────────
 var PAYMENT_FILE_ID = '1BlgT3aH7MXpqoQGwUtcTO5reod0KmgbQ9S9iwuuIGqA';
+var V1_SHEET_NAME   = 'v1 가공';
 var PAYMENT_GID     = '1949444270';
 var TEAM_NAMES = ['땅이팀','다래팀','해태팀','단비팀'];
 var TEAM_CFG = {
@@ -267,60 +267,42 @@ function getWeeks(year, month) {
 }
 
 
-// ─── V1 파싱 ─────────────────────────────────────────────
-// 피벗_교사별_날짜별: 교사ID | 교사명 | YYYY-MM-DD... | 합계
-function parseV1Workbook(wb) {
-  // 시트 찾기: '피벗_교사별_날짜별' 우선, 없으면 '피벗' 포함 시트
-  var ws = null, foundSheet = '';
-  if (wb.Sheets['피벗_교사별_날짜별']) { ws = wb.Sheets['피벗_교사별_날짜별']; foundSheet='피벗_교사별_날짜별'; }
-  else { for (var sn of wb.SheetNames) { if (sn.indexOf('피벗') >= 0) { ws = wb.Sheets[sn]; foundSheet=sn; break; } } }
-  if (!ws) {
-    console.warn('[V1] 피벗 시트 없음. 존재하는 시트:', wb.SheetNames);
-    return null;
+// ─── V1 CSV 파싱 ─────────────────────────────────────────
+// 구글시트 V1_피벗 탭 CSV: 교사ID | 교사명 | YYYY-MM-DD... | 합계
+function parseV1CSV(text) {
+  var rows = [];
+  text.split('\n').forEach(function(line) {
+    var cols=[],cur='',inQ=false;
+    for(var i=0;i<line.length;i++){var ch=line[i];
+      if(inQ){if(ch==='"')inQ=false;else cur+=ch;}
+      else{if(ch==='"')inQ=true;else if(ch===','){cols.push(cur.trim());cur='';}else cur+=ch;}}
+    cols.push(cur.trim()); rows.push(cols);
+  });
+  if(rows.length<2){console.warn('[V1] CSV 행이 2개 미만');return null;}
+
+  var header=rows[0];
+  var dateIdxs={}, totalIdx=-1;
+  for(var c=2;c<header.length;c++){
+    var h=String(header[c]||'').trim();
+    if(h==='합계'){totalIdx=c;continue;}
+    if(/^\d{4}-\d{2}-\d{2}$/.test(h)){dateIdxs[h]=c;}
   }
-  console.log('[V1] 사용 시트:', foundSheet, '/ 전체 시트:', wb.SheetNames);
+  if(totalIdx<0)totalIdx=header.length-1;
 
-  var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-  if (rows.length < 2) return null;
-  var header = rows[0];
-  console.log('[V1] 헤더 앞 5개:', header.slice(0,5), '... 마지막 5개:', header.slice(-5));
+  var dates=Object.keys(dateIdxs).sort();
+  console.log('[V1] CSV 날짜 범위:', dates[0],'~',dates[dates.length-1],'('+dates.length+'일)');
 
-  // 날짜 컬럼 찾기
-  var dateIdxs = {}; // 'YYYY-MM-DD' → col index
-  // 합계 컬럼 찾기 (이름으로 검색, 없으면 마지막 컬럼)
-  var totalIdx = -1;
-  for (var c = 2; c < header.length; c++) {
-    var h = String(header[c]||'').trim();
-    if (h === '합계') { totalIdx = c; continue; }
-    if (/^\d{4}-\d{2}-\d{2}$/.test(h)) { dateIdxs[h] = c; continue; }
-    if (typeof header[c] === 'number' && header[c] > 40000) {
-      var dd = new Date(Math.round((header[c]-25569)*86400000));
-      var ds = dd.getFullYear()+'-'+p2(dd.getMonth()+1)+'-'+p2(dd.getDate());
-      dateIdxs[ds] = c;
-    }
+  var result={};
+  for(var i=1;i<rows.length;i++){
+    var r=rows[i];
+    var tid=String(r[0]||'').trim();
+    var name=String(r[1]||'').trim();
+    if(!tid||tid==='합계'||tid==='교사ID'||!name)continue;
+    var daily={};
+    for(var ds in dateIdxs){var v=parseInt(r[dateIdxs[ds]])||0;if(v>0)daily[ds]=v;}
+    result[tid]={name:name, daily:daily};
   }
-  if (totalIdx < 0) totalIdx = header.length - 1;
-
-  var dates = Object.keys(dateIdxs).sort();
-  console.log('[V1] 감지된 날짜 수:', dates.length, '/ 범위:', dates[0], '~', dates[dates.length-1]);
-  console.log('[V1] 합계 컬럼 index:', totalIdx, '값:', header[totalIdx]);
-
-  var result = {};
-  for (var i = 1; i < rows.length; i++) {
-    var r = rows[i];
-    var tid  = String(r[0]||'').trim();
-    var name = String(r[1]||'').trim();
-    if (!tid || tid==='합계' || tid==='교사ID') continue;
-    var daily = {};
-    for (var ds in dateIdxs) { var v=parseInt(r[dateIdxs[ds]])||0; if(v>0) daily[ds]=v; }
-    var total = parseInt(r[totalIdx])||0;
-    // 합계가 0이면 daily 합산으로 대체
-    if (total===0 && Object.keys(daily).length>0) {
-      total = Object.values(daily).reduce(function(s,v){return s+v;},0);
-    }
-    result[tid] = {name:name, daily:daily, monthTotal:total, dateRange: dates.length>0 ? dates[0].slice(0,7) : ''};
-  }
-  console.log('[V1] 파싱 완료:', Object.keys(result).length, '명');
+  console.log('[V1] CSV 파싱 완료:', Object.keys(result).length,'명');
   return result;
 }
 
@@ -458,7 +440,7 @@ function calcWeekData(week, data) {
 // ─── 렌더 함수들 ────────────────────────────────────────
 function tryRender() {
   if(!state.v1&&!state.pay){
-    document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">V1 가공파일을 선택해 주세요</span>';
+    document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">데이터 불러오는 중...</span>';
     return;
   }
   var data=combineData();
@@ -674,17 +656,51 @@ function renderTable(data, filter) {
 // ─── 캐시 초기화 ────────────────────────────────────────
 function clearCache() {
   if(!confirm('TC·V1 캐시를 초기화할까요? 파일을 다시 선택해야 합니다.'))return;
-  localStorage.removeItem('dash_v1');
   state.v1=null; state.pay=null;
-  document.getElementById('tcStatus').textContent='미선택'; document.getElementById('tcStatus').className='up-status';
   document.getElementById('v1Status').textContent='미선택'; document.getElementById('v1Status').className='up-status';
   document.getElementById('payStatus').textContent='미로드';  document.getElementById('payStatus').className='up-status';
   // 화면 초기화
-  document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">V1 가공파일을 선택해 주세요</span>';
+  document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">데이터 불러오는 중...</span>';
   document.getElementById('teamRow').innerHTML='<div class="empty-note" style="grid-column:1/-1;padding:20px">V1 가공파일을 선택해 주세요</div>';
   document.getElementById('kpiGrid').innerHTML='';
   document.getElementById('weekList').innerHTML='<div class="empty-note">데이터가 없습니다</div>';
   document.getElementById('tblBody').innerHTML='<tr><td colspan="9" class="empty-note">데이터 없음</td></tr>';
+}
+
+// ─── V1 fetch ────────────────────────────────────────────
+function fetchV1() {
+  var el=document.getElementById('v1Status'), spn=document.getElementById('v1Spin');
+  el.textContent='불러오는 중...'; el.className='up-status';
+  if(spn)spn.style.display='inline-block';
+  var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&sheet='+encodeURIComponent(V1_SHEET_NAME);
+  console.log('[V1] fetch URL:', url);
+  fetch(url,{redirect:'follow'}).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(function(text){
+    var parsed=parseV1CSV(text);
+    if(!parsed)throw new Error('V1_피벗 시트 데이터 없음');
+    state.v1=parsed;
+    var cnt=Object.keys(parsed).length;
+    var ym0=getDate().ym;
+    var thisMonthEnd=0;
+    Object.values(parsed).forEach(function(t){
+      Object.keys(t.daily||{}).forEach(function(ds){if(ds.slice(0,7)===ym0)thisMonthEnd+=(t.daily[ds]||0);});
+    });
+    el.textContent='✓ '+cnt+'명 | '+ym0+' 종료 '+thisMonthEnd+'건';
+    el.className='up-status ok';
+    if(spn)spn.style.display='none';
+    tryRender();
+  }).catch(function(err){
+    var msg=err.message||'';
+    if(msg.indexOf('Failed to fetch')>=0||msg.indexOf('NetworkError')>=0||msg.indexOf('CORS')>=0){
+      el.textContent='❌ 시트 공개 설정 필요 (링크가 있는 모든 사용자-뷰어)';
+    } else {
+      el.textContent='오류: '+msg;
+    }
+    el.className='up-status err';
+    if(spn)spn.style.display='none';
+  });
 }
 
 // ─── 결제 fetch ──────────────────────────────────────────
@@ -718,39 +734,9 @@ function fetchPay() {
   });
 }
 
-// ─── 파일 핸들러 ─────────────────────────────────────────
-function onV1File(input) {
-  var file=input.files[0]; if(!file)return;
-  var el=document.getElementById('v1Status'); el.textContent='읽는 중...'; el.className='up-status';
-  var r=new FileReader();
-  r.onload=function(e){
-    try{var wb=XLSX.read(e.target.result,{type:'array'}); var p=parseV1Workbook(wb);
-      if(!p)throw new Error('피벗_교사별_날짜별 시트 없음');
-      state.v1=p; try{localStorage.setItem('dash_v1',JSON.stringify(p));}catch(ex){}
-      var ym0=getDate().ym;
-      var allDates=[]; Object.values(p).forEach(function(t){Object.keys(t.daily||{}).forEach(function(ds){if(allDates.indexOf(ds)<0)allDates.push(ds);});});
-      allDates.sort();
-      var dfrom=allDates.length>0?allDates[0].slice(0,7):'';
-      var dto=allDates.length>0?allDates[allDates.length-1].slice(0,7):'';
-      var thisMonthEnd=0; Object.values(p).forEach(function(t){Object.keys(t.daily||{}).forEach(function(ds){if(ds.slice(0,7)===ym0)thisMonthEnd+=(t.daily[ds]||0);});});
-      var rng=dfrom&&dto&&dfrom!==dto?dfrom+'~'+dto:dfrom;
-      el.textContent='✓ '+file.name+' ('+Object.keys(p).length+'명 | '+rng+' | '+ym0+' 종료'+thisMonthEnd+'건)';
-      el.className='up-status ok';
-    }catch(ex){el.textContent='오류: '+ex.message; el.className='up-status err';}
-    tryRender();
-  };
-  r.readAsArrayBuffer(file);
-}
-
 // ─── 초기화 ─────────────────────────────────────────────
 document.getElementById('hdrDate').textContent=getDate().label;
-
-try{var c=localStorage.getItem('dash_v1');if(c){state.v1=JSON.parse(c);var n=Object.keys(state.v1).length;
-  var ym0c=getDate().ym;
-  var thisMonthTotalC=0; Object.values(state.v1).forEach(function(t){Object.keys(t.daily||{}).forEach(function(ds){if(ds.slice(0,7)===ym0c)thisMonthTotalC+=(t.daily[ds]||0);});});
-  document.getElementById('v1Status').textContent='✓ 캐시 ('+n+'명 | '+ym0c+' 종료'+thisMonthTotalC+'건) ← 새 파일 선택 권장';
-  document.getElementById('v1Status').className='up-status ok';}}catch(e){}
-
+fetchV1();
 fetchPay();
 </script>
 </body>
