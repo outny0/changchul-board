@@ -302,9 +302,9 @@ tbody tr:hover td{background:#f9fafb;}
           <th onclick="sortTable('team')" style="cursor:pointer;user-select:none;white-space:nowrap">팀 <span id="si-team"></span></th>
           <th onclick="sortTable('target')" style="cursor:pointer;user-select:none;white-space:nowrap">개인목표 <span id="si-target"></span></th>
           <th onclick="sortTable('monthEnd')" style="cursor:pointer;user-select:none;white-space:nowrap">실제종료 <span id="si-monthEnd"></span></th>
-          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">결제수 <span id="si-monthPayment">▼</span></th>
+          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap">결제수 <span id="si-realPay2">▼</span></th>
           <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap">청철 <span id="si-withdrawal"></span></th>
-          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap">실제결제 <span id="si-realPay"></span></th>
+          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">총결제(청철제외전) <span id="si-monthPayment2"></span></th>
           <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap">전환율 <span id="si-monthRate"></span></th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
@@ -886,9 +886,11 @@ function renderTable(data, filter) {
     return 0;
   });
   // 정렬 인디케이터 업데이트
-  ['name','team','target','monthEnd','monthPayment','withdrawal','realPay','monthRate'].forEach(function(k){
-    var el=document.getElementById('si-'+k);
-    if(el)el.textContent=k===sortKey?(sortDir===-1?'▼':'▲'):'';
+  [['name','si-name'],['team','si-team'],['target','si-target'],['monthEnd','si-monthEnd'],
+   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate']
+  ].forEach(function(pair){
+    var el=document.getElementById(pair[1]);
+    if(el)el.textContent=pair[0]===sortKey?(sortDir===-1?'▼':'▲'):'';
   });
   document.getElementById('tblBody').innerHTML=teachers.map(function(t){
     var cfg=TEAM_CFG[t.team]||TEAM_CFG['단비팀'];
@@ -899,9 +901,9 @@ function renderTable(data, filter) {
       '<td><span class="t-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+t.team+'</span></td>'+
       '<td>'+(t.target>0?'<b>'+t.target+'</b>':'<span style="color:#d1d5db">-</span>')+'</td>'+
       '<td>'+t.monthEnd+'</td>'+
-      '<td>'+t.monthPayment+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'(오늘)</span>':'')+'</td>'+
+      '<td>'+t.realPay+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'(오늘)</span>':'')+'</td>'+
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
-      '<td><b>'+t.realPay+'</b></td>'+
+      '<td style="color:#6b7280">'+t.monthPayment+'</td>'+
       '<td class="'+rCls+'">'+t.monthRate+'</td>'+
     '</tr>';
   }).join('')||'<tr><td colspan="8" class="empty-note">데이터 없음</td></tr>';
