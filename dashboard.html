@@ -83,6 +83,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 
 /* WEEKLY SECTION */
 .week-list{display:flex;flex-direction:column;gap:6px;}
+.wk-team-row:hover{background:#f9fafb;}
+.wk-team-row td{font-size:12px;}
+.wk-expand-btn{font-size:9px;color:#9ca3af;margin-left:3px;transition:transform .15s;display:inline-block;}
+.wk-expand-btn.open{transform:rotate(90deg);}
+.wk-tchr-row td{font-size:11px;padding:3px 8px;background:#fafafa;border-bottom:1px solid #f3f4f6;}
+.wk-detail-tbl{width:100%;border-collapse:collapse;}
 .week-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07);}
 .week-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s;}
 .week-hdr:hover{background:#f9fafb;}
@@ -597,21 +603,25 @@ function calcWeekData(week, data) {
   var teams={};
   TEAM_NAMES.forEach(function(t){teams[t]={end:0,pay:0};});
   var daily={};
+  var tchrs={}; // 교사별 주간 집계 {tid:{name,team,end,pay}}
   var ym=data.ym;
   for(var d=week.start;d<=week.end;d++){
     daily[d]={end:0,pay:0};
     var ds=ym+'-'+p2(d);
-    // V1 end per team
     data.teachers.forEach(function(t){
       var endV=(t.daily_end&&t.daily_end[ds])||0;
       var payV=(t.daily_pay&&t.daily_pay[d])||0;
       if(t.team&&teams[t.team]){teams[t.team].end+=endV;teams[t.team].pay+=payV;}
       daily[d].end+=endV; daily[d].pay+=payV;
+      // 교사별 누적
+      var tid=t.teacherID||t.name;
+      if(!tchrs[tid]) tchrs[tid]={name:t.name,team:t.team,end:0,pay:0};
+      tchrs[tid].end+=endV; tchrs[tid].pay+=payV;
     });
   }
   var totEnd=TEAM_NAMES.reduce(function(s,t){return s+teams[t].end;},0);
   var totPay=TEAM_NAMES.reduce(function(s,t){return s+teams[t].pay;},0);
-  return {teams:teams,total:{end:totEnd,pay:totPay},daily:daily};
+  return {teams:teams,total:{end:totEnd,pay:totPay},daily:daily,tchrs:tchrs};
 }
 
 // ─── 렌더 함수들 ────────────────────────────────────────
@@ -729,15 +739,35 @@ function renderWeeks(data) {
     var todayBadge=(wi===todayWi)?'<span class="wk-today">진행중</span>':'';
     var rangeLabel=(data.month)+'/'+(wk.start)+' ~ '+(data.month)+'/'+(wk.end);
 
-    // Team table rows
+    // Team table rows (클릭 시 교사 상세 토글)
     var tRows=TEAM_NAMES.map(function(nm){
       var td=wd.teams[nm],cfg=TEAM_CFG[nm];
       var tr=td.end>0?(td.pay/td.end*100).toFixed(1)+'%':'-%';
       var trCls=td.end>0?(parseFloat(tr)>=70?'kv-good':parseFloat(tr)>=50?'kv-warn':'kv-bad'):'';
-      return '<tr><td><span class="team-dot" style="background:'+cfg.dot+'"></span>'+nm+'</td>'+
+      var detailId='wkd-'+wi+'-'+nm.replace(/팀/,'');
+      // 해당 팀 교사 목록
+      var teamTchrs=Object.values(wd.tchrs).filter(function(t){return t.team===nm;});
+      teamTchrs.sort(function(a,b){return b.pay-a.pay;});
+      var detailRows=teamTchrs.map(function(t){
+        var tRate=t.end>0?(t.pay/t.end*100).toFixed(1)+'%':'-%';
+        var tRCls=t.end>0?(parseFloat(tRate)>=70?'kv-good':parseFloat(tRate)>=50?'kv-warn':'kv-bad'):'';
+        return '<tr class="wk-tchr-row">'+
+          '<td style="padding-left:22px;color:#374151;">'+t.name+'</td>'+
+          '<td style="text-align:right;color:#6b7280;">'+t.end+'</td>'+
+          '<td style="text-align:right;color:#6b7280;">'+t.pay+'</td>'+
+          '<td style="text-align:right" class="'+tRCls+'">'+tRate+'</td>'+
+        '</tr>';
+      }).join('');
+      return '<tr class="wk-team-row" onclick="toggleTeamDetail(''+detailId+'')" style="cursor:pointer;">'+
+        '<td><span class="team-dot" style="background:'+cfg.dot+'"></span>'+nm+
+          '<span class="wk-expand-btn" id="exp-'+detailId+'"> ▸</span></td>'+
         '<td style="text-align:right">'+td.end+'</td>'+
         '<td style="text-align:right">'+td.pay+'</td>'+
-        '<td style="text-align:right" class="'+trCls+'">'+tr+'</td></tr>';
+        '<td style="text-align:right" class="'+trCls+'">'+tr+'</td>'+
+      '</tr>'+
+      '<tr id="'+detailId+'" style="display:none;"><td colspan="4" style="padding:0;">'+
+        '<table class="wk-detail-tbl">'+detailRows+'</table>'+
+      '</td></tr>';
     }).join('');
 
     // Daily rows
@@ -792,6 +822,14 @@ function toggleWeek(wi) {
   var open=body.classList.toggle('open');
   hdr.classList.toggle('open',open);
   btn.classList.toggle('open',open);
+}
+function toggleTeamDetail(id) {
+  var row=document.getElementById(id);
+  if(!row) return;
+  var open=row.style.display==='none';
+  row.style.display=open?'':'none';
+  var btn=document.getElementById('exp-'+id);
+  if(btn) btn.classList.toggle('open',open);
 }
 function toggleDaily(wi,e) {
   e.stopPropagation();
