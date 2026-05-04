@@ -1274,18 +1274,25 @@ function renderLive() {
   var tlBody=document.getElementById('liveTlBody');
   if(tlBody){
     var DIVIDER_HOURS=['14','18','21'];
+    // 누적 카운터
+    var cumul={};
+    TEAM_NAMES.forEach(function(nm){cumul[nm]=0;});
+    var cumulTot=0;
     tlBody.innerHTML=LIVE_HOURS.map(function(hr){
       var row=byTimeWithManual[hr]||{};
-      var tot=TEAM_NAMES.reduce(function(s,nm){return s+(row[nm]||0);},0);
-      var hasData=tot>0;
+      var hrTot=TEAM_NAMES.reduce(function(s,nm){return s+(row[nm]||0);},0);
+      // 누적 합산
+      TEAM_NAMES.forEach(function(nm){cumul[nm]+=(row[nm]||0);});
+      cumulTot+=hrTot;
+      var hasData=cumulTot>0;
       var cls=(DIVIDER_HOURS.indexOf(hr)>=0?'tl-div ':'')+(hasData?'':'tl-dim');
       return '<tr class="'+cls.trim()+'">' +
         '<td>'+hr+'시</td>' +
         TEAM_NAMES.map(function(nm){
-          var v=row[nm]||0;
+          var v=cumul[nm];
           return '<td style="font-weight:'+(v?700:400)+';color:'+(v?TEAM_CFG[nm].bar:'#d1d5db')+'">'+(v||'-')+'</td>';
         }).join('') +
-        '<td style="font-weight:700;color:'+(hasData?'#1a1a2e':'#d1d5db')+'">'+(tot||'-')+'</td>' +
+        '<td style="font-weight:700;color:'+(hasData?'#1a1a2e':'#d1d5db')+'">'+(cumulTot||'-')+'</td>' +
       '</tr>';
     }).join('');
   }
