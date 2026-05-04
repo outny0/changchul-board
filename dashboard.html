@@ -758,7 +758,7 @@ function renderWeeks(data) {
           '<td style="text-align:right" class="'+tRCls+'">'+tRate+'</td>'+
         '</tr>';
       }).join('');
-      return '<tr class="wk-team-row" onclick="toggleTeamDetail(''+detailId+'')" style="cursor:pointer;">'+
+      return '<tr class="wk-team-row" onclick="toggleTeamDetail(\''+detailId+'\')" style="cursor:pointer;">'+
         '<td><span class="team-dot" style="background:'+cfg.dot+'"></span>'+nm+
           '<span class="wk-expand-btn" id="exp-'+detailId+'"> ▸</span></td>'+
         '<td style="text-align:right">'+td.end+'</td>'+
