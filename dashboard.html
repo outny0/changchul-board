@@ -501,6 +501,45 @@ function combineData() {
       });}
     }catch(e){}
   }
+  // ── 오늘 실시간 결제 teacherMap에 합산 ─────────────────
+  if(state.live||true){
+    // 이름→교사ID 역방향 맵
+    var nameToId={};
+    Object.keys(allowed).forEach(function(tid){
+      var n=normName(allowed[tid].name||'');
+      if(n) nameToId[n]=tid;
+    });
+    // live feed
+    var liveByName={};
+    if(state.live&&state.live.feed){
+      state.live.feed.forEach(function(row){
+        var n=normName(row.name);
+        if(n) liveByName[n]=(liveByName[n]||0)+1;
+      });
+    }
+    // 수기 입력
+    try{
+      var today=new Date().toISOString().slice(0,10);
+      var manuals=JSON.parse(localStorage.getItem('liveManualEntries')||'[]');
+      manuals.filter(function(e){return e.date===today;}).forEach(function(e){
+        var n=normName(e.name);
+        if(n) liveByName[n]=(liveByName[n]||0)+1;
+      });
+    }catch(ex){}
+    // teacherMap에 추가
+    Object.keys(liveByName).forEach(function(n){
+      var tid=nameToId[n];
+      if(!tid) return;
+      if(!teacherMap[tid]){
+        var info=allowed[tid]||{};
+        teacherMap[tid]={name:info.name||n,team:info.team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:parseInt(info.target)||0};
+      }
+      var liveCnt = liveByName[n]||0;
+      teacherMap[tid].monthPayment += liveCnt;
+      teacherMap[tid].livePayment  = (teacherMap[tid].livePayment||0) + liveCnt;
+    });
+  }
+
   TEAM_NAMES.forEach(function(nm){
     var tgt=hasIndiv?indivTargets[nm]:(targets[nm]||0);
     teams[nm]={name:nm,target:tgt,monthPayment:0,monthEnd:0,withdrawal:0,headcount:0};
@@ -514,7 +553,7 @@ function combineData() {
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     teachers.push(t);
     var tm=t.team&&teams[t.team];
-    if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;}
+    if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);}
   });
 
   TEAM_NAMES.forEach(function(nm){
@@ -606,7 +645,7 @@ function renderTeams(data) {
           '<span class="tc-tid-small">'+t.teacherID+'</span>'+
         '</span>'+
         '<span class="tc-tnum">'+t.monthEnd+'</span>'+
-        '<span class="tc-treal '+rCls2+'">'+t.realPay+'</span>'+
+        '<span class="tc-treal '+rCls2+'">'+t.realPay+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'</span>':'')+'</span>'+
         '<span class="tc-tnum '+rCls2+'" style="font-size:11px;">'+conv+'</span>'+
       '</div>';
     }).join('');
@@ -618,7 +657,7 @@ function renderTeams(data) {
       '</div>'+
       '<div class="tc-kpi">'+
         '<div class="tc-kv"><div class="tc-kn">월목표</div><div class="tc-kd">'+m.target+'</div></div>'+
-        '<div class="tc-kv"><div class="tc-kn">결제</div><div class="tc-kd '+rCls+'">'+m.monthPayment+'</div><div class="tc-ksub">'+rate+'%</div></div>'+
+        '<div class="tc-kv"><div class="tc-kn">결제</div>'+'<div class="tc-kd '+rCls+'">'+m.monthPayment+(m.livePayment?'<span style="font-size:9px;font-weight:600;color:#f59e0b;margin-left:3px;">+'+m.livePayment+'(오늘)</span>':'')+'</div><div class="tc-ksub">'+rate+'%</div></div>'+
         '<div class="tc-kv"><div class="tc-kn">실제결제</div><div class="tc-kd">'+m.realPay+'</div></div>'+
         '<div class="tc-kv"><div class="tc-kn">실제종료</div><div class="tc-kd">'+m.monthEnd+'</div></div>'+
       '</div>'+
@@ -757,7 +796,7 @@ function renderTable(data, filter) {
       '<td><span class="t-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+t.team+'</span></td>'+
       '<td style="color:#9ca3af;">'+(t.target>0?t.target:'-')+'</td>'+
       '<td>'+t.monthEnd+'</td>'+
-      '<td>'+t.monthPayment+'</td>'+
+      '<td>'+t.monthPayment+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'(오늘)</span>':'')+'</td>'+
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
       '<td><b>'+t.realPay+'</b></td>'+
       '<td class="'+rCls+'">'+t.monthRate+'</td>'+
