@@ -219,6 +219,7 @@ tbody tr:hover td{background:#f9fafb;}
 var PAYMENT_FILE_ID = '1BlgT3aH7MXpqoQGwUtcTO5reod0KmgbQ9S9iwuuIGqA';
 var V1_SHEET_NAME   = 'v1 가공';
 var V1_GID          = '1983914312';
+var SETTINGS_GID    = '572914637';
 var PAYMENT_GID     = '1949444270';
 var TEAM_NAMES = ['땅이팀','다래팀','해태팀','단비팀'];
 var TEAM_CFG = {
@@ -228,7 +229,7 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f5f3ff',txt:'#7c3aed',bar:'#8b5cf6',dot:'#8b5cf6',bbg:'#ede9fe',btxt:'#6d28d9',bdr:'3px solid #8b5cf6'},
 };
 
-var state = {v1:null, pay:null};
+var state = {v1:null, pay:null, settings:null};
 var currentFilter = '전체';
 
 function p2(n){return String(n).padStart(2,'0');}
@@ -361,34 +362,43 @@ function parsePayCSV(text) {
 function combineData() {
   var dt=getDate(), ym=dt.ym;
 
-  // settings에서 팀 매핑 + 팀 목표 로드
+  // 월별 목표: localStorage fallback
   var cfg={};
   try{cfg=JSON.parse(localStorage.getItem('changchul_settings')||'{}');}catch(e){}
   var targets=cfg.targets&&cfg.targets[ym]?cfg.targets[ym]:{};
 
-  // 교사 ID → 팀 매핑
-  var teacherTeamMap={};
-  if(cfg.teachers){cfg.teachers.forEach(function(t){if(t.id)teacherTeamMap[t.id]=t.team;});}
+  // 선생님설정: 구글시트 settings 우선, 없으면 localStorage
+  var allowed=state.settings||{};
 
   var teacherMap={};
 
-  // V1: 실종료 데이터 (이번 달만)
+  // V1: settings에 있는 선생님만, 이번 달 종료만
   if(state.v1){Object.keys(state.v1).forEach(function(tid){
+    if(!allowed[tid])return;
     var v=state.v1[tid];
-    var team=teacherTeamMap[tid]||'';
+    var info=allowed[tid];
     var mEnd=0;
     Object.keys(v.daily).forEach(function(ds){if(ds.slice(0,7)===ym)mEnd+=(v.daily[ds]||0);});
-    teacherMap[tid]={name:v.name,team:team,daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0};
+    teacherMap[tid]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0};
   });}
 
-  // 결제: 결제수 + 청철
+  // 결제: settings에 있는 선생님만
   if(state.pay){Object.keys(state.pay.map).forEach(function(tid){
+    if(!allowed[tid])return;
     var p=state.pay.map[tid];
-    if(!teacherMap[tid])teacherMap[tid]={name:'',team:teacherTeamMap[tid]||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0};
+    var info=allowed[tid];
+    if(!teacherMap[tid])teacherMap[tid]={name:info.name,team:info.team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0};
     teacherMap[tid].daily_pay=p.daily;
     teacherMap[tid].monthPayment=p.monthTotal;
     teacherMap[tid].withdrawal=p.withdrawal;
   });}
+
+  // settings에는 있지만 V1·결제 데이터가 없는 선생님도 포함
+  Object.keys(allowed).forEach(function(tid){
+    if(!teacherMap[tid]){
+      teacherMap[tid]={name:allowed[tid].name,team:allowed[tid].team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0};
+    }
+  });
 
   // 팀 집계
   var teams={};
@@ -440,6 +450,10 @@ function calcWeekData(week, data) {
 
 // ─── 렌더 함수들 ────────────────────────────────────────
 function tryRender() {
+  if(!state.settings){
+    document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">선생님 설정 불러오는 중...</span>';
+    return;
+  }
   if(!state.v1&&!state.pay){
     document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">데이터 불러오는 중...</span>';
     return;
@@ -657,7 +671,7 @@ function renderTable(data, filter) {
 // ─── 캐시 초기화 ────────────────────────────────────────
 function clearCache() {
   if(!confirm('TC·V1 캐시를 초기화할까요? 파일을 다시 선택해야 합니다.'))return;
-  state.v1=null; state.pay=null;
+  state.v1=null; state.pay=null; state.settings=null;
   document.getElementById('v1Status').textContent='미선택'; document.getElementById('v1Status').className='up-status';
   document.getElementById('payStatus').textContent='미로드';  document.getElementById('payStatus').className='up-status';
   // 화면 초기화
@@ -666,6 +680,69 @@ function clearCache() {
   document.getElementById('kpiGrid').innerHTML='';
   document.getElementById('weekList').innerHTML='<div class="empty-note">데이터가 없습니다</div>';
   document.getElementById('tblBody').innerHTML='<tr><td colspan="9" class="empty-note">데이터 없음</td></tr>';
+}
+
+// ─── 선생님설정 CSV 파싱 ─────────────────────────────────
+// 구글시트 선생님설정 탭: ☆ | 팀 | 이름 | # | 교사번호 | ...
+function parseSettingsCSV(text) {
+  var rows = [];
+  text.split('\n').forEach(function(line) {
+    var cols=[],cur='',inQ=false;
+    for(var i=0;i<line.length;i++){var ch=line[i];
+      if(inQ){if(ch==='"')inQ=false;else cur+=ch;}
+      else{if(ch==='"')inQ=true;else if(ch===','){cols.push(cur.trim());cur='';}else cur+=ch;}}
+    cols.push(cur.trim()); rows.push(cols);
+  });
+  if(rows.length<2) return {};
+
+  // 헤더에서 컬럼 위치 자동 탐색
+  var hdrRow=-1, tidCol=-1, teamCol=-1, nameCol=-1;
+  for(var r=0;r<Math.min(rows.length,5);r++){
+    for(var c=0;c<rows[r].length;c++){
+      var h=String(rows[r][c]||'').trim();
+      if(h==='교사번호'){tidCol=c;hdrRow=r;}
+      if(h==='팀')teamCol=c;
+      if(h==='이름')nameCol=c;
+    }
+    if(tidCol>=0)break;
+  }
+  // 헤더 못찾으면 기본값: A=☆ B=팀 C=이름 D=# E=교사번호
+  if(tidCol<0){hdrRow=0;teamCol=1;nameCol=2;tidCol=4;}
+
+  var result={};
+  for(var i=hdrRow+1;i<rows.length;i++){
+    var row=rows[i];
+    var tid=String(row[tidCol]||'').trim();
+    var team=String(row[teamCol]||'').trim();
+    var name=String(row[nameCol]||'').trim();
+    if(!tid||!/^\d+$/.test(tid))continue;
+    result[tid]={name:name,team:team};
+  }
+  console.log('[Settings] 파싱 완료:', Object.keys(result).length,'명');
+  return result;
+}
+
+// ─── 선생님설정 fetch ─────────────────────────────────────
+function fetchSettings() {
+  var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid='+SETTINGS_GID;
+  fetch(url,{redirect:'follow'}).then(function(r){
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(function(text){
+    state.settings=parseSettingsCSV(text);
+    tryRender();
+  }).catch(function(err){
+    console.warn('[Settings] fetch 실패, localStorage 사용:', err.message);
+    try{
+      var cfg=JSON.parse(localStorage.getItem('changchul_settings')||'{}');
+      if(cfg.teachers){
+        var s={};
+        cfg.teachers.forEach(function(t){if(t.id)s[t.id]={name:t.name,team:t.team};});
+        state.settings=s;
+      }
+    }catch(e){}
+    tryRender();
+  });
 }
 
 // ─── V1 fetch ────────────────────────────────────────────
@@ -737,6 +814,7 @@ function fetchPay() {
 
 // ─── 초기화 ─────────────────────────────────────────────
 document.getElementById('hdrDate').textContent=getDate().label;
+fetchSettings();
 fetchV1();
 fetchPay();
 </script>
