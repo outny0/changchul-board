@@ -288,7 +288,7 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
-var state = {v1:null, pay:null, settings:null};
+var state = {v1:undefined, pay:undefined, settings:undefined, live:null};
 var currentFilter = '전체';
 
 function p2(n){return String(n).padStart(2,'0');}
@@ -536,12 +536,17 @@ function calcWeekData(week, data) {
 
 // ─── 렌더 함수들 ────────────────────────────────────────
 function tryRender() {
-  if(state.settings===null||state.settings===undefined){
+  // undefined = 아직 fetch 안 끝남, null = 실패, {} = 성공
+  if(state.settings===undefined){
     document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">선생님 설정 불러오는 중...</span>';
     return;
   }
-  if(!state.v1&&!state.pay){
+  if(state.v1===undefined||state.pay===undefined){
     document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">데이터 불러오는 중...</span>';
+    return;
+  }
+  if(!state.v1&&!state.pay){
+    document.getElementById('hdrPills').innerHTML='<span class="pill p-red">데이터를 불러올 수 없습니다. 구글시트 공개 여부를 확인해주세요.</span>';
     return;
   }
   var data=combineData();
@@ -864,6 +869,8 @@ function fetchV1() {
     }
     el.className='up-status err';
     if(spn)spn.style.display='none';
+    if(state.v1===undefined) state.v1=null;
+    tryRender();
   });
 }
 
@@ -895,6 +902,8 @@ function fetchPay() {
     }
     el.className='up-status err';
     spn.style.display='none';
+    if(state.pay===undefined) state.pay=null; // 실패 표시
+    tryRender();
   });
 }
 
