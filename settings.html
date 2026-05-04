@@ -140,6 +140,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 
   <!-- PANE 1 : 선생님 관리 -->
   <div class="pane on" id="pane-teachers">
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 16px;margin-bottom:10px;font-size:11px;color:#15803d;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;">💾</span>
+      <span>선생님 목표·팀 변경사항은 <b>자동으로 즉시 저장</b>됩니다. 별도 저장 버튼 없이 수정하면 바로 반영돼요.</span>
+    </div>
+
+    <!-- 팀별 일괄 목표 -->
+    <div class="card" style="margin-bottom:10px;">
+      <div class="card-hdr" style="cursor:pointer;" onclick="toggleTeamTarget()">
+        <span class="card-title">📊 팀별 월목표 일괄 설정</span>
+        <span class="card-cnt" id="teamTgtSummary">클릭해서 펼치기</span>
+      </div>
+      <div id="teamTgtBody" style="display:none;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 18px;">
+          <div id="ttb-땅이팀" class="tgt-box"></div>
+          <div id="ttb-다래팀" class="tgt-box"></div>
+          <div id="ttb-해태팀" class="tgt-box"></div>
+          <div id="ttb-단비팀" class="tgt-box"></div>
+        </div>
+        <div style="padding:0 18px 14px;display:flex;align-items:center;gap:10px;justify-content:flex-end;">
+          <span style="font-size:11px;color:#9ca3af;">개인목표 합산: <b id="indivSum2">—</b></span>
+          <button onclick="saveTeamTargetQuick()" style="padding:8px 20px;background:linear-gradient(135deg,#1a1a2e,#0f3460);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">이번 달 팀목표 저장</button>
+        </div>
+      </div>
+    </div>
+
     <div id="teamSections"></div>
     <div class="card">
       <div class="card-hdr">
@@ -266,6 +291,55 @@ function renderTeachers() {
       '</div>'+rows;
     sec.appendChild(card);
   });
+}
+
+function toggleTeamTarget() {
+  var body = document.getElementById('teamTgtBody');
+  var isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'block' : 'none';
+  if(isHidden) renderTeamTargetBoxes();
+}
+
+function renderTeamTargetBoxes() {
+  var now = new Date();
+  var ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var saved = (data.targets && data.targets[ym]) || {};
+  TEAMS.forEach(function(team){
+    var col = COLORS[team];
+    var box = document.getElementById('ttb-'+team);
+    if(!box) return;
+    box.innerHTML =
+      '<div class="tgt-lbl"><div class="tgt-dot" style="background:'+col.hex+'"></div>'+team+'</div>'+
+      '<input class="tgt-inp" type="number" id="ttq-'+team+'" min="0" max="999" placeholder="0" value="'+(saved[team]||'')+'" style="border-color:'+col.hex+'44;" oninput="updateIndivSum2()">'+
+      '<div class="tgt-sub">팀 목표 (건)</div>';
+  });
+  updateIndivSum2();
+  // 요약 업데이트
+  var sum = TEAMS.reduce(function(s,t){ var v=saved[t]||0; return s+v; }, 0);
+  document.getElementById('teamTgtSummary').textContent = sum > 0 ? '이번 달 합계 '+sum+'건' : '클릭해서 펼치기';
+}
+
+function updateIndivSum2() {
+  var indivSum = data.teachers.reduce(function(s,t){return s+(parseInt(t.target)||0);},0);
+  var el = document.getElementById('indivSum2');
+  if(el) el.textContent = indivSum > 0 ? indivSum+'건' : '—';
+}
+
+function saveTeamTargetQuick() {
+  var now = new Date();
+  var ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  if(!data.targets) data.targets = {};
+  var obj = {};
+  TEAMS.forEach(function(t){ obj[t] = parseInt(document.getElementById('ttq-'+t).value)||0; });
+  data.targets[ym] = obj;
+  saveData();
+  var sum = TEAMS.reduce(function(s,t){return s+obj[t];},0);
+  document.getElementById('teamTgtSummary').textContent = '이번 달 합계 '+sum+'건 ✓';
+  // 버튼 피드백
+  var btn = event.target;
+  var orig = btn.textContent;
+  btn.textContent = '저장됨 ✓'; btn.style.background = 'linear-gradient(135deg,#15803d,#16a34a)';
+  setTimeout(function(){ btn.textContent = orig; btn.style.background = ''; }, 1800);
 }
 
 function addTeacher() {
