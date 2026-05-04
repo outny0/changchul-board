@@ -1218,9 +1218,9 @@ function renderLive() {
     if(team && manualTeamTotals[team]!==undefined) manualTeamTotals[team]++;
   });
 
-  var grandTotal = TEAM_NAMES.reduce(function(s,nm){
-    return s+(d.teamTotals[nm]||0)+(manualTeamTotals[nm]||0);
-  },0);
+  // grandTotal: parseLiveCSV 전체 유효건 + 수기 입력건 (팀 배정 여부 무관하게 일치)
+  var manualGrandTotal = TEAM_NAMES.reduce(function(s,nm){return s+(manualTeamTotals[nm]||0);},0);
+  var grandTotal = (d&&d.total?d.total:0) + manualGrandTotal;
 
   // 헤더 pill
   var livePill = document.getElementById('liveHeaderPill');
