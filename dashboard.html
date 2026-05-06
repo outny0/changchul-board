@@ -426,20 +426,19 @@ function parsePayCSV(text) {
   if(rows.length<2){console.warn('[Pay] 행이 2개 미만');return null;}
 
   var hdr=rows[0];
-  var dayIdxs={}, iTotal=-1, iWd=-1, iPrevPay=-1, iPrevWd=-1;
+  var dayIdxs={}, iTotal=-1, iWd=-1, iPrevPay=-1;
   hdr.forEach(function(v,i){
     var s=String(v||'').trim(), n=parseInt(s);
     // 일별 컬럼: 헤더가 1~31인 정수
     if(!isNaN(n)&&n>=1&&n<=31&&String(n)===s) { dayIdxs[n]=i; return; }
     if(s==='합계') { iTotal=i; return; }
     if(s==='청철'||s==='취소'||s==='환불') { iWd=i; return; }
-    // 전월 결제/청철 컬럼 (헤더명 또는 AM/AN 위치)
+    // 전월결제: AN열 헤더명으로 찾기
     if(s==='전월결제'||s==='전월'||s==='prev') { iPrevPay=i; return; }
-    if(s==='전월청철'||s==='전월취소') { iPrevWd=i; return; }
   });
-  // 헤더에서 못찾으면 AM(38), AN(39) 인덱스 시도
-  if(iPrevPay<0 && hdr.length>38) iPrevPay=38;
-  if(iPrevWd<0  && hdr.length>39) iPrevWd=39;
+  // 헤더에서 못찾으면 AN(39번째, 0-based) 위치로 fallback
+  // AM(38)=선생님이름, AN(39)=전월결제수
+  if(iPrevPay<0 && hdr.length>39) iPrevPay=39;
 
   var dayCount=Object.keys(dayIdxs).length;
   console.log('[Pay] 헤더:', hdr.slice(0,5),'...총',hdr.length,'열 / 일별컬럼:',dayCount,'개 / 합계idx:',iTotal,'/ 청철idx:',iWd);
@@ -462,8 +461,7 @@ function parsePayCSV(text) {
     var monthTotal = daySum;  // 일별 컬럼(1~30) 합산 고정 — 합계 컬럼 무시
     var withdrawal = iWd>=0   ? (parseInt(row[iWd])  ||0) : 0;
     var prevPay = iPrevPay>=0 ? (parseInt(row[iPrevPay])||0) : 0;
-    var prevWd  = iPrevWd>=0  ? (parseInt(row[iPrevWd]) ||0) : 0;
-    map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily, prevPay:prevPay, prevWd:prevWd};
+    map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily, prevPay:prevPay};
   }
   console.log('[Pay] 파싱 완료:', teacherCount,'명 / 월결제=일별합산 / 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
   return {map:map, dailyTotals:dailyTotals};
@@ -511,7 +509,6 @@ function combineData() {
     teacherMap[tid].monthPayment=p.monthTotal;
     teacherMap[tid].withdrawal=p.withdrawal;
     teacherMap[tid].prevPay=p.prevPay||0;
-    teacherMap[tid].prevWd=p.prevWd||0;
   });}
 
   // settings에는 있지만 V1·결제 데이터가 없는 선생님도 포함
@@ -607,7 +604,7 @@ function combineData() {
     var t=teacherMap[tid]; if(!t.name)return;
     t.teacherID=tid;
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
-    t.prevRealPay=Math.max(0,(t.prevPay||0)-(t.prevWd||0));
+    t.prevRealPay=t.prevPay||0;
     t.prevDiff=t.realPay-t.prevRealPay;
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     teachers.push(t);
@@ -1224,9 +1221,10 @@ function parseLiveCSV(text) {
     var timeStr  = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'');
     var time = timeStr.slice(0,5); // 표시용 HH:MM
     if(!time || time.length<4) continue;
-    // 시간 버킷: 13시 이전은 13으로, 22시 이후는 22로 클램프
-    var _tp=timeStr.split(':'), _tH=parseInt(_tp[0])||0;
-    var _tHc=_tH<13?13:(_tH>22?22:_tH);
+    // 시간 버킷: 정각이면 해당 시, 이후면 다음 시 / 13 미만→13, 22 초과→22 클램프
+    var _tp=timeStr.split(':'), _tH=parseInt(_tp[0])||0, _tM=parseInt(_tp[1])||0, _tS=parseInt(_tp[2])||0;
+    var _tHr=(_tM===0&&_tS===0)?_tH:_tH+1;
+    var _tHc=_tHr<13?13:(_tHr>22?22:_tHr);
     var hr=_tHc<10?'0'+_tHc:String(_tHc);
 
     // 팀 결정: 이름→팀 매핑
@@ -1418,8 +1416,9 @@ function renderLive() {
     byTimeWithManual[hr]=Object.assign({},d.byTime[hr]||{'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0});
   });
   manualEntries.forEach(function(e){
-    var _mp=(e.time||'').split(':'),_mH=parseInt(_mp[0])||0;
-    var _mHc=_mH<13?13:(_mH>22?22:_mH);
+    var _mp=(e.time||'').split(':'),_mH=parseInt(_mp[0])||0,_mM=parseInt(_mp[1])||0;
+    var _mHr=(_mM===0)?_mH:_mH+1;
+    var _mHc=_mHr<13?13:(_mHr>22?22:_mHr);
     var hr=_mHc<10?'0'+_mHc:String(_mHc);
     var team=nameToTeamMap[normName(e.name)]||'';
     if(team&&byTimeWithManual[hr]&&byTimeWithManual[hr][team]!==undefined) byTimeWithManual[hr][team]++;
