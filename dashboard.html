@@ -462,18 +462,11 @@ function parsePayCSV(text) {
     var withdrawal = iWd>=0   ? (parseInt(row[iWd])  ||0) : 0;
     var prevPay = iPrevPay>=0 ? (parseInt(row[iPrevPay])||0) : 0;
     map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily, prevPay:prevPay};
+    if(prevPay>0) console.log('[Pay] 교사ID',id,'전월결제:',prevPay);
   }
-  // AM(38)=이름, AN(39)=전월결제 → 이름 기반 맵 생성
-  var prevPayByName={};
-  var iName=38; // AM열
-  for(var r2=1;r2<rows.length;r2++){
-    var row2=rows[r2];
-    var nm2=String(row2[iName]||'').replace(/♥/g,'').trim();
-    var pp2=iPrevPay>=0?(parseInt(row2[iPrevPay])||0):0;
-    if(nm2&&pp2>0) prevPayByName[nm2]=pp2;
-  }
-  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 전월결제 매핑:', Object.keys(prevPayByName).length,'명');
-  return {map:map, dailyTotals:dailyTotals, prevPayByName:prevPayByName};
+  var prevCount=Object.values(map).filter(function(v){return v.prevPay>0;}).length;
+  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 전월결제 있는 교사:', prevCount,'명 / iPrevPay열:', iPrevPay);
+  return {map:map, dailyTotals:dailyTotals};
 }
 
 // ─── 데이터 합치기 ───────────────────────────────────────
@@ -517,7 +510,7 @@ function combineData() {
     teacherMap[tid].daily_pay=p.daily;
     teacherMap[tid].monthPayment=p.monthTotal;
     teacherMap[tid].withdrawal=p.withdrawal;
-    // prevPay는 이름 기반 매칭으로 처리 (아래에서 일괄 적용)
+    teacherMap[tid].prevPay=p.prevPay||0;
   });}
 
   // settings에는 있지만 V1·결제 데이터가 없는 선생님도 포함
@@ -608,16 +601,13 @@ function combineData() {
     teams[nm]={name:nm,target:tgt,monthPayment:0,monthEnd:0,withdrawal:0,headcount:0};
   });
 
-  // 이름 기반 전월결제 매칭
-  var prevPayByName=state.pay?state.pay.prevPayByName:{};
   var teachers=[];
   Object.keys(teacherMap).forEach(function(tid){
     var t=teacherMap[tid]; if(!t.name)return;
     t.teacherID=tid;
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
-    // 이름으로 전월결제 매칭 (normName 적용)
-    var prevKey=Object.keys(prevPayByName).find(function(k){return normName(k)===normName(t.name);});
-    t.prevRealPay=prevKey?prevPayByName[prevKey]:0;
+    t.prevRealPay=t.prevPay||0;
+    t.prevDiff=t.realPay-t.prevRealPay;
     t.prevDiff=t.realPay-t.prevRealPay;
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     teachers.push(t);
