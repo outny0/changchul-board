@@ -46,9 +46,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;}
 
 /* TEAM CARDS */
-.team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:stretch;}
 @media(max-width:900px){.team-row{grid-template-columns:repeat(2,1fr);}}
-.team-card{background:#fff;border-radius:12px;border-top:3px solid;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);}
+.team-card{background:#fff;border-radius:12px;border-top:3px solid;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;}
 .tc-hdr{padding:10px 12px 8px;display:flex;align-items:center;justify-content:space-between;}
 .tc-name{font-size:13px;font-weight:700;}
 .tc-badge{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;}
@@ -58,16 +58,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-kn{font-size:9px;color:#9ca3af;margin-bottom:2px;}
 .tc-kd{font-size:20px;font-weight:800;letter-spacing:-.02em;}
 .tc-ksub{font-size:10px;color:#9ca3af;}
-.tc-teachers{border-top:1px solid #f3f4f6;}
-.tc-thead{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
+.tc-teachers{border-top:1px solid #f3f4f6;flex:1;display:flex;flex-direction:column;}
+.tc-thead{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
 .tc-kpi-3{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #f3f4f6;}
 .tc-kpi-cell{padding:6px 4px;text-align:center;border-right:1px solid #f3f4f6;}
 .tc-kpi-cell:last-child{border-right:none;}
 .tc-kpi-lbl{font-size:9px;color:#9ca3af;margin-bottom:1px;}
 .tc-kpi-num{font-size:15px;font-weight:900;letter-spacing:-.02em;}
-.tc-total{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;}
+.tc-total{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;margin-top:auto;}
 .tc-total span{text-align:right;}.tc-total span:first-child{text-align:left;color:#9ca3af;}
-.tc-teacher{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.tc-teacher{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
 .tc-tid-small{display:block;font-size:9px;color:#d1d5db;margin-top:1px;}
 .tc-teacher:last-child{border-bottom:none;}
 .tc-tname{color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -692,11 +692,12 @@ function renderTeams(data) {
     var sortedT=teachers.slice().sort(function(a,b){return b.realPay-a.realPay||b.monthEnd-a.monthEnd;});
     var tRows=sortedT.map(function(t){
       var hasPay=t.realPay>0;
-      var payDisp=hasPay?('<b style="color:'+cfg.bar+'">'+t.realPay+'</b>'+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;"> +'+t.livePayment+'</span>':'')):'<span style="color:#d1d5db">-</span>';
+      var hasLive=t.livePayment>0;
       return '<div class="tc-teacher" style="'+(hasPay?'background:'+cfg.hdr+';':'')+'">'+
         '<span class="tc-tname" style="'+(hasPay?'font-weight:700;':'')+'">'+t.name+'</span>'+
         '<span class="tc-tnum">'+t.monthEnd+'</span>'+
-        '<span class="tc-tnum">'+payDisp+'</span>'+
+        '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#d1d5db;')+'">'+(hasPay?t.realPay:'-')+'</span>'+
+        '<span class="tc-tnum" style="'+(hasLive?'font-weight:700;color:#f59e0b;':'color:#e5e7eb;')+'">'+(hasLive?'+'+t.livePayment:'-')+'</span>'+
       '</div>';
     }).join('');
 
@@ -719,9 +720,9 @@ function renderTeams(data) {
         '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">전환율</div><div class="tc-kpi-num '+convCls+'" style="font-size:13px;">'+conv+'</div></div>'+
       '</div>'+
       '<div class="tc-teachers">'+
-        '<div class="tc-thead"><span>이름</span><span style="text-align:right">종료</span><span style="text-align:right">달성</span></div>'+
+        '<div class="tc-thead"><span>이름</span><span style="text-align:right">종료</span><span style="text-align:right">달성</span><span style="text-align:right;color:#f59e0b">오늘</span></div>'+
         tRows+
-        '<div class="tc-total"><span>총계</span><span>'+m.monthEnd+'</span><span>'+m.realPay+'</span></div>'+
+        '<div class="tc-total"><span>총계</span><span>'+(m.monthEnd||'-')+'</span><span>'+(m.realPay||'-')+'</span><span style="color:#f59e0b">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
       '</div>'+
     '</div>';
   }).join('');
