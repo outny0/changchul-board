@@ -306,6 +306,8 @@ tbody tr:hover td{background:#f9fafb;}
           <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap">청철 <span id="si-withdrawal"></span></th>
           <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">총결제(청철제외전) <span id="si-monthPayment2"></span></th>
           <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap">전환율 <span id="si-monthRate"></span></th>
+          <th onclick="sortTable('prevRealPay')" style="cursor:pointer;user-select:none;white-space:nowrap">전월결제 <span id="si-prevRealPay"></span></th>
+          <th onclick="sortTable('prevDiff')" style="cursor:pointer;user-select:none;white-space:nowrap">전월대비 <span id="si-prevDiff"></span></th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
@@ -424,14 +426,20 @@ function parsePayCSV(text) {
   if(rows.length<2){console.warn('[Pay] 행이 2개 미만');return null;}
 
   var hdr=rows[0];
-  var dayIdxs={}, iTotal=-1, iWd=-1;
+  var dayIdxs={}, iTotal=-1, iWd=-1, iPrevPay=-1, iPrevWd=-1;
   hdr.forEach(function(v,i){
     var s=String(v||'').trim(), n=parseInt(s);
     // 일별 컬럼: 헤더가 1~31인 정수
     if(!isNaN(n)&&n>=1&&n<=31&&String(n)===s) { dayIdxs[n]=i; return; }
     if(s==='합계') { iTotal=i; return; }
     if(s==='청철'||s==='취소'||s==='환불') { iWd=i; return; }
+    // 전월 결제/청철 컬럼 (헤더명 또는 AM/AN 위치)
+    if(s==='전월결제'||s==='전월'||s==='prev') { iPrevPay=i; return; }
+    if(s==='전월청철'||s==='전월취소') { iPrevWd=i; return; }
   });
+  // 헤더에서 못찾으면 AM(38), AN(39) 인덱스 시도
+  if(iPrevPay<0 && hdr.length>38) iPrevPay=38;
+  if(iPrevWd<0  && hdr.length>39) iPrevWd=39;
 
   var dayCount=Object.keys(dayIdxs).length;
   console.log('[Pay] 헤더:', hdr.slice(0,5),'...총',hdr.length,'열 / 일별컬럼:',dayCount,'개 / 합계idx:',iTotal,'/ 청철idx:',iWd);
@@ -453,7 +461,9 @@ function parsePayCSV(text) {
     }
     var monthTotal = daySum;  // 일별 컬럼(1~30) 합산 고정 — 합계 컬럼 무시
     var withdrawal = iWd>=0   ? (parseInt(row[iWd])  ||0) : 0;
-    map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily};
+    var prevPay = iPrevPay>=0 ? (parseInt(row[iPrevPay])||0) : 0;
+    var prevWd  = iPrevWd>=0  ? (parseInt(row[iPrevWd]) ||0) : 0;
+    map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily, prevPay:prevPay, prevWd:prevWd};
   }
   console.log('[Pay] 파싱 완료:', teacherCount,'명 / 월결제=일별합산 / 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
   return {map:map, dailyTotals:dailyTotals};
@@ -500,6 +510,8 @@ function combineData() {
     teacherMap[tid].daily_pay=p.daily;
     teacherMap[tid].monthPayment=p.monthTotal;
     teacherMap[tid].withdrawal=p.withdrawal;
+    teacherMap[tid].prevPay=p.prevPay||0;
+    teacherMap[tid].prevWd=p.prevWd||0;
   });}
 
   // settings에는 있지만 V1·결제 데이터가 없는 선생님도 포함
@@ -595,6 +607,8 @@ function combineData() {
     var t=teacherMap[tid]; if(!t.name)return;
     t.teacherID=tid;
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
+    t.prevRealPay=Math.max(0,(t.prevPay||0)-(t.prevWd||0));
+    t.prevDiff=t.realPay-t.prevRealPay;
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     teachers.push(t);
     var tm=t.team&&teams[t.team];
@@ -906,6 +920,13 @@ function buildTabs() {
 function setFilter(f){currentFilter=f;var d=combineData();buildTabs();renderTable(d,f);}
 function sortTable(key){
   if(sortKey===key){sortDir=-sortDir;}else{sortKey=key;sortDir=-1;}
+  // 정렬 화살표 초기화
+  ['name','team','target','monthEnd','realPay','withdrawal','monthPayment','monthRate','prevRealPay','prevDiff'].forEach(function(k){
+    var el=document.getElementById('si-'+k)||document.getElementById('si-'+k+'2');
+    if(el) el.textContent='';
+  });
+  var el=document.getElementById('si-'+key)||document.getElementById('si-'+key+'2');
+  if(el) el.textContent=sortDir===-1?'▼':'▲';
   var d=combineData();renderTable(d,currentFilter);
 }
 
@@ -942,6 +963,14 @@ function renderTable(data, filter) {
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
       '<td style="color:#6b7280">'+t.monthPayment+'</td>'+
       '<td class="'+rCls+'">'+t.monthRate+'</td>'+
+      '<td style="color:#6b7280;">'+(t.prevRealPay>0?t.prevRealPay:'<span style="color:#d1d5db">-</span>')+'</td>'+
+      (function(){
+        var diff=t.prevDiff||0;
+        if(!t.prevRealPay) return '<td style="color:#d1d5db">-</td>';
+        var cls=diff>0?'color:#16a34a':diff<0?'color:#dc2626':'color:#9ca3af';
+        var sign=diff>0?'+':'';
+        return '<td style="font-weight:700;'+cls+'">'+sign+diff+'</td>';
+      })()+
     '</tr>';
   }).join('')||'<tr><td colspan="8" class="empty-note">데이터 없음</td></tr>';
 }
@@ -957,7 +986,7 @@ function clearCache() {
   document.getElementById('teamRow').innerHTML='<div class="empty-note" style="grid-column:1/-1;padding:20px">V1 가공파일을 선택해 주세요</div>';
   document.getElementById('kpiGrid').innerHTML='';
   document.getElementById('weekList').innerHTML='<div class="empty-note">데이터가 없습니다</div>';
-  document.getElementById('tblBody').innerHTML='<tr><td colspan="9" class="empty-note">데이터 없음</td></tr>';
+  document.getElementById('tblBody').innerHTML='<tr><td colspan="11" class="empty-note">데이터 없음</td></tr>';
 }
 
 // ─── 선생님설정 CSV 파싱 ─────────────────────────────────
