@@ -1195,9 +1195,10 @@ function parseLiveCSV(text) {
     var timeStr  = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'');
     var time = timeStr.slice(0,5); // 표시용 HH:MM
     if(!time || time.length<4) continue;
-    // 시간 버킷: 해당 시각의 시(hour) 그대로 사용
+    // 시간 버킷: 13시 이전은 13으로, 22시 이후는 22로 클램프
     var _tp=timeStr.split(':'), _tH=parseInt(_tp[0])||0;
-    var hr=_tH<10?'0'+_tH:String(_tH);
+    var _tHc=_tH<13?13:(_tH>22?22:_tH);
+    var hr=_tHc<10?'0'+_tHc:String(_tHc);
 
     // 팀 결정: 이름→팀 매핑
     var rowKey = 'r'+i;
@@ -1382,14 +1383,15 @@ function renderLive() {
   }
 
   // 시간대별 (수기 포함)
-  var LIVE_HOURS=['09','10','11','12','13','14','15','16','17','18','19','20','21','22','23'];
+  var LIVE_HOURS=['13','14','15','16','17','18','19','20','21','22'];
   var byTimeWithManual={};
   LIVE_HOURS.forEach(function(hr){
     byTimeWithManual[hr]=Object.assign({},d.byTime[hr]||{'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0});
   });
   manualEntries.forEach(function(e){
     var _mp=(e.time||'').split(':'),_mH=parseInt(_mp[0])||0;
-    var hr=_mH<10?'0'+_mH:String(_mH);
+    var _mHc=_mH<13?13:(_mH>22?22:_mH);
+    var hr=_mHc<10?'0'+_mHc:String(_mHc);
     var team=nameToTeamMap[normName(e.name)]||'';
     if(team&&byTimeWithManual[hr]&&byTimeWithManual[hr][team]!==undefined) byTimeWithManual[hr][team]++;
   });
