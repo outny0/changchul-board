@@ -298,16 +298,16 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="tbl-wrap">
       <table>
         <thead><tr id="tblHead">
-          <th onclick="sortTable('name')" style="cursor:pointer;user-select:none;white-space:nowrap">교사명 <span id="si-name"></span></th>
-          <th onclick="sortTable('team')" style="cursor:pointer;user-select:none;white-space:nowrap">팀 <span id="si-team"></span></th>
-          <th onclick="sortTable('target')" style="cursor:pointer;user-select:none;white-space:nowrap">개인목표 <span id="si-target"></span></th>
-          <th onclick="sortTable('monthEnd')" style="cursor:pointer;user-select:none;white-space:nowrap">실제종료 <span id="si-monthEnd"></span></th>
-          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap">결제수 <span id="si-realPay2">▼</span></th>
-          <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap">청철 <span id="si-withdrawal"></span></th>
-          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">총결제(청철제외전) <span id="si-monthPayment2"></span></th>
-          <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap">전환율 <span id="si-monthRate"></span></th>
-          <th onclick="sortTable('prevRealPay')" style="cursor:pointer;user-select:none;white-space:nowrap">전월결제 <span id="si-prevRealPay"></span></th>
-          <th onclick="sortTable('prevDiff')" style="cursor:pointer;user-select:none;white-space:nowrap">전월대비 <span id="si-prevDiff"></span></th>
+          <th onclick="sortTable('name')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">교사명 <span id="si-name" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('team')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">팀 <span id="si-team" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('target')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">개인목표 <span id="si-target" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('monthEnd')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">실제종료 <span id="si-monthEnd" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">결제수 <span id="si-realPay2" style="color:#1a1a2e;">▼</span></th>
+          <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">청철 <span id="si-withdrawal" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">총결제(청철제외전) <span id="si-monthPayment2" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">전환율 <span id="si-monthRate" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('prevRealPay')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">전월결제 <span id="si-prevRealPay" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('prevDiff')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">전월대비 <span id="si-prevDiff" style="color:#d1d5db;">↕</span></th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
@@ -333,7 +333,7 @@ var TEAM_CFG = {
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null};
 var currentFilter = '전체';
-var sortKey = 'monthPayment', sortDir = -1; // -1=내림차순, 1=오름차순
+var sortKey = 'realPay', sortDir = -1; // -1=내림차순, 1=오름차순
 
 function p2(n){return String(n).padStart(2,'0');}
 
@@ -920,13 +920,13 @@ function buildTabs() {
 function setFilter(f){currentFilter=f;var d=combineData();buildTabs();renderTable(d,f);}
 function sortTable(key){
   if(sortKey===key){sortDir=-sortDir;}else{sortKey=key;sortDir=-1;}
-  // 정렬 화살표 초기화
+  // 비활성 컬럼: 회색 ↕ / 활성 컬럼: 컬러 ▼▲
   ['name','team','target','monthEnd','realPay','withdrawal','monthPayment','monthRate','prevRealPay','prevDiff'].forEach(function(k){
     var el=document.getElementById('si-'+k)||document.getElementById('si-'+k+'2');
-    if(el) el.textContent='';
+    if(!el)return;
+    if(k===key){el.textContent=sortDir===-1?'▼':'▲';el.style.color='#1a1a2e';}
+    else{el.textContent='↕';el.style.color='#d1d5db';}
   });
-  var el=document.getElementById('si-'+key)||document.getElementById('si-'+key+'2');
-  if(el) el.textContent=sortDir===-1?'▼':'▲';
   var d=combineData();renderTable(d,currentFilter);
 }
 
@@ -945,10 +945,11 @@ function renderTable(data, filter) {
   });
   // 정렬 인디케이터 업데이트
   [['name','si-name'],['team','si-team'],['target','si-target'],['monthEnd','si-monthEnd'],
-   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate']
+   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate'],
+   ['prevRealPay','si-prevRealPay'],['prevDiff','si-prevDiff']
   ].forEach(function(pair){
     var el=document.getElementById(pair[1]);
-    if(el)el.textContent=pair[0]===sortKey?(sortDir===-1?'▼':'▲'):'';
+    if(el){if(pair[0]===sortKey){el.textContent=sortDir===-1?'▼':'▲';el.style.color='#1a1a2e';}else{el.textContent='↕';el.style.color='#d1d5db';}}
   });
   document.getElementById('tblBody').innerHTML=teachers.map(function(t){
     var cfg=TEAM_CFG[t.team]||TEAM_CFG['단비팀'];
