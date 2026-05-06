@@ -59,15 +59,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-kd{font-size:20px;font-weight:800;letter-spacing:-.02em;}
 .tc-ksub{font-size:10px;color:#9ca3af;}
 .tc-teachers{border-top:1px solid #f3f4f6;flex:1;display:flex;flex-direction:column;}
-.tc-thead{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
+.tc-group{display:grid;grid-template-columns:2fr 2fr 2fr;padding:3px 10px 0;font-size:9px;font-weight:700;background:#fafafa;}
+.tc-group-lbl{text-align:center;padding:1px 0;border-radius:3px 3px 0 0;letter-spacing:.03em;}
+.tc-group-lbl.g-acc{background:#eff6ff;color:#1d4ed8;}
+.tc-group-lbl.g-tod{background:#fffbeb;color:#d97706;}
+.tc-thead{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:3px 10px 4px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
 .tc-kpi-3{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #f3f4f6;}
 .tc-kpi-cell{padding:6px 4px;text-align:center;border-right:1px solid #f3f4f6;}
 .tc-kpi-cell:last-child{border-right:none;}
 .tc-kpi-lbl{font-size:9px;color:#9ca3af;margin-bottom:1px;}
 .tc-kpi-num{font-size:15px;font-weight:900;letter-spacing:-.02em;}
-.tc-total{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;margin-top:auto;}
+.tc-total{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;margin-top:auto;}
 .tc-total span{text-align:right;}.tc-total span:first-child{text-align:left;color:#9ca3af;}
-.tc-teacher{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.tc-teacher{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
 .tc-tid-small{display:block;font-size:9px;color:#d1d5db;margin-top:1px;}
 .tc-teacher:last-child{border-bottom:none;}
 .tc-tname{color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -608,11 +612,11 @@ function combineData() {
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
     t.prevRealPay=t.prevPay||0;
     t.prevDiff=t.realPay-t.prevRealPay;
-    t.prevDiff=t.realPay-t.prevRealPay;
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
+    t.todayEnd=(t.daily_end&&t.daily_end[dt.ymd])||0; // 오늘 종료수
     teachers.push(t);
     var tm=t.team&&teams[t.team];
-    if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);}
+    if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);tm.todayEnd=(tm.todayEnd||0)+t.todayEnd;}
   });
 
   TEAM_NAMES.forEach(function(nm){
@@ -707,10 +711,12 @@ function renderTeams(data) {
     var tRows=sortedT.map(function(t){
       var hasPay=t.realPay>0;
       var hasLive=t.livePayment>0;
+      var hasTodayEnd=t.todayEnd>0;
       return '<div class="tc-teacher" style="'+(hasPay?'background:'+cfg.hdr+';':'')+'">'+
         '<span class="tc-tname" style="'+(hasPay?'font-weight:700;':'')+'">'+t.name+'</span>'+
-        '<span class="tc-tnum">'+t.monthEnd+'</span>'+
+        '<span class="tc-tnum" style="color:#374151;">'+(t.monthEnd||'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#d1d5db;')+'">'+(hasPay?t.realPay:'-')+'</span>'+
+        '<span class="tc-tnum" style="'+(hasTodayEnd?'font-weight:600;color:#6366f1;':'color:#e5e7eb;')+'">'+(hasTodayEnd?t.todayEnd:'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasLive?'font-weight:700;color:#f59e0b;':'color:#e5e7eb;')+'">'+(hasLive?'+'+t.livePayment:'-')+'</span>'+
       '</div>';
     }).join('');
@@ -734,9 +740,26 @@ function renderTeams(data) {
         '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">전환율</div><div class="tc-kpi-num '+convCls+'" style="font-size:13px;">'+conv+'</div></div>'+
       '</div>'+
       '<div class="tc-teachers">'+
-        '<div class="tc-thead"><span>이름</span><span style="text-align:right">종료</span><span style="text-align:right">달성</span><span style="text-align:right;color:#f59e0b">오늘</span></div>'+
+        '<div class="tc-group">'+
+          '<span></span>'+
+          '<span class="tc-group-lbl g-acc">── 누적 ──</span>'+
+          '<span class="tc-group-lbl g-tod">── 오늘 ──</span>'+
+        '</div>'+
+        '<div class="tc-thead">'+
+          '<span>이름</span>'+
+          '<span style="text-align:right;color:#1d4ed8;">종료</span>'+
+          '<span style="text-align:right;color:#1d4ed8;">달성</span>'+
+          '<span style="text-align:right;color:#6366f1;">종료</span>'+
+          '<span style="text-align:right;color:#f59e0b;">달성</span>'+
+        '</div>'+
         tRows+
-        '<div class="tc-total"><span>총계</span><span>'+(m.monthEnd||'-')+'</span><span>'+(m.realPay||'-')+'</span><span style="color:#f59e0b">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
+        '<div class="tc-total">'+
+          '<span>총계</span>'+
+          '<span style="color:#374151;">'+(m.monthEnd||'-')+'</span>'+
+          '<span style="color:'+cfg.bar+';font-weight:700;">'+(m.realPay||'-')+'</span>'+
+          '<span style="color:#6366f1;">'+(m.todayEnd||'-')+'</span>'+
+          '<span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span>'+
+        '</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -1140,6 +1163,9 @@ fetchSettings();
 fetchV1();
 fetchPay();
 fetchLive();
+// 수기결제: 최초 로드 + 30초마다 공유 데이터 폴링
+fetchSharedManual();
+setInterval(fetchSharedManual, 30000);
 // ─── 실시간 결제 fetch ────────────────────────────────────
 // 탭 구조: 선생님이름(A) | 시간HH:mm(B) | 상품명(C)
 // 이름 → settings → 팀 매핑
@@ -1254,14 +1280,36 @@ function parseLiveCSV(text) {
 }
 
 // ─── 수기 결제 입력 ──────────────────────────────────────
-var MANUAL_KEY = 'liveManualEntries';
+// ★ Apps Script 배포 후 아래 URL을 붙여넣으세요
+var SCRIPT_URL = ''; // 예: 'https://script.google.com/macros/s/AKfycb.../exec'
+var MANUAL_KEY = 'liveManualEntries'; // SCRIPT_URL 없을 때 localStorage fallback
+var _manualCache = [];  // 공유 캐시 (fetch 결과 저장)
 
 function getManualEntries() {
-  try {
-    var today = new Date().toISOString().slice(0,10);
-    var all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]');
-    return all.filter(function(e){ return e.date === today; });
-  } catch(e){ return []; }
+  return _manualCache;
+}
+
+// 공유 서버(또는 localStorage)에서 수기결제 목록을 가져와 캐시 갱신
+function fetchSharedManual() {
+  if (!SCRIPT_URL) {
+    // localStorage fallback
+    try {
+      var today = new Date().toISOString().slice(0,10);
+      var all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]');
+      _manualCache = all.filter(function(e){ return e.date === today; });
+    } catch(e){ _manualCache = []; }
+    renderLive();
+    return;
+  }
+  var today = new Date().toISOString().slice(0,10);
+  var url = SCRIPT_URL + '?action=list&date=' + today + '&_t=' + Date.now();
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok) _manualCache = d.entries || [];
+      renderLive();
+    })
+    .catch(function(err){ console.warn('[Manual] 폴링 실패:', err.message); });
 }
 
 function addManualEntry() {
@@ -1275,31 +1323,74 @@ function addManualEntry() {
   if(/^\d{1,2}:\d{2}$/.test(time)) time = time.padStart(5,'0');
 
   var today = new Date().toISOString().slice(0,10);
-  var all = [];
-  try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
-  all.push({date:today, name:name, time:time, product:prod||'수기입력', id:Date.now()});
-  localStorage.setItem(MANUAL_KEY, JSON.stringify(all));
 
-  document.getElementById('manualName').value = '';
-  document.getElementById('manualTime').value = '';
-  document.getElementById('manualProd').value = '';
+  if (!SCRIPT_URL) {
+    // localStorage fallback
+    var all = [];
+    try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
+    all.push({date:today, name:name, time:time, product:prod||'수기입력', id:String(Date.now())});
+    localStorage.setItem(MANUAL_KEY, JSON.stringify(all));
+    document.getElementById('manualName').value = '';
+    document.getElementById('manualTime').value = '';
+    document.getElementById('manualProd').value = '';
+    fetchSharedManual();
+    return;
+  }
 
-  // live 데이터 재렌더 (수기 포함)
-  renderLive();
+  var url = SCRIPT_URL
+    + '?action=add'
+    + '&date='    + encodeURIComponent(today)
+    + '&time='    + encodeURIComponent(time)
+    + '&name='    + encodeURIComponent(name)
+    + '&product=' + encodeURIComponent(prod||'수기입력');
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok){
+        document.getElementById('manualName').value = '';
+        document.getElementById('manualTime').value = '';
+        document.getElementById('manualProd').value = '';
+        fetchSharedManual();
+      } else {
+        alert('저장 실패: ' + (d.error||'알 수 없는 오류'));
+      }
+    })
+    .catch(function(err){ alert('오류: ' + err.message); });
 }
 
 function deleteManualEntry(id) {
-  var all = [];
-  try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
-  all = all.filter(function(e){ return e.id !== id; });
-  localStorage.setItem(MANUAL_KEY, JSON.stringify(all));
-  renderLive();
+  if (!SCRIPT_URL) {
+    var all = [];
+    try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
+    all = all.filter(function(e){ return String(e.id) !== String(id); });
+    localStorage.setItem(MANUAL_KEY, JSON.stringify(all));
+    fetchSharedManual();
+    return;
+  }
+  var url = SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(id);
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.ok) fetchSharedManual();
+      else alert('삭제 실패: ' + (d.error||''));
+    })
+    .catch(function(err){ alert('오류: ' + err.message); });
 }
 
 function clearManualEntries() {
   if(!confirm('수기 입력한 결제 내역을 모두 삭제할까요?')) return;
-  localStorage.removeItem(MANUAL_KEY);
-  renderLive();
+  if (!SCRIPT_URL) {
+    localStorage.removeItem(MANUAL_KEY);
+    fetchSharedManual();
+    return;
+  }
+  var toDelete = _manualCache.slice();
+  if(!toDelete.length){ return; }
+  var done = 0;
+  toDelete.forEach(function(e){
+    var url = SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(e.id);
+    fetch(url).then(function(){ done++; if(done === toDelete.length) fetchSharedManual(); });
+  });
 }
 
 function renderLive() {
@@ -1403,79 +1494,4 @@ function renderLive() {
     } else {
       tchBody.innerHTML=combined.map(function(row){
         var c=TEAM_CFG[row.team]||{bar:'#9ca3af'};
-        return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:11px;border-bottom:1px solid #f9f9f9;'+(row.manual?'background:#fffbeb;':'')+'">'+
-          '<span style="color:#9ca3af;font-size:10px;min-width:36px;flex-shrink:0;">'+row.time+'</span>'+
-          '<span class="team-dot" style="background:'+c.bar+';flex-shrink:0;width:7px;height:7px;"></span>'+
-          '<span style="font-weight:600;color:#1a1a2e;min-width:60px;">'+row.name+(row.manual?' ✏':'')+'</span>'+
-          '<span style="color:#9ca3af;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+row.product+'</span>'+
-        '</div>';
-      }).join('');
-    }
-  }
-
-  // 시간대별 (수기 포함)
-  var LIVE_HOURS=['13','14','15','16','17','18','19','20','21','22'];
-  var byTimeWithManual={};
-  LIVE_HOURS.forEach(function(hr){
-    byTimeWithManual[hr]=Object.assign({},d.byTime[hr]||{'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0});
-  });
-  manualEntries.forEach(function(e){
-    var _mp=(e.time||'').split(':'),_mH=parseInt(_mp[0])||0,_mM=parseInt(_mp[1])||0;
-    var _mHr=(_mM===0)?_mH:_mH+1;
-    var _mHc=_mHr<13?13:(_mHr>22?22:_mHr);
-    var hr=_mHc<10?'0'+_mHc:String(_mHc);
-    var team=nameToTeamMap[normName(e.name)]||'';
-    if(team&&byTimeWithManual[hr]&&byTimeWithManual[hr][team]!==undefined) byTimeWithManual[hr][team]++;
-  });
-  var tlBody=document.getElementById('liveTlBody');
-  if(tlBody){
-    var DIVIDER_HOURS=['14','18','21'];
-    // 누적 카운터
-    var cumul={};
-    TEAM_NAMES.forEach(function(nm){cumul[nm]=0;});
-    var cumulTot=0;
-    tlBody.innerHTML=LIVE_HOURS.map(function(hr){
-      var row=byTimeWithManual[hr]||{};
-      var hrTot=TEAM_NAMES.reduce(function(s,nm){return s+(row[nm]||0);},0);
-      // 누적 합산
-      TEAM_NAMES.forEach(function(nm){cumul[nm]+=(row[nm]||0);});
-      cumulTot+=hrTot;
-      var hasData=cumulTot>0;
-      var cls=(DIVIDER_HOURS.indexOf(hr)>=0?'tl-div ':'')+(hasData?'':'tl-dim');
-      return '<tr class="'+cls.trim()+'">' +
-        '<td>'+hr+'시</td>' +
-        TEAM_NAMES.map(function(nm){
-          var v=cumul[nm];
-          return '<td style="font-weight:'+(v?700:400)+';color:'+(v?TEAM_CFG[nm].bar:'#d1d5db')+'">'+(v||'-')+'</td>';
-        }).join('') +
-        '<td style="font-weight:700;color:'+(hasData?'#1a1a2e':'#d1d5db')+'">'+(cumulTot||'-')+'</td>' +
-      '</tr>';
-    }).join('');
-  }
-
-  // 수기 입력 목록 렌더
-  var listEl=document.getElementById('manualEntryList');
-  if(listEl){
-    if(!manualEntries.length){
-      listEl.innerHTML='<div style="font-size:10px;color:#d1d5db;padding:4px 2px;">입력된 수기 결제 없음</div>';
-    } else {
-      listEl.innerHTML=manualEntries.map(function(e){
-        var team=nameToTeamMap[normName(e.name)]||'';
-        var col=(TEAM_CFG[team]||{bar:'#9ca3af'}).bar;
-        return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #f9f9f9;font-size:11px;">'+
-          '<span style="color:#9ca3af;min-width:36px;">'+e.time+'</span>'+
-          '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;display:inline-block;"></span>'+
-          '<span style="font-weight:600;color:#1a1a2e;flex:1;">'+e.name+'</span>'+
-          (team?'<span style="font-size:9px;color:'+col+';font-weight:700;flex-shrink:0;">'+team+'</span>':'<span style="font-size:9px;color:#f59e0b;">팀 미매핑</span>')+
-          '<span style="color:#6b7280;font-size:10px;min-width:60px;text-align:right;">'+e.product+'</span>'+
-          '<button onclick="deleteManualEntry('+e.id+')" style="padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;font-size:10px;cursor:pointer;flex-shrink:0;">✕</button>'+
-        '</div>';
-      }).join('');
-    }
-  }
-}
-
-
-</script>
-</body>
-</html>
+        return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:11px;border-bottom:1px solid #
