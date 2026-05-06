@@ -59,8 +59,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-kd{font-size:20px;font-weight:800;letter-spacing:-.02em;}
 .tc-ksub{font-size:10px;color:#9ca3af;}
 .tc-teachers{border-top:1px solid #f3f4f6;}
-.tc-thead{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
-.tc-teacher{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;padding:5px 10px;font-size:12px;border-bottom:1px solid #f9f9f9;align-items:center;}
+.tc-thead{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
+.tc-kpi-3{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #f3f4f6;}
+.tc-kpi-cell{padding:6px 4px;text-align:center;border-right:1px solid #f3f4f6;}
+.tc-kpi-cell:last-child{border-right:none;}
+.tc-kpi-lbl{font-size:9px;color:#9ca3af;margin-bottom:1px;}
+.tc-kpi-num{font-size:15px;font-weight:900;letter-spacing:-.02em;}
+.tc-total{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;}
+.tc-total span{text-align:right;}.tc-total span:first-child{text-align:left;color:#9ca3af;}
+.tc-teacher{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
 .tc-tid-small{display:block;font-size:9px;color:#d1d5db;margin-top:1px;}
 .tc-teacher:last-child{border-bottom:none;}
 .tc-tname{color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -202,12 +209,26 @@ tbody tr:hover td{background:#f9fafb;}
 </div>
 
 <div class="page">
-  <!-- 상단: 팀별현황 + 실시간결제 -->
-  <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px;align-items:start;">
+  <!-- 상단: 팀별현황 전체너비 -->
+  <div style="margin-bottom:12px;">
+    <div class="sec-lbl">팀별 현황</div>
+    <div class="team-row" id="teamRow"></div>
+  </div>
+
+  <!-- 하단: 3열 (월달성요약 | 주별마감 | 실시간결제) -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin-bottom:12px;">
+    <!-- Col1: 월 달성 요약 -->
     <div>
-      <div class="sec-lbl">팀별 현황</div>
-      <div class="team-row" id="teamRow"></div>
+      <div class="sec-lbl">월 달성 요약</div>
+      <div class="kpi-grid" id="kpiGrid" style="margin-bottom:10px;"></div>
+      <div id="summaryTbl"></div>
     </div>
+    <!-- Col2: 주별 마감 현황 -->
+    <div>
+      <div class="sec-lbl">주별 마감 현황</div>
+      <div class="week-list" id="weekList"></div>
+    </div>
+    <!-- Col3: 실시간 결제 -->
     <div id="livePanel">
       <div class="sec-lbl">실시간 결제</div>
       <!-- 실시간패널 내용은 renderLivePanel()이 채움 -->
@@ -262,27 +283,6 @@ tbody tr:hover td{background:#f9fafb;}
               </tr></thead>
               <tbody id="liveTlBody"><tr><td colspan="6" class="live-empty">-</td></tr></tbody>
             </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 월간 종합 KPI -->
-  <div>
-    <div class="sec-lbl">월간 종합</div>
-    <div class="kpi-grid" id="kpiGrid"></div>
-  </div>
-
-  <!-- 주별 마감 현황 -->
-  <div>
-    <div class="sec-lbl">주별 마감 현황</div>
-    <div class="week-list" id="weekList"></div>
-  </div>
-  <!-- 교사별 -->
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:6px;">👩‍🏫 교사별</div>
-            <div id="liveTchBody"><div class="live-empty" style="padding:10px">-</div></div>
           </div>
         </div>
       </div>
@@ -688,38 +688,40 @@ function renderTeams(data) {
     var conv=m.monthEnd>0?Math.round(m.realPay/m.monthEnd*100)+'%':'-';
     var convCls=m.monthEnd>0?(m.realPay/m.monthEnd>=0.7?'kv-good':m.realPay/m.monthEnd>=0.5?'kv-warn':'kv-bad'):'';
 
-    var tRows=teachers.map(function(t){
-      var conv=t.monthEnd>0?(t.realPay/t.monthEnd*100).toFixed(0)+'%':'-';
-      var rCls2=t.monthEnd>0?(t.realPay/t.monthEnd>=0.7?'kv-good':t.realPay/t.monthEnd>=0.5?'kv-warn':'kv-bad'):'';
-      return '<div class="tc-teacher">'+
-        '<span class="tc-tname">'+t.name+
-          '<span class="tc-tid-small">'+t.teacherID+'</span>'+
-        '</span>'+
+    // 선생님 목록: realPay 내림차순 정렬
+    var sortedT=teachers.slice().sort(function(a,b){return b.realPay-a.realPay||b.monthEnd-a.monthEnd;});
+    var tRows=sortedT.map(function(t){
+      var hasPay=t.realPay>0;
+      var payDisp=hasPay?('<b style="color:'+cfg.bar+'">'+t.realPay+'</b>'+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;"> +'+t.livePayment+'</span>':'')):'<span style="color:#d1d5db">-</span>';
+      return '<div class="tc-teacher" style="'+(hasPay?'background:'+cfg.hdr+';':'')+'">'+
+        '<span class="tc-tname" style="'+(hasPay?'font-weight:700;':'')+'">'+t.name+'</span>'+
         '<span class="tc-tnum">'+t.monthEnd+'</span>'+
-        '<span class="tc-treal '+rCls2+'">'+t.realPay+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'(오늘)</span>':'')+'</span>'+
-        '<span class="tc-tnum '+rCls2+'" style="font-size:11px;">'+conv+'</span>'+
+        '<span class="tc-tnum">'+payDisp+'</span>'+
       '</div>';
     }).join('');
+
+    var wdBadge=m.withdrawal?'<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:#fee2e2;color:#991b1b;margin-left:4px;">청철 '+m.withdrawal+'</span>':'';
 
     return '<div class="team-card" style="border-top:3px solid '+cfg.bar+'">'+
       '<div class="tc-hdr" style="background:'+cfg.hdr+'">'+
         '<span class="tc-name" style="color:'+cfg.txt+'">'+nm+'</span>'+
-        '<span class="tc-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+m.headcount+'명</span>'+
+        '<div style="display:flex;gap:4px;align-items:center;">'+
+          '<span class="tc-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+m.headcount+'명</span>'+
+          wdBadge+
+        '</div>'+
       '</div>'+
-      '<div class="tc-kpi">'+
-        '<div class="tc-kv"><div class="tc-kn">월목표</div><div class="tc-kd">'+m.target+'</div></div>'+
-        '<div class="tc-kv"><div class="tc-kn">결제</div>'+'<div class="tc-kd '+rCls+'" style="display:flex;flex-direction:column;align-items:center;gap:1px;">'+
+      '<div class="tc-kpi-3">'+
+        '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">종료</div><div class="tc-kpi-num">'+m.monthEnd+'</div></div>'+
+        '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">달성</div><div class="tc-kpi-num '+rCls+'" style="display:flex;flex-direction:column;align-items:center;line-height:1.1;">'+
           '<span>'+m.realPay+'</span>'+
-          '<span style="font-size:11px;font-weight:700;color:#f59e0b;min-height:15px;line-height:1.2;">'+
-            (m.livePayment?'+'+m.livePayment+'(오늘)':'')+
-          '</span>'+
+          '<span style="font-size:10px;font-weight:700;color:#f59e0b;min-height:13px;">'+(m.livePayment?'+'+m.livePayment+'(오늘)':'')+'</span>'+
         '</div></div>'+
-        '<div class="tc-kv"><div class="tc-kn">실제종료</div><div class="tc-kd">'+m.monthEnd+'</div></div>'+
-        '<div class="tc-kv"><div class="tc-kn">전환율</div><div class="tc-kd '+convCls+'">'+conv+'</div></div>'+
+        '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">전환율</div><div class="tc-kpi-num '+convCls+'" style="font-size:13px;">'+conv+'</div></div>'+
       '</div>'+
       '<div class="tc-teachers">'+
-        '<div class="tc-thead"><span>이름</span><span style="text-align:right">종료</span><span style="text-align:right">실결제</span><span style="text-align:right">전환율</span></div>'+
+        '<div class="tc-thead"><span>이름</span><span style="text-align:right">종료</span><span style="text-align:right">달성</span></div>'+
         tRows+
+        '<div class="tc-total"><span>총계</span><span>'+m.monthEnd+'</span><span>'+m.realPay+'</span></div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -740,6 +742,40 @@ function renderKPI(data) {
     kpiBox('청철',tot.wd,'건')+
     kpiBox('월 실제종료',tot.end,'건')+
     kpiBox('전환율','<span class="'+cCls+'">'+convRate+'%</span>','결제÷종료');
+
+  // 팀 요약 테이블 (Col1 하단)
+  var teams2=data.teams, tot2={end:0,pay:0};
+  TEAM_NAMES.forEach(function(nm){tot2.end+=teams2[nm].monthEnd;tot2.pay+=teams2[nm].realPay;});
+  var sumRows=TEAM_NAMES.map(function(nm){
+    var m2=teams2[nm],cfg2=TEAM_CFG[nm];
+    var r2=m2.monthEnd>0?Math.round(m2.realPay/m2.monthEnd*100):0;
+    var rc2=r2>=70?'kv-good':r2>=50?'kv-warn':'kv-bad';
+    return '<tr style="border-bottom:1px solid #f3f4f6;">'+
+      '<td style="padding:5px 10px;font-size:12px;font-weight:600;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cfg2.bar+';margin-right:5px;vertical-align:middle;"></span>'+nm+'</td>'+
+      '<td style="padding:5px 10px;font-size:12px;text-align:right;">'+m2.monthEnd+'</td>'+
+      '<td style="padding:5px 10px;font-size:12px;text-align:right;font-weight:700;">'+m2.realPay+(m2.livePayment?'<span style="font-size:9px;color:#f59e0b;"> +'+m2.livePayment+'</span>':'')+'</td>'+
+      '<td style="padding:5px 10px;font-size:12px;text-align:right;" class="'+rc2+'">'+r2+'%</td>'+
+    '</tr>';
+  }).join('');
+  var totR2=tot2.end>0?Math.round(tot2.pay/tot2.end*100):0;
+  var totRc2=totR2>=70?'kv-good':totR2>=50?'kv-warn':'kv-bad';
+  var stEl=document.getElementById('summaryTbl');
+  if(stEl) stEl.innerHTML='<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07);">'+
+    '<table style="width:100%;border-collapse:collapse;">'+
+    '<thead><tr style="background:#f9fafb;border-bottom:1px solid #f3f4f6;">'+
+      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:left;">팀</th>'+
+      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:right;">종료</th>'+
+      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:right;">달성</th>'+
+      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:right;">전환율</th>'+
+    '</tr></thead>'+
+    '<tbody>'+sumRows+
+    '<tr style="background:#f9fafb;font-weight:700;">'+
+      '<td style="padding:5px 10px;font-size:12px;">합계</td>'+
+      '<td style="padding:5px 10px;font-size:12px;text-align:right;">'+tot2.end+'</td>'+
+      '<td style="padding:5px 10px;font-size:12px;text-align:right;">'+tot2.pay+'</td>'+
+      '<td style="padding:5px 10px;font-size:12px;text-align:right;" class="'+totRc2+'">'+totR2+'%</td>'+
+    '</tr>'+
+    '</tbody></table></div>';
 }
 function kpiBox(lbl,val,sub){return '<div class="kpi-box"><div class="kpi-lbl">'+lbl+'</div><div class="kpi-val">'+val+'</div><div class="kpi-sub">'+sub+'</div></div>';}
 
