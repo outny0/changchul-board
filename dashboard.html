@@ -46,9 +46,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;}
 
 /* TEAM CARDS */
-.team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:stretch;}
+.team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 @media(max-width:900px){.team-row{grid-template-columns:repeat(2,1fr);}}
-.team-card{background:#fff;border-radius:12px;border-top:3px solid;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;flex-direction:column;}
+.team-card{background:#fff;border-radius:12px;border-top:3px solid;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);}
 .tc-hdr{padding:10px 12px 8px;display:flex;align-items:center;justify-content:space-between;}
 .tc-name{font-size:13px;font-weight:700;}
 .tc-badge{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;}
@@ -58,18 +58,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-kn{font-size:9px;color:#9ca3af;margin-bottom:2px;}
 .tc-kd{font-size:20px;font-weight:800;letter-spacing:-.02em;}
 .tc-ksub{font-size:10px;color:#9ca3af;}
-.tc-teachers{border-top:1px solid #f3f4f6;flex:1;display:flex;flex-direction:column;}
+.tc-teachers{border-top:1px solid #f3f4f6;}
 .tc-group{display:grid;grid-template-columns:2fr 2fr 2fr;padding:3px 10px 0;font-size:9px;font-weight:700;background:#fafafa;}
 .tc-group-lbl{text-align:center;padding:1px 0;border-radius:3px 3px 0 0;letter-spacing:.03em;}
 .tc-group-lbl.g-acc{background:#eff6ff;color:#1d4ed8;}
 .tc-group-lbl.g-tod{background:#fffbeb;color:#d97706;}
-.tc-thead{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:3px 10px 4px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
+.tc-thead{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:#9ca3af;border-bottom:1px solid #f3f4f6;background:#fafafa;}
 .tc-kpi-3{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #f3f4f6;}
 .tc-kpi-cell{padding:6px 4px;text-align:center;border-right:1px solid #f3f4f6;}
 .tc-kpi-cell:last-child{border-right:none;}
 .tc-kpi-lbl{font-size:9px;color:#9ca3af;margin-bottom:1px;}
 .tc-kpi-num{font-size:15px;font-weight:900;letter-spacing:-.02em;}
-.tc-total{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;margin-top:auto;}
+.tc-total{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:#f9fafb;border-top:1px solid #f3f4f6;color:#374151;}
 .tc-total span{text-align:right;}.tc-total span:first-child{text-align:left;color:#9ca3af;}
 .tc-teacher{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;border-bottom:1px solid #f9f9f9;align-items:center;}
 .tc-tid-small{display:block;font-size:9px;color:#d1d5db;margin-top:1px;}
@@ -302,16 +302,14 @@ tbody tr:hover td{background:#f9fafb;}
     <div class="tbl-wrap">
       <table>
         <thead><tr id="tblHead">
-          <th onclick="sortTable('name')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">교사명 <span id="si-name" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('team')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">팀 <span id="si-team" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('target')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">개인목표 <span id="si-target" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('monthEnd')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">실제종료 <span id="si-monthEnd" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">결제수 <span id="si-realPay2" style="color:#1a1a2e;">▼</span></th>
-          <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">청철 <span id="si-withdrawal" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">총결제(청철제외전) <span id="si-monthPayment2" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">전환율 <span id="si-monthRate" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('prevRealPay')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">전월결제 <span id="si-prevRealPay" style="color:#d1d5db;">↕</span></th>
-          <th onclick="sortTable('prevDiff')" style="cursor:pointer;user-select:none;white-space:nowrap;color:#374151;">전월대비 <span id="si-prevDiff" style="color:#d1d5db;">↕</span></th>
+          <th onclick="sortTable('name')" style="cursor:pointer;user-select:none;white-space:nowrap">교사명 <span id="si-name"></span></th>
+          <th onclick="sortTable('team')" style="cursor:pointer;user-select:none;white-space:nowrap">팀 <span id="si-team"></span></th>
+          <th onclick="sortTable('target')" style="cursor:pointer;user-select:none;white-space:nowrap">개인목표 <span id="si-target"></span></th>
+          <th onclick="sortTable('monthEnd')" style="cursor:pointer;user-select:none;white-space:nowrap">실제종료 <span id="si-monthEnd"></span></th>
+          <th onclick="sortTable('realPay')" style="cursor:pointer;user-select:none;white-space:nowrap">결제수 <span id="si-realPay2">▼</span></th>
+          <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap">청철 <span id="si-withdrawal"></span></th>
+          <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">총결제(청철제외전) <span id="si-monthPayment2"></span></th>
+          <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap">전환율 <span id="si-monthRate"></span></th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
@@ -337,7 +335,7 @@ var TEAM_CFG = {
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null};
 var currentFilter = '전체';
-var sortKey = 'realPay', sortDir = -1; // -1=내림차순, 1=오름차순
+var sortKey = 'monthPayment', sortDir = -1; // -1=내림차순, 1=오름차순
 
 function p2(n){return String(n).padStart(2,'0');}
 
@@ -430,19 +428,14 @@ function parsePayCSV(text) {
   if(rows.length<2){console.warn('[Pay] 행이 2개 미만');return null;}
 
   var hdr=rows[0];
-  var dayIdxs={}, iTotal=-1, iWd=-1, iPrevPay=-1;
+  var dayIdxs={}, iTotal=-1, iWd=-1;
   hdr.forEach(function(v,i){
     var s=String(v||'').trim(), n=parseInt(s);
     // 일별 컬럼: 헤더가 1~31인 정수
     if(!isNaN(n)&&n>=1&&n<=31&&String(n)===s) { dayIdxs[n]=i; return; }
     if(s==='합계') { iTotal=i; return; }
     if(s==='청철'||s==='취소'||s==='환불') { iWd=i; return; }
-    // 전월결제: AN열 헤더명으로 찾기
-    if(s==='전월결제'||s==='전월'||s==='prev') { iPrevPay=i; return; }
   });
-  // 헤더에서 못찾으면 AN(39번째, 0-based) 위치로 fallback
-  // AM(38)=선생님이름, AN(39)=전월결제수
-  if(iPrevPay<0 && hdr.length>39) iPrevPay=39;
 
   var dayCount=Object.keys(dayIdxs).length;
   console.log('[Pay] 헤더:', hdr.slice(0,5),'...총',hdr.length,'열 / 일별컬럼:',dayCount,'개 / 합계idx:',iTotal,'/ 청철idx:',iWd);
@@ -464,12 +457,9 @@ function parsePayCSV(text) {
     }
     var monthTotal = daySum;  // 일별 컬럼(1~30) 합산 고정 — 합계 컬럼 무시
     var withdrawal = iWd>=0   ? (parseInt(row[iWd])  ||0) : 0;
-    var prevPay = iPrevPay>=0 ? (parseInt(row[iPrevPay])||0) : 0;
-    map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily, prevPay:prevPay};
-    if(prevPay>0) console.log('[Pay] 교사ID',id,'전월결제:',prevPay);
+    map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily};
   }
-  var prevCount=Object.values(map).filter(function(v){return v.prevPay>0;}).length;
-  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 전월결제 있는 교사:', prevCount,'명 / iPrevPay열:', iPrevPay);
+  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 월결제=일별합산 / 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
   return {map:map, dailyTotals:dailyTotals};
 }
 
@@ -495,15 +485,26 @@ function combineData() {
 
   var teacherMap={};
 
-  // V1: settings에 있는 선생님만, 이번 달 종료만
-  if(state.v1){Object.keys(state.v1).forEach(function(tid){
-    if(!allowed[tid])return;
-    var v=state.v1[tid];
-    var info=allowed[tid];
-    var mEnd=0;
-    Object.keys(v.daily).forEach(function(ds){if(ds.slice(0,7)===ym)mEnd+=(v.daily[ds]||0);});
-    teacherMap[tid]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0,target:localTargetMap[String(tid)]||parseInt(info.target)||0};
-  });}
+  // V1: settings에 있는 선생님만, 이름 fallback 매칭 포함
+  var nameToId={};
+  Object.keys(allowed).forEach(function(tid){ var n=allowed[tid].name; if(n) nameToId[normName(n)]=tid; });
+
+  if(state.v1){
+    var v1Matched=0, v1Skipped=[];
+    Object.keys(state.v1).forEach(function(tid){
+      var v=state.v1[tid];
+      var resolvedId=tid;
+      var info=allowed[tid];
+      if(!info){ var fbId=nameToId[normName(v.name)]; if(fbId){resolvedId=fbId;info=allowed[fbId];} }
+      if(!info){v1Skipped.push(tid+'('+v.name+')');return;}
+      var mEnd=0;
+      Object.keys(v.daily).forEach(function(ds){if(ds.slice(0,7)===ym)mEnd+=(v.daily[ds]||0);});
+      teacherMap[resolvedId]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0,target:localTargetMap[String(resolvedId)]||parseInt(info.target)||0};
+      v1Matched++;
+    });
+    console.log('[V1] 매칭 성공:',v1Matched,'명 / 스킵:',v1Skipped.length,'명');
+    if(v1Skipped.length) console.warn('[V1] 매칭 실패(settings에 없음):', v1Skipped.join(', '));
+  }
 
   // 결제: settings에 있는 선생님만
   if(state.pay){Object.keys(state.pay.map).forEach(function(tid){
@@ -514,7 +515,6 @@ function combineData() {
     teacherMap[tid].daily_pay=p.daily;
     teacherMap[tid].monthPayment=p.monthTotal;
     teacherMap[tid].withdrawal=p.withdrawal;
-    teacherMap[tid].prevPay=p.prevPay||0;
   });}
 
   // settings에는 있지만 V1·결제 데이터가 없는 선생님도 포함
@@ -610,10 +610,8 @@ function combineData() {
     var t=teacherMap[tid]; if(!t.name)return;
     t.teacherID=tid;
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
-    t.prevRealPay=t.prevPay||0;
-    t.prevDiff=t.realPay-t.prevRealPay;
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
-    t.todayEnd=(t.daily_end&&t.daily_end[dt.ymd])||0; // 오늘 종료수
+    t.todayEnd=(t.daily_end&&t.daily_end[dt.ymd])||0;
     teachers.push(t);
     var tm=t.team&&teams[t.team];
     if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);tm.todayEnd=(tm.todayEnd||0)+t.todayEnd;}
@@ -740,26 +738,10 @@ function renderTeams(data) {
         '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">전환율</div><div class="tc-kpi-num '+convCls+'" style="font-size:13px;">'+conv+'</div></div>'+
       '</div>'+
       '<div class="tc-teachers">'+
-        '<div class="tc-group">'+
-          '<span></span>'+
-          '<span class="tc-group-lbl g-acc">── 누적 ──</span>'+
-          '<span class="tc-group-lbl g-tod">── 오늘 ──</span>'+
-        '</div>'+
-        '<div class="tc-thead">'+
-          '<span>이름</span>'+
-          '<span style="text-align:right;color:#1d4ed8;">종료</span>'+
-          '<span style="text-align:right;color:#1d4ed8;">달성</span>'+
-          '<span style="text-align:right;color:#6366f1;">종료</span>'+
-          '<span style="text-align:right;color:#f59e0b;">달성</span>'+
-        '</div>'+
+        '<div class="tc-group"><span></span><span class="tc-group-lbl g-acc">── 누적 ──</span><span class="tc-group-lbl g-tod">── 오늘 ──</span></div>'+
+        '<div class="tc-thead"><span>이름</span><span style="text-align:right;color:#1d4ed8;">종료</span><span style="text-align:right;color:#1d4ed8;">달성</span><span style="text-align:right;color:#6366f1;">종료</span><span style="text-align:right;color:#f59e0b;">달성</span></div>'+
         tRows+
-        '<div class="tc-total">'+
-          '<span>총계</span>'+
-          '<span style="color:#374151;">'+(m.monthEnd||'-')+'</span>'+
-          '<span style="color:'+cfg.bar+';font-weight:700;">'+(m.realPay||'-')+'</span>'+
-          '<span style="color:#6366f1;">'+(m.todayEnd||'-')+'</span>'+
-          '<span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span>'+
-        '</div>'+
+        '<div class="tc-total"><span>총계</span><span style="color:#374151;">'+(m.monthEnd||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+(m.realPay||'-')+'</span><span style="color:#6366f1;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -943,13 +925,6 @@ function buildTabs() {
 function setFilter(f){currentFilter=f;var d=combineData();buildTabs();renderTable(d,f);}
 function sortTable(key){
   if(sortKey===key){sortDir=-sortDir;}else{sortKey=key;sortDir=-1;}
-  // 비활성 컬럼: 회색 ↕ / 활성 컬럼: 컬러 ▼▲
-  ['name','team','target','monthEnd','realPay','withdrawal','monthPayment','monthRate','prevRealPay','prevDiff'].forEach(function(k){
-    var el=document.getElementById('si-'+k)||document.getElementById('si-'+k+'2');
-    if(!el)return;
-    if(k===key){el.textContent=sortDir===-1?'▼':'▲';el.style.color='#1a1a2e';}
-    else{el.textContent='↕';el.style.color='#d1d5db';}
-  });
   var d=combineData();renderTable(d,currentFilter);
 }
 
@@ -968,11 +943,10 @@ function renderTable(data, filter) {
   });
   // 정렬 인디케이터 업데이트
   [['name','si-name'],['team','si-team'],['target','si-target'],['monthEnd','si-monthEnd'],
-   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate'],
-   ['prevRealPay','si-prevRealPay'],['prevDiff','si-prevDiff']
+   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate']
   ].forEach(function(pair){
     var el=document.getElementById(pair[1]);
-    if(el){if(pair[0]===sortKey){el.textContent=sortDir===-1?'▼':'▲';el.style.color='#1a1a2e';}else{el.textContent='↕';el.style.color='#d1d5db';}}
+    if(el)el.textContent=pair[0]===sortKey?(sortDir===-1?'▼':'▲'):'';
   });
   document.getElementById('tblBody').innerHTML=teachers.map(function(t){
     var cfg=TEAM_CFG[t.team]||TEAM_CFG['단비팀'];
@@ -987,14 +961,6 @@ function renderTable(data, filter) {
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
       '<td style="color:#6b7280">'+t.monthPayment+'</td>'+
       '<td class="'+rCls+'">'+t.monthRate+'</td>'+
-      '<td style="color:#6b7280;">'+(t.prevRealPay>0?t.prevRealPay:'<span style="color:#d1d5db">-</span>')+'</td>'+
-      (function(){
-        var diff=t.prevDiff||0;
-        if(!t.prevRealPay) return '<td style="color:#d1d5db">-</td>';
-        var cls=diff>0?'color:#16a34a':diff<0?'color:#dc2626':'color:#9ca3af';
-        var sign=diff>0?'+':'';
-        return '<td style="font-weight:700;'+cls+'">'+sign+diff+'</td>';
-      })()+
     '</tr>';
   }).join('')||'<tr><td colspan="8" class="empty-note">데이터 없음</td></tr>';
 }
@@ -1010,7 +976,7 @@ function clearCache() {
   document.getElementById('teamRow').innerHTML='<div class="empty-note" style="grid-column:1/-1;padding:20px">V1 가공파일을 선택해 주세요</div>';
   document.getElementById('kpiGrid').innerHTML='';
   document.getElementById('weekList').innerHTML='<div class="empty-note">데이터가 없습니다</div>';
-  document.getElementById('tblBody').innerHTML='<tr><td colspan="11" class="empty-note">데이터 없음</td></tr>';
+  document.getElementById('tblBody').innerHTML='<tr><td colspan="9" class="empty-note">데이터 없음</td></tr>';
 }
 
 // ─── 선생님설정 CSV 파싱 ─────────────────────────────────
@@ -1163,7 +1129,6 @@ fetchSettings();
 fetchV1();
 fetchPay();
 fetchLive();
-// 수기결제: 최초 로드 + 30초마다 공유 데이터 폴링
 fetchSharedManual();
 setInterval(fetchSharedManual, 30000);
 // ─── 실시간 결제 fetch ────────────────────────────────────
@@ -1251,11 +1216,10 @@ function parseLiveCSV(text) {
     var timeStr  = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'');
     var time = timeStr.slice(0,5); // 표시용 HH:MM
     if(!time || time.length<4) continue;
-    // 시간 버킷: 정각이면 해당 시, 이후면 다음 시 / 13 미만→13, 22 초과→22 클램프
+    // 시간 버킷: 정각(MM=0,SS=0)이면 해당 시, 이후면 다음 시
     var _tp=timeStr.split(':'), _tH=parseInt(_tp[0])||0, _tM=parseInt(_tp[1])||0, _tS=parseInt(_tp[2])||0;
-    var _tHr=(_tM===0&&_tS===0)?_tH:_tH+1;
-    var _tHc=_tHr<13?13:(_tHr>22?22:_tHr);
-    var hr=_tHc<10?'0'+_tHc:String(_tHc);
+    var hrNum=(_tM===0&&_tS===0)?_tH:_tH+1;
+    var hr=hrNum<10?'0'+hrNum:String(hrNum);
 
     // 팀 결정: 이름→팀 매핑
     var rowKey = 'r'+i;
@@ -1282,33 +1246,24 @@ function parseLiveCSV(text) {
 // ─── 수기 결제 입력 ──────────────────────────────────────
 // ★ Apps Script 배포 후 아래 URL을 붙여넣으세요
 var SCRIPT_URL = ''; // 예: 'https://script.google.com/macros/s/AKfycb.../exec'
-var MANUAL_KEY = 'liveManualEntries'; // SCRIPT_URL 없을 때 localStorage fallback
-var _manualCache = [];  // 공유 캐시 (fetch 결과 저장)
+var MANUAL_KEY = 'liveManualEntries';
+var _manualCache = [];
 
-function getManualEntries() {
-  return _manualCache;
-}
+function getManualEntries() { return _manualCache; }
 
-// 공유 서버(또는 localStorage)에서 수기결제 목록을 가져와 캐시 갱신
 function fetchSharedManual() {
   if (!SCRIPT_URL) {
-    // localStorage fallback
     try {
       var today = new Date().toISOString().slice(0,10);
       var all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]');
       _manualCache = all.filter(function(e){ return e.date === today; });
     } catch(e){ _manualCache = []; }
-    renderLive();
-    return;
+    renderLive(); return;
   }
   var today = new Date().toISOString().slice(0,10);
-  var url = SCRIPT_URL + '?action=list&date=' + today + '&_t=' + Date.now();
-  fetch(url)
+  fetch(SCRIPT_URL + '?action=list&date=' + today + '&_t=' + Date.now())
     .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(d.ok) _manualCache = d.entries || [];
-      renderLive();
-    })
+    .then(function(d){ if(d.ok) _manualCache = d.entries || []; renderLive(); })
     .catch(function(err){ console.warn('[Manual] 폴링 실패:', err.message); });
 }
 
@@ -1318,14 +1273,10 @@ function addManualEntry() {
   var prod = document.getElementById('manualProd').value.trim();
   if(!name){ alert('선생님 이름을 입력해주세요.'); return; }
   if(!time){ alert('시간을 입력해주세요. (예: 14:30)'); return; }
-  // HH:MM 형식 보정
   if(/^\d{1,2}$/.test(time)) time = time.padStart(2,'0')+':00';
   if(/^\d{1,2}:\d{2}$/.test(time)) time = time.padStart(5,'0');
-
   var today = new Date().toISOString().slice(0,10);
-
   if (!SCRIPT_URL) {
-    // localStorage fallback
     var all = [];
     try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
     all.push({date:today, name:name, time:time, product:prod||'수기입력', id:String(Date.now())});
@@ -1333,29 +1284,14 @@ function addManualEntry() {
     document.getElementById('manualName').value = '';
     document.getElementById('manualTime').value = '';
     document.getElementById('manualProd').value = '';
-    fetchSharedManual();
-    return;
+    fetchSharedManual(); return;
   }
-
-  var url = SCRIPT_URL
-    + '?action=add'
-    + '&date='    + encodeURIComponent(today)
-    + '&time='    + encodeURIComponent(time)
-    + '&name='    + encodeURIComponent(name)
-    + '&product=' + encodeURIComponent(prod||'수기입력');
-  fetch(url)
+  fetch(SCRIPT_URL + '?action=add&date='+encodeURIComponent(today)+'&time='+encodeURIComponent(time)+'&name='+encodeURIComponent(name)+'&product='+encodeURIComponent(prod||'수기입력'))
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if(d.ok){
-        document.getElementById('manualName').value = '';
-        document.getElementById('manualTime').value = '';
-        document.getElementById('manualProd').value = '';
-        fetchSharedManual();
-      } else {
-        alert('저장 실패: ' + (d.error||'알 수 없는 오류'));
-      }
-    })
-    .catch(function(err){ alert('오류: ' + err.message); });
+      if(d.ok){ document.getElementById('manualName').value=''; document.getElementById('manualTime').value=''; document.getElementById('manualProd').value=''; fetchSharedManual(); }
+      else alert('저장 실패: '+(d.error||''));
+    }).catch(function(err){ alert('오류: '+err.message); });
 }
 
 function deleteManualEntry(id) {
@@ -1364,32 +1300,23 @@ function deleteManualEntry(id) {
     try{ all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]'); }catch(e){}
     all = all.filter(function(e){ return String(e.id) !== String(id); });
     localStorage.setItem(MANUAL_KEY, JSON.stringify(all));
-    fetchSharedManual();
-    return;
+    fetchSharedManual(); return;
   }
-  var url = SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(id);
-  fetch(url)
+  fetch(SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(id))
     .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(d.ok) fetchSharedManual();
-      else alert('삭제 실패: ' + (d.error||''));
-    })
-    .catch(function(err){ alert('오류: ' + err.message); });
+    .then(function(d){ if(d.ok) fetchSharedManual(); else alert('삭제 실패: '+(d.error||'')); })
+    .catch(function(err){ alert('오류: '+err.message); });
 }
 
 function clearManualEntries() {
   if(!confirm('수기 입력한 결제 내역을 모두 삭제할까요?')) return;
-  if (!SCRIPT_URL) {
-    localStorage.removeItem(MANUAL_KEY);
-    fetchSharedManual();
-    return;
-  }
+  if (!SCRIPT_URL) { localStorage.removeItem(MANUAL_KEY); fetchSharedManual(); return; }
   var toDelete = _manualCache.slice();
-  if(!toDelete.length){ return; }
+  if(!toDelete.length) return;
   var done = 0;
   toDelete.forEach(function(e){
-    var url = SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(e.id);
-    fetch(url).then(function(){ done++; if(done === toDelete.length) fetchSharedManual(); });
+    fetch(SCRIPT_URL+'?action=delete&id='+encodeURIComponent(e.id))
+      .then(function(){ done++; if(done===toDelete.length) fetchSharedManual(); });
   });
 }
 
