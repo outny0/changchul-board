@@ -403,7 +403,7 @@ function parseV1CSV(text) {
   for(var i=1;i<rows.length;i++){
     var r=rows[i];
     var tid=String(r[0]||'').trim();
-    var name=String(r[1]||'').trim();
+    var name=String(r[1]||'').replace(/♥/g,'').trim();
     if(!tid||tid==='합계'||tid==='교사ID'||!name)continue;
     var daily={};
     for(var ds in dateIdxs){var v=parseInt(r[dateIdxs[ds]])||0;if(v>0)daily[ds]=v;}
@@ -1020,7 +1020,7 @@ function parseSettingsCSV(text) {
     var row=rows[i];
     var tid=String(row[tidCol]||'').trim();
     var team=String(row[teamCol]||'').trim();
-    var name=String(row[nameCol]||'').trim();
+    var name=String(row[nameCol]||'').replace(/♥/g,'').trim();
     if(!tid||!/^\d+$/.test(tid))continue;
     var tgt=tgtCol>=0?parseInt(row[tgtCol])||0:0;
     result[tid]={name:name,team:team,target:tgt};
