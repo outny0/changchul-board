@@ -397,7 +397,9 @@ function parseV1CSV(text) {
   if(totalIdx<0)totalIdx=header.length-1;
 
   var dates=Object.keys(dateIdxs).sort();
+  console.log('[V1] 헤더 앞 10개:', header.slice(0,10));
   console.log('[V1] CSV 날짜 범위:', dates[0],'~',dates[dates.length-1],'('+dates.length+'일)');
+  if(dates.length===0) console.warn('[V1] ⚠️ 날짜 컬럼을 하나도 못찾음! 헤더형식 확인필요');
 
   var result={};
   for(var i=1;i<rows.length;i++){
