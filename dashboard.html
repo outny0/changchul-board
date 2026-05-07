@@ -402,8 +402,16 @@ function parseV1CSV(text) {
   var result={};
   for(var i=1;i<rows.length;i++){
     var r=rows[i];
-    var tid=String(r[0]||'').trim();
-    var name=String(r[1]||'').replace(/♥/g,'').trim();
+    var _c0=String(r[0]||'').trim();
+    var _c1=String(r[1]||'').trim();
+    var tid, name;
+    if(/^\d+$/.test(_c0)){
+      // col0=교사ID, col1=교사명 (기존 구조)
+      tid=_c0; name=_c1.replace(/♥/g,'').trim();
+    } else {
+      // col0=교사명(♥포함), col1=기타숫자 → 이름을 key로 사용
+      name=_c0.replace(/♥/g,'').trim(); tid=name; // 이름을 임시 key로
+    }
     if(!tid||tid==='합계'||tid==='교사ID'||!name)continue;
     var daily={};
     for(var ds in dateIdxs){var v=parseInt(r[dateIdxs[ds]])||0;if(v>0)daily[ds]=v;}
@@ -503,7 +511,7 @@ function combineData() {
       var v=state.v1[tid];
       var resolvedId=tid;
       var info=allowed[tid];
-      if(!info){ var fbId=nameToId[normName(v.name)]; if(fbId){resolvedId=fbId;info=allowed[fbId];} }
+      if(!info){ var fbId=nameToId[normName(v.name)]||nameToId[normName(tid)]; if(fbId){resolvedId=fbId;info=allowed[fbId];} }
       if(!info){v1Skipped.push(tid+'('+v.name+')');return;}
       var mEnd=0;
       var datesThisMonth=[];
