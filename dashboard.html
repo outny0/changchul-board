@@ -490,15 +490,27 @@ function combineData() {
   Object.keys(allowed).forEach(function(tid){ var n=allowed[tid].name; if(n) nameToId[normName(n)]=tid; });
 
   if(state.v1){
+    var v1Ids=Object.keys(state.v1);
+    var settingsIds=Object.keys(allowed);
+    console.log('[V1] V1 교사ID 샘플(앞5):', v1Ids.slice(0,5));
+    console.log('[V1] Settings 교사ID 샘플(앞5):', settingsIds.slice(0,5));
+    console.log('[V1] V1 이름 샘플:', v1Ids.slice(0,3).map(function(id){return id+'→'+state.v1[id].name;}));
+    console.log('[V1] Settings 이름 샘플:', settingsIds.slice(0,3).map(function(id){return id+'→'+allowed[id].name;}));
+    console.log('[V1] 현재 ym:', ym);
+
     var v1Matched=0, v1Skipped=[];
-    Object.keys(state.v1).forEach(function(tid){
+    v1Ids.forEach(function(tid){
       var v=state.v1[tid];
       var resolvedId=tid;
       var info=allowed[tid];
       if(!info){ var fbId=nameToId[normName(v.name)]; if(fbId){resolvedId=fbId;info=allowed[fbId];} }
       if(!info){v1Skipped.push(tid+'('+v.name+')');return;}
       var mEnd=0;
-      Object.keys(v.daily).forEach(function(ds){if(ds.slice(0,7)===ym)mEnd+=(v.daily[ds]||0);});
+      var datesThisMonth=[];
+      Object.keys(v.daily).forEach(function(ds){
+        if(ds.slice(0,7)===ym){mEnd+=(v.daily[ds]||0);if(v.daily[ds]>0)datesThisMonth.push(ds+'='+v.daily[ds]);}
+      });
+      if(v1Matched<3) console.log('[V1] 교사',v.name,'('+resolvedId+') 이번달 종료:', mEnd, '| 날짜:', datesThisMonth.slice(0,5));
       teacherMap[resolvedId]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0,target:localTargetMap[String(resolvedId)]||parseInt(info.target)||0};
       v1Matched++;
     });
