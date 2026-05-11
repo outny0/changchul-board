@@ -181,6 +181,25 @@ tbody tr:hover td{background:#f9fafb;}
 .live-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);cursor:pointer;color:#15803d;}
 .live-sub-txt{font-size:11px;color:#9ca3af;margin-left:auto;}
 .live-empty{text-align:center;padding:24px;color:#9ca3af;font-size:12px;}
+
+/* RANKING */
+.rank-section{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.rank-card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;}
+.rank-card-hdr{padding:8px 12px;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;justify-content:space-between;}
+.rank-card-title{font-size:12px;font-weight:700;color:#1a1a2e;}
+.rank-card-formula{font-size:9px;color:#9ca3af;background:#f9fafb;padding:2px 6px;border-radius:4px;}
+.rank-body{padding:4px 0;}
+.rank-group-lbl{font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 12px;color:#9ca3af;text-transform:uppercase;}
+.rank-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:6px;padding:4px 12px;}
+.rank-badge{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;}
+.rank-badge.top{background:#dcfce7;color:#16a34a;}
+.rank-badge.bot{background:#fee2e2;color:#dc2626;}
+.rank-name{font-size:11px;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-val{font-size:11px;font-weight:700;white-space:nowrap;}
+.rank-val.tv{color:#16a34a;}
+.rank-val.bv{color:#dc2626;}
+.rank-divider{border:none;border-top:1px dashed #f3f4f6;margin:3px 12px;}
+.rank-footer{padding:4px 12px 6px;font-size:9px;color:#9ca3af;border-top:1px solid #f3f4f6;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -293,6 +312,12 @@ tbody tr:hover td{background:#f9fafb;}
     </div>
   </div>
 
+  <!-- 선생님 랭킹 -->
+  <div style="margin-bottom:12px;">
+    <div class="sec-lbl">🏆 선생님 랭킹 <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;">(종료 3건 이상)</span></div>
+    <div class="rank-section" id="rankingSection"></div>
+  </div>
+
   <!-- 교사별 세부 현황 -->
   <div class="tbl-section">
     <div class="tbl-hdr">
@@ -310,6 +335,7 @@ tbody tr:hover td{background:#f9fafb;}
           <th onclick="sortTable('withdrawal')" style="cursor:pointer;user-select:none;white-space:nowrap">청철 <span id="si-withdrawal"></span></th>
           <th onclick="sortTable('monthPayment')" style="cursor:pointer;user-select:none;white-space:nowrap">총결제(청철제외전) <span id="si-monthPayment2"></span></th>
           <th onclick="sortTable('monthRate')" style="cursor:pointer;user-select:none;white-space:nowrap">전환율 <span id="si-monthRate"></span></th>
+          <th onclick="sortTable('prevPay')" style="cursor:pointer;user-select:none;white-space:nowrap" id="thPrevPay">전월 <span id="si-prevPay"></span></th>
         </tr></thead>
         <tbody id="tblBody"></tbody>
       </table>
@@ -470,7 +496,26 @@ function parsePayCSV(text) {
     map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily};
   }
   console.log('[Pay] 파싱 완료:', teacherCount,'명 / 월결제=일별합산 / 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
-  return {map:map, dailyTotals:dailyTotals};
+
+  // 전월 실적 추출: 헤더가 'XX년 N월' 패턴인 컬럼 쌍 (이름col, 건수col+1)
+  var prevMonths = [];
+  var prevRe = /\d{2}년\s*\d+월/;
+  hdr.forEach(function(v,i){
+    if(prevRe.test(String(v||'').trim())){
+      var label = String(v).trim();
+      var mData = {};
+      for(var r=1;r<rows.length;r++){
+        var nm = String(rows[r][i]||'').replace(/♥/g,'').trim();
+        var cntStr = String(rows[r][i+1]||'').replace(/건/g,'').replace(/,/g,'').trim();
+        var cnt = parseInt(cntStr);
+        if(nm && !isNaN(cnt) && cnt>0) mData[nm]=cnt;
+      }
+      var cnt=Object.keys(mData).length;
+      if(cnt>0){prevMonths.push({label:label,data:mData}); console.log('[Pay] 전월실적 파싱:',label,cnt,'명');}
+    }
+  });
+
+  return {map:map, dailyTotals:dailyTotals, prevMonths:prevMonths};
 }
 
 // ─── 데이터 합치기 ───────────────────────────────────────
@@ -634,6 +679,15 @@ function combineData() {
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     t.todayEnd=(t.daily_end&&t.daily_end[dt.ymd])||0;
+    // 전월 실적 매칭 (이름 기준)
+    var _prevMs=(state.pay&&state.pay.prevMonths)||[];
+    var _nn=function(s){return String(s||'').replace(/[♥\s　]/g,'').toLowerCase();};
+    t.prevMonths=_prevMs.map(function(pm){
+      var pay=0; var tn=_nn(t.name);
+      Object.keys(pm.data).forEach(function(k){if(_nn(k)===tn)pay=pm.data[k];});
+      return {label:pm.label,pay:pay};
+    });
+    t.prevPay=t.prevMonths.length>0?t.prevMonths[0].pay:0;
     teachers.push(t);
     var tm=t.team&&teams[t.team];
     if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);tm.todayEnd=(tm.todayEnd||0)+t.todayEnd;}
@@ -645,8 +699,10 @@ function combineData() {
     m.monthRate=m.monthEnd>0?Math.round(m.monthPayment/m.monthEnd*100)+'%':'0%';
   });
 
+  var _pml=(state.pay&&state.pay.prevMonths&&state.pay.prevMonths.length>0)?state.pay.prevMonths[0].label:'';
   return {teams:teams,teachers:teachers,teacherMap:teacherMap,
     dailyTotals:state.pay?state.pay.dailyTotals:new Array(31).fill(0),
+    prevMonthLabel:_pml,
     year:dt.year,month:dt.month,today:dt.day,ymd:dt.ymd,ym:ym};
 }
 
@@ -694,6 +750,7 @@ function tryRender() {
   var data=combineData();
   renderHeader(data);
   renderTeams(data);
+  renderRanking(data);
   renderKPI(data);
   renderWeeks(data);
   buildTabs();
@@ -701,6 +758,8 @@ function tryRender() {
 }
 
 function renderHeader(data) {
+  var thPrev=document.getElementById('thPrevPay');
+  if(thPrev&&data.prevMonthLabel) thPrev.childNodes[0].nodeValue=data.prevMonthLabel+' ';
   var tot={target:0,pay:0,end:0,wd:0};
   TEAM_NAMES.forEach(function(nm){var m=data.teams[nm];tot.target+=m.target;tot.pay+=m.monthPayment;tot.end+=m.monthEnd;tot.wd+=m.withdrawal;});
   var realPay=Math.max(0,tot.pay-tot.wd);
@@ -820,6 +879,78 @@ function renderKPI(data) {
     '</tbody></table></div>';
 }
 function kpiBox(lbl,val,sub){return '<div class="kpi-box"><div class="kpi-lbl">'+lbl+'</div><div class="kpi-val">'+val+'</div><div class="kpi-sub">'+sub+'</div></div>';}
+
+
+// ─── 랭킹 렌더 ──────────────────────────────────────────
+function renderRanking(data) {
+  var el = document.getElementById('rankingSection');
+  if (!el) return;
+
+  // 종료 3건 이상 선생님만
+  var eligible = data.teachers.filter(function(t){ return (t.monthEnd||0)>=3; });
+  if (eligible.length < 2) {
+    el.innerHTML = '<div style="color:#9ca3af;font-size:11px;padding:8px 0;">데이터 부족 (종료 3건 이상 선생님이 2명 미만)</div>';
+    return;
+  }
+
+  var metrics = [
+    { title:'전환율', formula:'결제÷종료', icon:'🔄',
+      get: function(t){ return t.monthEnd>0 ? t.realPay/t.monthEnd*100 : 0; },
+      fmt: function(v){ return v.toFixed(1)+'%'; },
+      filter: function(t){ return t.monthEnd>0; }
+    },
+    { title:'달성률', formula:'결제÷목표', icon:'🎯',
+      get: function(t){ return t.target>0 ? t.realPay/t.target*100 : 0; },
+      fmt: function(v){ return v.toFixed(1)+'%'; },
+      filter: function(t){ return t.target>0; }
+    },
+    { title:'전월대비', formula:data.prevMonthLabel||'전월', icon:'📈',
+      get: function(t){ return (t.realPay||0)-(t.prevPay||0); },
+      fmt: function(v){ return (v>=0?'+':'')+v+'건'; },
+      filter: function(t){ return t.prevPay>0; }
+    }
+  ];
+
+  el.innerHTML = metrics.map(function(m){
+    var pool = eligible.filter(m.filter);
+    if(pool.length < 2) return '<div class="rank-card"><div class="rank-card-hdr"><span class="rank-card-title">'+m.icon+' '+m.title+'</span><span class="rank-card-formula">'+m.formula+'</span></div><div style="padding:12px;font-size:11px;color:#9ca3af;">데이터 부족</div></div>';
+
+    var sorted = pool.slice().sort(function(a,b){ return m.get(b)-m.get(a); });
+    var n = Math.min(3, Math.floor(sorted.length/2));
+    var top = sorted.slice(0, n);
+    var bot = sorted.slice(-n).reverse();
+    var avg = pool.reduce(function(s,t){ return s+m.get(t); },0)/pool.length;
+
+    var topRows = top.map(function(t,i){
+      return '<div class="rank-row">'+
+        '<div class="rank-badge top">'+(i+1)+'</div>'+
+        '<span class="rank-name" title="'+t.team+'">'+t.name+'</span>'+
+        '<span class="rank-val tv">'+m.fmt(m.get(t))+'</span>'+
+      '</div>';
+    }).join('');
+
+    var botRows = bot.map(function(t){
+      return '<div class="rank-row">'+
+        '<div class="rank-badge bot">↓</div>'+
+        '<span class="rank-name" title="'+t.team+'">'+t.name+'</span>'+
+        '<span class="rank-val bv">'+m.fmt(m.get(t))+'</span>'+
+      '</div>';
+    }).join('');
+
+    return '<div class="rank-card">'+
+      '<div class="rank-card-hdr">'+
+        '<span class="rank-card-title">'+m.icon+' '+m.title+'</span>'+
+        '<span class="rank-card-formula">'+m.formula+'</span>'+
+      '</div>'+
+      '<div class="rank-body">'+
+        '<div class="rank-group-lbl">TOP</div>'+topRows+
+        '<hr class="rank-divider">'+
+        '<div class="rank-group-lbl">하위</div>'+botRows+
+      '</div>'+
+      '<div class="rank-footer">평균 '+m.fmt(avg)+' · 대상 '+pool.length+'명</div>'+
+    '</div>';
+  }).join('');
+}
 
 // ─── 주별 마감 렌더 ──────────────────────────────────────
 var _weekData=[];
@@ -958,6 +1089,7 @@ function renderTable(data, filter) {
     if(sortKey==='name'){av=a.name;bv=b.name;}
     else if(sortKey==='team'){av=a.team;bv=b.team;}
     else if(sortKey==='monthRate'){av=parseFloat(a.monthRate)||0;bv=parseFloat(b.monthRate)||0;}
+    else if(sortKey==='prevPay'){av=(a.realPay||0)-(a.prevPay||0);bv=(b.realPay||0)-(b.prevPay||0);}
     else{av=a[sortKey]||0;bv=b[sortKey]||0;}
     if(av<bv)return sortDir;
     if(av>bv)return -sortDir;
@@ -965,7 +1097,7 @@ function renderTable(data, filter) {
   });
   // 정렬 인디케이터 업데이트
   [['name','si-name'],['team','si-team'],['target','si-target'],['monthEnd','si-monthEnd'],
-   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate']
+   ['realPay','si-realPay2'],['withdrawal','si-withdrawal'],['monthPayment','si-monthPayment2'],['monthRate','si-monthRate'],['prevPay','si-prevPay']
   ].forEach(function(pair){
     var el=document.getElementById(pair[1]);
     if(el)el.textContent=pair[0]===sortKey?(sortDir===-1?'▼':'▲'):'';
@@ -983,6 +1115,7 @@ function renderTable(data, filter) {
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
       '<td style="color:#6b7280">'+t.monthPayment+'</td>'+
       '<td class="'+rCls+'">'+t.monthRate+'</td>'+
+      '<td style="color:'+(t.prevPay>0?(t.realPay-t.prevPay>=0?'#16a34a':'#dc2626'):'#9ca3af')+';font-weight:'+(t.prevPay>0?'700':'400')+'">'+(t.prevPay>0?(t.realPay-t.prevPay>=0?'+':'')+(t.realPay-t.prevPay)+'건':'—')+'</td>'+
     '</tr>';
   }).join('')||'<tr><td colspan="8" class="empty-note">데이터 없음</td></tr>';
 }
