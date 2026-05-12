@@ -1414,6 +1414,34 @@ var _manualCache = [];
 
 function getManualEntries() { return _manualCache; }
 
+function renderManualList() {
+  var manualEntries = _manualCache;
+  var nameToTeamMap = {};
+  if(state.settings){
+    Object.values(state.settings).forEach(function(s){
+      if(s.name) nameToTeamMap[normName(s.name)] = s.team;
+    });
+  }
+  var listEl = document.getElementById('manualEntryList');
+  if(!listEl) return;
+  if(!manualEntries.length){
+    listEl.innerHTML='<div style="font-size:10px;color:#d1d5db;padding:4px 2px;">입력된 수기 결제 없음</div>';
+  } else {
+    listEl.innerHTML=manualEntries.map(function(e){
+      var team=nameToTeamMap[normName(e.name)]||'';
+      var col=(TEAM_CFG[team]||{bar:'#9ca3af'}).bar;
+      return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #f9f9f9;font-size:11px;">'+
+        '<span style="color:#9ca3af;min-width:36px;">'+e.time+'</span>'+
+        '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;display:inline-block;"></span>'+
+        '<span style="font-weight:600;color:#1a1a2e;flex:1;">'+e.name+'</span>'+
+        (team?'<span style="font-size:9px;color:'+col+';font-weight:700;flex-shrink:0;">'+team+'</span>':'<span style="font-size:9px;color:#f59e0b;">팀 미매핑</span>')+
+        '<span style="color:#6b7280;font-size:10px;min-width:60px;text-align:right;">'+e.product+'</span>'+
+        '<button onclick="deleteManualEntry('+e.id+')" style="padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;font-size:10px;cursor:pointer;flex-shrink:0;">✕</button>'+
+      '</div>';
+    }).join('');
+  }
+}
+
 function fetchSharedManual() {
   if (!SCRIPT_URL) {
     try {
@@ -1421,13 +1449,19 @@ function fetchSharedManual() {
       var all = JSON.parse(localStorage.getItem(MANUAL_KEY)||'[]');
       _manualCache = all.filter(function(e){ return e.date === today; });
     } catch(e){ _manualCache = []; }
-    renderLive(); return;
+    renderManualList();
+    if(state.live) renderLive();
+    return;
   }
   var today = new Date().toISOString().slice(0,10);
   fetch(SCRIPT_URL + '?action=list&date=' + today + '&_t=' + Date.now())
     .then(function(r){ return r.json(); })
-    .then(function(d){ if(d.ok) _manualCache = d.entries || []; renderLive(); })
-    .catch(function(err){ console.warn('[Manual] 폴링 실패:', err.message); });
+    .then(function(d){
+      if(d.ok) _manualCache = d.entries || [];
+      renderManualList();
+      if(state.live) renderLive();
+    })
+    .catch(function(err){ console.warn('[Manual] 폴링 실패:', err.message); renderManualList(); });
 }
 
 function addManualEntry() {
@@ -1633,26 +1667,8 @@ function renderLive() {
     }).join('');
   }
 
-  // 수기 입력 목록 렌더
-  var listEl=document.getElementById('manualEntryList');
-  if(listEl){
-    if(!manualEntries.length){
-      listEl.innerHTML='<div style="font-size:10px;color:#d1d5db;padding:4px 2px;">입력된 수기 결제 없음</div>';
-    } else {
-      listEl.innerHTML=manualEntries.map(function(e){
-        var team=nameToTeamMap[normName(e.name)]||'';
-        var col=(TEAM_CFG[team]||{bar:'#9ca3af'}).bar;
-        return '<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #f9f9f9;font-size:11px;">'+
-          '<span style="color:#9ca3af;min-width:36px;">'+e.time+'</span>'+
-          '<span style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;display:inline-block;"></span>'+
-          '<span style="font-weight:600;color:#1a1a2e;flex:1;">'+e.name+'</span>'+
-          (team?'<span style="font-size:9px;color:'+col+';font-weight:700;flex-shrink:0;">'+team+'</span>':'<span style="font-size:9px;color:#f59e0b;">팀 미매핑</span>')+
-          '<span style="color:#6b7280;font-size:10px;min-width:60px;text-align:right;">'+e.product+'</span>'+
-          '<button onclick="deleteManualEntry('+e.id+')" style="padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;font-size:10px;cursor:pointer;flex-shrink:0;">✕</button>'+
-        '</div>';
-      }).join('');
-    }
-  }
+  // 수기 입력 목록은 renderManualList()에서 독립 렌더링
+  renderManualList();
 }
 
 
