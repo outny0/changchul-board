@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/12 21:43</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/12 21:46</span></span>
 </div>
 
 <div class="page">
@@ -1454,10 +1454,13 @@ function fetchSharedManual() {
     return;
   }
   var today = new Date().toISOString().slice(0,10);
-  fetch(SCRIPT_URL + '?action=list&date=' + today + '&_t=' + Date.now())
+  fetch(SCRIPT_URL + '?action=list&_t=' + Date.now())
     .then(function(r){ return r.json(); })
     .then(function(d){
-      if(d && d.ok) _manualCache = d.entries || [];
+      if(d && d.ok) {
+        // 클라이언트에서 오늘 날짜 필터링
+        _manualCache = (d.entries || []).filter(function(e){ return e.date === today; });
+      }
       renderManualList();
       if(state.live) renderLive();
     })
