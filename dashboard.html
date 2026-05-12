@@ -1453,15 +1453,24 @@ function fetchSharedManual() {
     if(state.live) renderLive();
     return;
   }
+  // JSONP 방식으로 CORS 우회
   var today = new Date().toISOString().slice(0,10);
-  fetch(SCRIPT_URL + '?action=list&date=' + today + '&_t=' + Date.now())
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if(d.ok) _manualCache = d.entries || [];
-      renderManualList();
-      if(state.live) renderLive();
-    })
-    .catch(function(err){ console.warn('[Manual] 폴링 실패:', err.message); renderManualList(); });
+  var cbName = '__manualCb_' + Date.now();
+  var script = document.createElement('script');
+  window[cbName] = function(d) {
+    if(d && d.ok) _manualCache = d.entries || [];
+    renderManualList();
+    if(state.live) renderLive();
+    delete window[cbName];
+    if(script.parentNode) script.parentNode.removeChild(script);
+  };
+  script.onerror = function() {
+    console.warn('[Manual] JSONP 실패');
+    renderManualList();
+    delete window[cbName];
+  };
+  script.src = SCRIPT_URL + '?action=list&date=' + today + '&callback=' + cbName + '&_t=' + Date.now();
+  document.head.appendChild(script);
 }
 
 function addManualEntry() {
