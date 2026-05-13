@@ -236,17 +236,11 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:35</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:40</span></span>
 </div>
 
 <div class="page">
-  <!-- 상단: 팀별현황 전체너비 -->
-  <div style="margin-bottom:12px;">
-    <div class="sec-lbl">팀별 현황</div>
-    <div class="team-row" id="teamRow"></div>
-  </div>
-
-  <!-- 하단: 3열 (월달성요약 | 주별마감 | 실시간결제) -->
+  <!-- 상단: 3열 (월달성요약 | 주별마감 | 실시간결제) -->
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin-bottom:12px;">
     <!-- Col1: 월 달성 요약 -->
     <div>
@@ -330,6 +324,12 @@ tbody tr:hover td{background:var(--accent-lt);}
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- 팀별현황 -->
+  <div style="margin-bottom:12px;">
+    <div class="sec-lbl">팀별 현황</div>
+    <div class="team-row" id="teamRow"></div>
   </div>
 
   <!-- 선생님 랭킹 -->
@@ -1358,6 +1358,7 @@ fetchLive();
 fetchSharedManual();
 setInterval(fetchSharedManual, 30000);
 fetchChannelStats();
+setInterval(fetchChannelStats, 300000); // 5분마다 자동 갱신
 // ─── 실시간 결제 fetch ────────────────────────────────────
 // 탭 구조: 선생님이름(A) | 시간HH:mm(B) | 상품명(C)
 // 이름 → settings → 팀 매핑
@@ -1763,8 +1764,12 @@ function fetchChannelStats() {
     .then(function(r){ return r.json(); })
     .then(function(d){
       if(d && d.ok){ state.channel = d; renderChannelStats(); }
+      else { setTimeout(fetchChannelStats, 5000); } // 실패 시 5초 후 재시도
     })
-    .catch(function(err){ console.warn('[Channel] 조회 실패:', err.message); });
+    .catch(function(err){
+      console.warn('[Channel] 조회 실패:', err.message);
+      setTimeout(fetchChannelStats, 8000); // 네트워크 오류 시 8초 후 재시도
+    });
 }
 
 function parseRate(val) {
