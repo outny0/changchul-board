@@ -432,4 +432,103 @@ function changeTeam(id, newTeam) {
 }
 function deleteTeacher(id) {
   var t=data.teachers.find(function(t){return t.id===id;});
-  if(!t||!confirm('['+t.name+'] 선생님을 삭제할까요?')) retur
+  if(!t||!confirm('['+t.name+'] 선생님을 삭제할까요?')) return;
+  data.teachers=data.teachers.filter(function(t){return t.id!==id;});
+  saveData(); renderTeachers();
+}
+function addTeacher() {
+  var id=document.getElementById('newId').value.trim();
+  var name=document.getElementById('newName').value.trim();
+  var team=document.getElementById('newTeam').value;
+  if(!id||!name){alert('교사번호와 이름을 입력하세요.');return;}
+  if(data.teachers.find(function(t){return t.id===id;})){alert('이미 등록된 교사번호입니다.');return;}
+  data.teachers.push({id:id,name:name,team:team,target:0});
+  saveData();
+  document.getElementById('newId').value='';
+  document.getElementById('newName').value='';
+  document.getElementById('newId').focus();
+  renderTeachers();
+}
+
+/* ── 월별 목표 탭: 개인목표 합산 표시 ─────────────────── */
+function renderTargetSummary() {
+  var now=new Date();
+  var label=now.getFullYear()+'년 '+(now.getMonth()+1)+'월';
+  var el=document.getElementById('tgtMonthLabel');
+  if(el) el.textContent=label;
+
+  var grid=document.getElementById('tgtSummaryGrid');
+  if(!grid) return;
+  grid.innerHTML='';
+  var grand=0;
+  TEAMS.forEach(function(team){
+    var col=COLORS[team];
+    var members=data.teachers.filter(function(t){return t.team===team;});
+    var sum=members.reduce(function(s,t){return s+(parseInt(t.target)||0);},0);
+    grand+=sum;
+    var box=document.createElement('div');
+    box.className='tgt-box';
+    box.innerHTML=
+      '<div class="tgt-lbl"><div class="tgt-dot" style="background:'+col.hex+'"></div>'+team+'</div>'+
+      '<div class="tgt-inp" style="border-color:'+col.hex+'66;background:#fafafa;display:flex;align-items:center;justify-content:center;color:'+col.hex+';">'+
+        (sum>0?sum:'—')+
+      '</div>'+
+      '<div class="tgt-sub">'+members.length+'인 합산 (건)</div>';
+    grid.appendChild(box);
+  });
+  var gtEl=document.getElementById('tgtGrandTotal');
+  if(gtEl) gtEl.textContent=grand>0?grand+'건':'—';
+
+  var detail=document.getElementById('tgtTeacherDetail');
+  if(!detail) return;
+  if(data.teachers.length===0){
+    detail.innerHTML='<div class="empty">등록된 선생님 없음</div>'; return;
+  }
+  detail.innerHTML=TEAMS.map(function(team){
+    var col=COLORS[team];
+    var members=data.teachers.filter(function(t){return t.team===team;});
+    if(!members.length) return '';
+    return '<div style="padding:8px 18px 4px;font-size:11px;font-weight:700;color:'+col.hex+';border-bottom:1px solid #f3f4f6;">'+team+'</div>'+
+      members.map(function(t){
+        return '<div style="display:grid;grid-template-columns:1fr auto;padding:7px 18px 7px 24px;border-bottom:1px solid #f9fafb;align-items:center;">'+
+          '<span style="font-size:12px;color:#374151;">'+esc(t.name)+'</span>'+
+          '<span style="font-size:13px;font-weight:700;color:'+col.hex+';">'+(parseInt(t.target)||0)+'건</span>'+
+        '</div>';
+      }).join('');
+  }).join('');
+}
+
+/* ── 내보내기/가져오기 ──────────────────────────────── */
+function exportJSON() {
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='changchul_settings_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function importJSON(input) {
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var imp=JSON.parse(e.target.result);
+      if(imp.teachers){data=imp; saveData(); renderTeachers(); alert('가져오기 완료!');}
+      else alert('올바른 설정 파일이 아닙니다.');
+    }catch(ex){alert('파일 읽기 오류: '+ex.message);}
+  };
+  reader.readAsText(file);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── 초기화 ──────────────────────────────────────── */
+renderTeachers();
+updateBadge();
+
+/* ── 키보드 엔터 ──────────────────────────────────── */
+['newId','newName'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')addTeacher();});
+});
+</script>
+</body>
+</html>
