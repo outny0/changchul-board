@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:27</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:35</span></span>
 </div>
 
 <div class="page">
@@ -999,6 +999,41 @@ function renderWeeks(data) {
     var wd=calcWeekData(wk,data);
     _weekData.push({week:wk,wd:wd});
     var isOpen=(wi===todayWi);
+
+    // ── 현재 주: 실시간 결제 반영 (max 방식 — 이중계산 방지) ──
+    var liveByTeam={}, liveTotalToday=0;
+    TEAM_NAMES.forEach(function(nm){liveByTeam[nm]=0;});
+    if(isOpen && state.live){
+      var nameToTeamMapW={};
+      if(state.settings) Object.values(state.settings).forEach(function(s){if(s.name)nameToTeamMapW[normName(s.name)]=s.team;});
+      // CSV 실시간
+      TEAM_NAMES.forEach(function(nm){liveByTeam[nm]+=(state.live.teamTotals[nm]||0);});
+      // 수기결제
+      getManualEntries().forEach(function(e){
+        var tm=nameToTeamMapW[normName(e.name)]||'';
+        if(tm&&liveByTeam[tm]!==undefined) liveByTeam[tm]++;
+      });
+      liveTotalToday=TEAM_NAMES.reduce(function(s,nm){return s+liveByTeam[nm];},0);
+      // 오늘 daily pay: max(Pay파일, live합계) — 이중계산 방지
+      var todayD=data.today;
+      var payFileToday=(wd.daily[todayD]&&wd.daily[todayD].pay)||0;
+      var liveDelta=Math.max(0, liveTotalToday - payFileToday);
+      if(liveDelta>0){
+        wd.daily[todayD]=wd.daily[todayD]||{end:0,pay:0};
+        wd.daily[todayD].pay+=liveDelta;
+        wd.total.pay+=liveDelta;
+        // 팀별 delta 분배 (비율 기준)
+        TEAM_NAMES.forEach(function(nm){
+          var teamPayFileToday = 0; // 팀별 오늘 Pay파일분 (근사)
+          data.teachers.filter(function(t){return t.team===nm;}).forEach(function(t){
+            teamPayFileToday+=(t.daily_pay&&t.daily_pay[todayD])||0;
+          });
+          var teamLiveDelta=Math.max(0, liveByTeam[nm]-teamPayFileToday);
+          wd.teams[nm].pay+=teamLiveDelta;
+        });
+      }
+    }
+
     var totRate=wd.total.end>0?(wd.total.pay/wd.total.end*100).toFixed(1)+'%':'-%';
     var rCls=wd.total.end>0?(parseFloat(totRate)>=70?'kv-good':parseFloat(totRate)>=50?'kv-warn':'kv-bad'):'';
     var todayBadge=(wi===todayWi)?'<span class="wk-today">진행중</span>':'';
@@ -1043,7 +1078,8 @@ function renderWeeks(data) {
       var drCls=dd.end>0?(parseFloat(dr)>=70?'kv-good':parseFloat(dr)>=50?'kv-warn':'kv-bad'):'';
       var isTodayDay=(d===data.today);
       var dowLabel='일월화수목금토'[new Date(data.year,data.month-1,d).getDay()];
-      dRows+='<tr'+(isTodayDay?' class="today-row"':'')+'><td>'+(data.month)+'/'+d+'('+dowLabel+')'+(isTodayDay?'<span class="d-today">오늘</span>':'')+'</td>'+
+      var liveTag=isTodayDay&&liveTotalToday>0?'<span style="font-size:9px;color:#f59e0b;font-weight:700;margin-left:3px;">실결 '+liveTotalToday+'</span>':'';
+      dRows+='<tr'+(isTodayDay?' class="today-row"':'')+'><td>'+(data.month)+'/'+d+'('+dowLabel+')'+(isTodayDay?'<span class="d-today">오늘</span>':'')+liveTag+'</td>'+
         '<td style="text-align:right">'+dd.end+'</td>'+
         '<td style="text-align:right">'+dd.pay+'</td>'+
         '<td style="text-align:right" class="d-rate '+drCls+'">'+dr+'</td></tr>';
@@ -1056,7 +1092,7 @@ function renderWeeks(data) {
         todayBadge+
         '<div class="wk-total">'+
           '<div class="wk-stat"><span class="wk-sn">종료</span><span class="wk-sv">'+wd.total.end+'</span></div>'+
-          '<div class="wk-stat"><span class="wk-sn">결제</span><span class="wk-sv">'+wd.total.pay+'</span></div>'+
+          '<div class="wk-stat"><span class="wk-sn">결제</span><span class="wk-sv">'+wd.total.pay+(isOpen&&liveTotalToday>0?'<span style="font-size:9px;color:#f59e0b;margin-left:2px;">+실결</span>':'')+'</span></div>'+
           '<span class="wk-rate '+rCls+'">'+totRate+'</span>'+
         '</div>'+
         '<span class="wk-btn'+(isOpen?' open':'')+'" id="wkbtn-'+wi+'">▼</span>'+
