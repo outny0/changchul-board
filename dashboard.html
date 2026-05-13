@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:34</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:38</span></span>
 </div>
 
 <div class="page">
@@ -1542,7 +1542,7 @@ function parseLiveCSV(text) {
     var rawTeach = String(r[iTeach]||'').replace(/♥/g,'').trim();
     var prod     = String(r[iProd] ||'').trim();
     var rawPath  = String(r[iPath] ||'').trim();
-    var pathCat  = categorizePath(rawPath);
+    var pathCat  = rawPath ? categorizePath(rawPath) : '가입경로 미확인';
     var timeStr  = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'');
     var time = timeStr.slice(0,5); // 표시용 HH:MM
     if(!time || time.length<4) continue;
@@ -1799,7 +1799,7 @@ function renderLive() {
   if(pathBody) {
     var cc = (d && d.channelCounts) ? d.channelCounts : {};
     // 카테고리 순서: 인입채널별 전환율과 동일한 순서
-    var catOrder = ['자체DB','지인소개DB','일반DB','형제DB','온라인DB','캐잉DB','기타DB','가공DB','오프DB'];
+    var catOrder = ['자체DB','지인소개DB','일반DB','형제DB','온라인DB','캐잉DB','기타DB','가공DB','오프DB','가입경로 미확인'];
     var catColors = {
       '자체DB':'#6366f1','지인소개DB':'#8b5cf6','일반DB':'#3b82f6','형제DB':'#f97316',
       '온라인DB':'#10b981','캐잉DB':'#ec4899','기타DB':'#9ca3af','가공DB':'#f59e0b',
