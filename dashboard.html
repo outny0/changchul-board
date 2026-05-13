@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 11:38</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 11:41</span></span>
 </div>
 
 <div class="page">
@@ -324,6 +324,17 @@ tbody tr:hover td{background:var(--accent-lt);}
   <div style="margin-bottom:12px;">
     <div class="sec-lbl">🏆 선생님 랭킹 <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;">(종료 3건 이상)</span></div>
     <div class="rank-section" id="rankingSection"></div>
+  </div>
+
+
+  <!-- 인입채널별 전환율 -->
+  <div class="tbl-section" style="margin-bottom:16px;">
+    <div class="tbl-hdr">
+      <span class="tbl-title">📊 인입채널별 전환율</span>
+      <span id="channelUpdatedAt" style="font-size:10px;color:var(--txt3);font-weight:400;margin-left:8px;"></span>
+      <button onclick="fetchChannelStats()" style="margin-left:auto;font-size:9px;padding:3px 10px;border:1px solid #e5e7eb;background:#fff;border-radius:12px;cursor:pointer;color:#6366f1;font-weight:600;">새로고침</button>
+    </div>
+    <div id="channelTable" style="overflow-x:auto;"></div>
   </div>
 
   <!-- 교사별 세부 현황 -->
