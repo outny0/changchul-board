@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:17</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:24</span></span>
 </div>
 
 <div class="page">
@@ -800,7 +800,7 @@ function renderTeams(data) {
     var m=data.teams[nm], cfg=TEAM_CFG[nm];
     var teachers=data.teachers.filter(function(t){return t.team===nm;})
       .sort(function(a,b){return b.monthPayment-a.monthPayment;});
-    var totalPay=m.monthPayment+(m.livePayment||0);
+    var totalPay=m.monthPayment; // Pay파일 일별합산(오늘포함) — livePayment별도 표시
     var rate=m.target>0?Math.round(totalPay/m.target*100):0;
     var rCls=rate>=100?'kv-good':rate>=80?'kv-warn':'kv-bad';
     var conv=m.monthEnd>0?Math.round(totalPay/m.monthEnd*100)+'%':'-';
@@ -849,10 +849,9 @@ function renderTeams(data) {
 function renderKPI(data) {
   var tot={target:0,pay:0,end:0,wd:0};
   TEAM_NAMES.forEach(function(nm){var m=data.teams[nm];tot.target+=m.target;tot.pay+=m.monthPayment;tot.end+=m.monthEnd;tot.wd+=m.withdrawal;});
-  var realPay=tot.pay;
-  // 실시간 결제 포함
+  var realPay=tot.pay; // Pay파일 일별합산(오늘포함)
   var liveTot=0; TEAM_NAMES.forEach(function(nm){liveTot+=(data.teams[nm].livePayment||0);});
-  var realPayWithLive=realPay+liveTot;
+  var realPayWithLive=realPay; // livePayment는 이미 Pay파일에 포함 — 별도 합산 안함
   // 당일까지 종료수 집계 (요약 전환율 분모 — 미래종료 제외)
   var todayStr=new Date().toISOString().slice(0,10);
   var endUpToToday=0; var endByTeamToday={};
@@ -882,7 +881,7 @@ function renderKPI(data) {
   TEAM_NAMES.forEach(function(nm){tot2.end+=teams2[nm].monthEnd;tot2.pay+=teams2[nm].realPay;});
   var sumRows=TEAM_NAMES.map(function(nm){
     var m2=teams2[nm],cfg2=TEAM_CFG[nm];
-    var m2pay=m2.monthPayment+(m2.livePayment||0);
+    var m2pay=m2.monthPayment; // Pay파일 일별합산
     var m2end=endByTeamToday[nm]||0;
     var r2=m2end>0?Math.round(m2pay/m2end*100):0;
     var rc2=r2>=70?'kv-good':r2>=50?'kv-warn':'kv-bad';
@@ -1849,21 +1848,27 @@ function renderChannelStats() {
     var bc  = (g.grpRate||0) >= 0.25 ? '#d1fae5' : (g.grpRate||0) >= 0.10 ? '#fef9c3' : '#ede9fe';
     var tc  = (g.grpRate||0) >= 0.25 ? '#065f46' : (g.grpRate||0) >= 0.10 ? '#92400e' : '#4c1d95';
 
-    // ── 그룹 헤더 (클릭 시 접기/펼치기) — 컬럼별 소계 표시 ──
-    html += '<tr style="background:#f0f1f8;cursor:pointer;user-select:none;" onclick="toggleChannelGroup(\''+gid+'\')">'
-;    html += '<td style="padding:5px 8px;">';
+    // ── 그룹 헤더 (클릭 시 접기/펼치기) ──
+    html += '<tr style="background:#f0f1f8;cursor:pointer;user-select:none;" onclick="toggleChannelGroup(\''+gid+'\')'>';
+    // 셀1: 채널명 컬럼 — 화살표 + 그룹명 + N개 + 체험%
+    html += '<td style="padding:5px 8px;">';
     html += '<span id="arr_'+gid+'" style="font-size:8px;color:#9ca3af;margin-right:4px;">▶</span>';
     html += '<span style="font-size:9px;font-weight:800;color:#374151;letter-spacing:.04em;">'+g.name.toUpperCase()+'</span>';
-    if(pct !== null) {
-      html += ' <span style="padding:1px 7px;border-radius:10px;background:'+bc+';color:'+tc+';font-size:9px;font-weight:700;">'+pct+'%</span>';
-    }
+    html += ' <span style="font-size:8px;color:#c4b5fd;">'+g.channels.length+'개</span>';
     if(g.grpTrial !== null) {
       html += ' <span style="font-size:9px;color:#9ca3af;margin-left:2px;">체험 '+(g.grpTrial*100).toFixed(1)+'%</span>';
     }
     html += '</td>';
+    // 셀2: 종료수
     html += '<td style="padding:5px 4px;text-align:right;font-size:9px;font-weight:700;color:#4b5563;">'+(g.grpEnded||'-')+'</td>';
-    html += '<td style="padding:5px 4px;text-align:right;font-size:9px;font-weight:700;color:'+tc+';">'+(g.grpPaid||'-')+'</td>';
-    html += '<td style="padding:5px 8px;font-size:9px;color:#9ca3af;">'+g.channels.length+'개</td>';
+    // 셀3: 결제수
+    html += '<td style="padding:5px 4px;text-align:right;font-size:9px;font-weight:700;color:#4b5563;">'+(g.grpPaid||'-')+'</td>';
+    // 셀4: 전환율 배지 (전환율 컬럼)
+    if(pct !== null) {
+      html += '<td style="padding:5px 8px;"><span style="padding:1px 7px;border-radius:10px;background:'+bc+';color:'+tc+';font-size:9px;font-weight:700;">'+pct+'%</span></td>';
+    } else {
+      html += '<td style="padding:5px 8px;color:#d1d5db;font-size:9px;">-</td>';
+    }
     html += '</tr>';
 
         // ── 채널 개별 행 (기본: 숨김) ──
