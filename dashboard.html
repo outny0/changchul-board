@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:07</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:09</span></span>
 </div>
 
 <div class="page">
@@ -693,11 +693,8 @@ function combineData() {
         teacherMap[tid]={name:info.name||n,team:info.team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:localTargetMap[String(tid)]||parseInt(info.target)||0};
       }
       var liveCnt = liveByName[n]||0;
-      // max() 방식: Pay파일 오늘컬럼 vs live 중 큰 값만큼만 monthPayment에 추가
-      // Pay파일이 오늘치 반영됐으면 추가0, 미반영이면 live 건수 추가
-      var payTodayCol = parseInt((teacherMap[tid].daily_pay&&teacherMap[tid].daily_pay[dt.day])||0);
-      var liveAdj = Math.max(0, liveCnt - payTodayCol);
-      teacherMap[tid].monthPayment += liveAdj;
+      // Pay파일 = 어제까지 누적, live = 오늘 당일 → 단순 합산
+      teacherMap[tid].monthPayment += liveCnt;
       teacherMap[tid].livePayment  = (teacherMap[tid].livePayment||0) + liveCnt;
     });
   }
