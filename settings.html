@@ -87,6 +87,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .save-tgt-btn:active{transform:scale(.99);}
 .save-tgt-btn.done{background:linear-gradient(135deg,#15803d,#16a34a);}
 
+/* ── 주차별 목표 ─────────────────────────────────── */
+.wk-section{padding:14px 18px 0;}
+.wk-title{font-size:12px;font-weight:700;color:#6d28d9;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.wk-grid{display:grid;gap:8px;margin-bottom:10px;}
+.wk-row{display:grid;grid-template-columns:60px 110px 80px 1fr;align-items:center;gap:8px;padding:8px 10px;border:1px solid #ede9fe;border-radius:9px;background:#faf9ff;}
+.wk-row.current{border-color:#8b5cf6;background:#f5f3ff;}
+.wk-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:#ede9fe;color:#6d28d9;text-align:center;}
+.wk-badge.current{background:#7c3aed;color:#fff;}
+.wk-dates{font-size:10px;color:#9ca3af;white-space:nowrap;}
+.wk-inp{font-size:14px;font-weight:700;padding:6px 10px;border:1.5px solid #e5e7eb;border-radius:7px;background:#fff;width:76px;text-align:center;color:#111827;}
+.wk-inp:focus{outline:none;border-color:#8b5cf6;box-shadow:0 0 0 2px rgba(139,92,246,.1);}
+.wk-hint{font-size:10px;color:#9ca3af;}
+.wk-total-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f5f3ff;border-radius:8px;margin:0 18px 14px;border:1px solid #ede9fe;}
+.wk-total-lbl{font-size:12px;color:#7c3aed;font-weight:600;}
+.wk-total-val{font-size:16px;font-weight:700;color:#6d28d9;}
+
 /* ── 기록 테이블 ──────────────────────────────────── */
 .hist-hdr-row{display:grid;grid-template-columns:90px repeat(4,1fr) 70px;gap:6px;padding:8px 18px;background:#fafafa;border-bottom:1px solid #f3f4f6;}
 .hist-hdr-row span{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af;text-align:center;}
@@ -167,10 +183,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 
   <!-- PANE 2 : 월별 목표 -->
   <div class="pane" id="pane-targets">
+
+    <!-- ① 주차별 목표 (대시보드 월 목표로 사용됨) -->
     <div class="card">
       <div class="card-hdr">
-        <span class="card-title">이번 달 팀별 목표 현황</span>
-        <span class="card-cnt" id="tgtMonthLabel"></span>
+        <span class="card-title">📅 주차별 목표 설정</span>
+        <span class="card-cnt" id="wkMonthLabel"></span>
+      </div>
+      <div class="wk-section">
+        <div class="wk-title">&#9654; 이 주차별 목표 합산이 대시보드 "월 목표"로 사용됩니다</div>
+        <div class="wk-grid" id="wkGoalGrid"></div>
+      </div>
+      <div class="wk-total-bar">
+        <span class="wk-total-lbl">월 목표 합계 (주차별 합산)</span>
+        <span class="wk-total-val" id="wkGrandTotal">—</span>
+      </div>
+    </div>
+
+    <!-- ② 선생님별 개인목표 (참고용 — 개인 달성률 계산에만 사용) -->
+    <div class="card">
+      <div class="card-hdr">
+        <span class="card-title">선생님별 개인목표 현황</span>
+        <span class="card-cnt" id="tgtMonthLabel" style="font-size:10px;color:#9ca3af;">개인 달성률 계산용 (월 목표와 별개)</span>
       </div>
       <div class="tgt-grid" id="tgtSummaryGrid"></div>
       <div class="tgt-total">
@@ -208,10 +242,29 @@ var COLORS = {
   '단비팀':{hex:'#22c55e',bg:'#dcfce7',txt:'#15803d'},
 };
 
+/* ── 주 계산 (dashboard.html과 동일 로직) ──────────── */
+function p2s(n){return String(n).padStart(2,'0');}
+function getWeeks(year, month) {
+  var lastDay = new Date(year, month, 0).getDate();
+  var weeks = [], d = 1;
+  while (d <= lastDay) {
+    var dow = new Date(year, month-1, d).getDay();
+    var daysToSun = (dow === 0) ? 0 : 7 - dow;
+    var end = Math.min(d + daysToSun, lastDay);
+    weeks.push({
+      start: d, end: end,
+      label: (weeks.length + 1) + '주차',
+      dateRange: month+'월 '+d+'일 ~ '+end+'일'
+    });
+    d = end + 1;
+  }
+  return weeks;
+}
+
 /* ── 데이터 ─────────────────────────────────────────── */
 function loadData() {
   try { var r=localStorage.getItem(STORAGE_KEY); if(r) return JSON.parse(r); } catch(e){}
-  return {teachers:[],targets:{},lastSaved:null};
+  return {teachers:[],targets:{},weeklyGoals:{},lastSaved:null};
 }
 function saveData() {
   data.lastSaved = new Date().toISOString();
@@ -234,7 +287,52 @@ function showPane(name, btn) {
   document.querySelectorAll('.tb').forEach(function(b){b.classList.remove('on');});
   document.getElementById('pane-'+name).classList.add('on');
   btn.classList.add('on');
-  if(name==='targets') renderTargetSummary();
+  if(name==='targets') { renderWeekGoals(); renderTargetSummary(); }
+}
+
+/* ── 주차별 목표 렌더/저장 ────────────────────────── */
+function renderWeekGoals() {
+  var now = new Date();
+  var year = now.getFullYear(), month = now.getMonth()+1, today = now.getDate();
+  var ym = year+'-'+p2s(month);
+  document.getElementById('wkMonthLabel').textContent = year+'년 '+month+'월';
+
+  if(!data.weeklyGoals) data.weeklyGoals = {};
+  if(!data.weeklyGoals[ym]) data.weeklyGoals[ym] = {};
+  var wkMap = data.weeklyGoals[ym];
+
+  var weeks = getWeeks(year, month);
+  var grid = document.getElementById('wkGoalGrid');
+  grid.innerHTML = weeks.map(function(wk, wi){
+    var isCurrent = (today >= wk.start && today <= wk.end);
+    var val = wkMap[wi+1] !== undefined ? wkMap[wi+1] : '';
+    return '<div class="wk-row'+(isCurrent?' current':'')+'">'+
+      '<span class="wk-badge'+(isCurrent?' current':'')+'">'+wk.label+'</span>'+
+      '<span class="wk-dates">'+wk.dateRange+'</span>'+
+      '<input class="wk-inp" type="number" min="0" max="999" value="'+val+'" placeholder="0" '+
+        'oninput="updateWeekGoal('+(wi+1)+', this.value)" id="wkInp'+(wi+1)+'"/>'+
+      '<span class="wk-hint">'+(isCurrent?'● 이번 주':'')+'</span>'+
+    '</div>';
+  }).join('');
+  updateWkTotal();
+}
+function updateWeekGoal(weekNum, val) {
+  var now = new Date();
+  var ym = now.getFullYear()+'-'+p2s(now.getMonth()+1);
+  if(!data.weeklyGoals) data.weeklyGoals = {};
+  if(!data.weeklyGoals[ym]) data.weeklyGoals[ym] = {};
+  var n = parseInt(val);
+  if(isNaN(n)||n<0) n = 0;
+  data.weeklyGoals[ym][weekNum] = n;
+  saveData();
+  updateWkTotal();
+}
+function updateWkTotal() {
+  var now = new Date();
+  var ym = now.getFullYear()+'-'+p2s(now.getMonth()+1);
+  var wkMap = (data.weeklyGoals && data.weeklyGoals[ym]) || {};
+  var sum = Object.values(wkMap).reduce(function(s,v){return s+(parseInt(v)||0);},0);
+  document.getElementById('wkGrandTotal').textContent = sum > 0 ? sum+'건' : '—';
 }
 
 /* ── 팀별 선생님 목록 렌더 ───────────────────────────── */
@@ -334,108 +432,4 @@ function changeTeam(id, newTeam) {
 }
 function deleteTeacher(id) {
   var t=data.teachers.find(function(t){return t.id===id;});
-  if(!t||!confirm('['+t.name+'] 선생님을 삭제할까요?')) return;
-  data.teachers=data.teachers.filter(function(t){return t.id!==id;});
-  saveData(); renderTeachers();
-}
-
-/* ── 선생님 추가 ──────────────────────────────────────── */
-function addTeacher() {
-  var id=document.getElementById('newId').value.trim();
-  var name=document.getElementById('newName').value.trim();
-  var team=document.getElementById('newTeam').value;
-  if(!id){alert('교사번호를 입력해주세요.');document.getElementById('newId').focus();return;}
-  if(!name){alert('이름을 입력해주세요.');document.getElementById('newName').focus();return;}
-  if(data.teachers.some(function(t){return t.id===id;})){
-    alert('이미 등록된 교사번호입니다 ('+id+')');
-    document.getElementById('newId').select(); return;
-  }
-  data.teachers.push({id:id,name:name,team:team,target:0});
-  saveData();
-  document.getElementById('newId').value='';
-  document.getElementById('newName').value='';
-  document.getElementById('newId').focus();
-  renderTeachers();
-}
-
-/* ── 월별 목표 탭: 개인목표 합산 표시 ─────────────────── */
-function renderTargetSummary() {
-  var now=new Date();
-  var ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  var label=now.getFullYear()+'년 '+(now.getMonth()+1)+'월';
-  document.getElementById('tgtMonthLabel').textContent=label;
-
-  // 팀별 합산 그리드
-  var grid=document.getElementById('tgtSummaryGrid');
-  grid.innerHTML='';
-  var grand=0;
-  TEAMS.forEach(function(team){
-    var col=COLORS[team];
-    var members=data.teachers.filter(function(t){return t.team===team;});
-    var sum=members.reduce(function(s,t){return s+(parseInt(t.target)||0);},0);
-    grand+=sum;
-    var box=document.createElement('div');
-    box.className='tgt-box';
-    box.innerHTML=
-      '<div class="tgt-lbl"><div class="tgt-dot" style="background:'+col.hex+'"></div>'+team+'</div>'+
-      '<div class="tgt-inp" style="border-color:'+col.hex+'66;background:#fafafa;display:flex;align-items:center;justify-content:center;color:'+col.hex+';">'+
-        (sum>0?sum:'—')+
-      '</div>'+
-      '<div class="tgt-sub">'+members.length+'인 합산 (건)</div>';
-    grid.appendChild(box);
-  });
-  document.getElementById('tgtGrandTotal').textContent=grand>0?grand+'건':'—';
-
-  // 선생님별 상세
-  var detail=document.getElementById('tgtTeacherDetail');
-  if(data.teachers.length===0){
-    detail.innerHTML='<div class="empty">등록된 선생님 없음</div>'; return;
-  }
-  detail.innerHTML=TEAMS.map(function(team){
-    var col=COLORS[team];
-    var members=data.teachers.filter(function(t){return t.team===team;});
-    if(!members.length) return '';
-    return '<div style="padding:8px 18px 4px;font-size:11px;font-weight:700;color:'+col.hex+';border-bottom:1px solid #f3f4f6;">'+team+'</div>'+
-      members.map(function(t){
-        return '<div style="display:grid;grid-template-columns:1fr auto;padding:7px 18px 7px 24px;border-bottom:1px solid #f9fafb;align-items:center;">'+
-          '<span style="font-size:12px;color:#374151;">'+esc(t.name)+'</span>'+
-          '<span style="font-size:13px;font-weight:700;color:'+col.hex+';">'+(parseInt(t.target)||0)+'건</span>'+
-        '</div>';
-      }).join('');
-  }).join('');
-}
-
-/* ── 내보내기/가져오기 ──────────────────────────────── */
-function exportJSON() {
-  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  var a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='changchul_settings_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click(); URL.revokeObjectURL(a.href);
-}
-function importJSON(input) {
-  var file=input.files[0]; if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var imp=JSON.parse(e.target.result);
-      if(imp.teachers){data=imp; saveData(); renderTeachers(); alert('가져오기 완료!');}
-      else alert('올바른 설정 파일이 아닙니다.');
-    }catch(ex){alert('파일 읽기 오류: '+ex.message);}
-  };
-  reader.readAsText(file);
-}
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-/* ── 키보드 엔터 ──────────────────────────────────────── */
-['newId','newName'].forEach(function(id){
-  var el=document.getElementById(id);
-  if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')addTeacher();});
-});
-
-/* ── 초기화 ───────────────────────────────────────────── */
-updateBadge();
-renderTeachers();
-</script>
-</body>
-</html>
+  if(!t||!confirm('['+t.name+'] 선생님을 삭제할까요?')) retur
