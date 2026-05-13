@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:50</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:00</span></span>
 </div>
 
 <div class="page">
@@ -1368,8 +1368,6 @@ fetchPay();
 fetchLive();
 fetchSharedManual();
 setInterval(fetchSharedManual, 30000);
-fetchChannelStats();
-setInterval(fetchChannelStats, 300000); // 5분마다 자동 갱신
 // ─── 실시간 결제 fetch ────────────────────────────────────
 // 탭 구조: 선생님이름(A) | 시간HH:mm(B) | 상품명(C)
 // 이름 → settings → 팀 매핑
@@ -1486,6 +1484,8 @@ function parseLiveCSV(text) {
 // ★ Apps Script 배포 후 아래 URL을 붙여넣으세요
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9f_gLdvquosX2QLIZUlU2m0K0vMnRtewCzoBJlP-WRHlbKESN0SBdyxpOfz1CFJAj/exec';
 var MANUAL_KEY = 'liveManualEntries';
+fetchChannelStats(); // SCRIPT_URL 정의 후 호출
+setInterval(fetchChannelStats, 300000); // 5분마다 자동 갱신
 var _manualCache = [];
 
 function getManualEntries() { return _manualCache; }
