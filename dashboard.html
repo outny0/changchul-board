@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:30</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:34</span></span>
 </div>
 
 <div class="page">
@@ -1814,23 +1814,17 @@ function renderLive() {
         var cnt = cc[cat]||0;
         var pct = pathTotal ? Math.round(cnt/pathTotal*100) : 0;
         var col = catColors[cat]||'#9ca3af';
-        return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
-          '<span style="min-width:54px;font-size:10px;font-weight:700;color:'+col+';">'+cat+'</span>' +
+        var isUnknown = cat==='가입경로 미확인';
+        return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-top:'+(isUnknown?'0.5px dashed #e5e7eb;margin-top:4px;padding-top:6px':'none')+';opacity:'+(isUnknown?'0.65':'1')+';">' +
+          '<span style="min-width:90px;font-size:10px;font-weight:'+(isUnknown?'400':'700')+';color:'+(isUnknown?'#9ca3af':col)+';font-style:'+(isUnknown?'italic':'normal')+';">'+cat+'</span>' +
           '<div style="flex:1;height:5px;background:#f3f4f6;border-radius:3px;overflow:hidden;">' +
-            '<div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:3px;"></div>' +
+            '<div style="width:'+pct+'%;height:100%;background:'+(isUnknown?'#d1d5db':col)+';border-radius:3px;"></div>' +
           '</div>' +
-          '<span style="min-width:28px;text-align:right;font-size:10px;font-weight:700;color:#374151;">'+cnt+'건</span>' +
+          '<span style="min-width:28px;text-align:right;font-size:10px;font-weight:700;color:'+(isUnknown?'#9ca3af':'#374151')+';">'+cnt+'건</span>' +
           '<span style="min-width:26px;text-align:right;font-size:9px;color:#9ca3af;">'+pct+'%</span>' +
         '</div>';
       }).join('');
-      // 미분류 rawPath들 표시 (디버깅용: 경로 텍스트 확인)
-      var rawPaths = {};
-      (d.feed||[]).forEach(function(row){
-        if(row.path) rawPaths[row.path]=(rawPaths[row.path]||0)+1;
-      });
-      var unknowns = []; // 미분류는 이제 일반DB로 자동 분류됨
-      var debugLine = unknowns.length ? '<div style="margin-top:4px;font-size:9px;color:#d1d5db;padding-top:3px;border-top:0.5px solid #f3f4f6;">미분류: '+unknowns.slice(0,5).join(', ')+'</div>' : '';
-      pathBody.innerHTML = '<div style="padding:2px 0;">' + rows + debugLine + '</div>';
+      pathBody.innerHTML = '<div style="padding:2px 0;">' + rows + '</div>';
     }
   }
 
