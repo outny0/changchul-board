@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:40</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 14:50</span></span>
 </div>
 
 <div class="page">
@@ -338,6 +338,16 @@ tbody tr:hover td{background:var(--accent-lt);}
     <div class="rank-section" id="rankingSection"></div>
   </div>
 
+
+
+  <!-- 데이터 정합성 검증 -->
+  <div style="margin-bottom:12px;" id="validationSection">
+    <div class="sec-lbl" style="cursor:pointer;user-select:none;" onclick="toggleValidation()">
+      🔍 데이터 정합성 검증 <span id="validArrow" style="font-size:10px;margin-left:4px;">▶</span>
+      <span id="validBadge" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px;"></span>
+    </div>
+    <div id="validationPanel" style="display:none;"></div>
+  </div>
 
   <!-- 교사별 세부 현황 -->
   <div class="tbl-section">
@@ -776,6 +786,7 @@ function tryRender() {
   renderWeeks(data);
   buildTabs();
   renderTable(data, currentFilter);
+  renderValidation(data);
 }
 
 function renderHeader(data) {
@@ -1965,6 +1976,172 @@ function toggleChannelGroup(gid) {
   var isOpen = chRows[0].style.display !== 'none';
   chRows.forEach(function(tr){ tr.style.display = isOpen ? 'none' : 'table-row'; });
   if(arr) arr.textContent = isOpen ? '▶' : '▼';
+}
+
+
+
+function toggleValidation() {
+  var panel = document.getElementById('validationPanel');
+  var arrow = document.getElementById('validArrow');
+  if(!panel) return;
+  var open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if(arrow) arrow.textContent = open ? '▶' : '▼';
+}
+
+function renderValidation(data) {
+  var issues = [];
+  var warns  = [];
+  var infos  = [];
+
+  // ── 1. 팀 총계 vs 선생님 합계 비교 ─────────────────────
+  TEAM_NAMES.forEach(function(nm) {
+    var m = data.teams[nm];
+    var tList = data.teachers.filter(function(t){ return t.team === nm; });
+    var sumPay = tList.reduce(function(s,t){ return s+(t.monthPayment||0); },0);
+    var sumEnd = tList.reduce(function(s,t){ return s+(t.monthEnd||0); },0);
+    var sumLive= tList.reduce(function(s,t){ return s+(t.livePayment||0); },0);
+    if(sumPay !== m.monthPayment)
+      issues.push(nm+' 결제합 불일치: 선생님합('+sumPay+') ≠ 팀합('+m.monthPayment+')');
+    if(sumEnd !== m.monthEnd)
+      issues.push(nm+' 종료합 불일치: 선생님합('+sumEnd+') ≠ 팀합('+m.monthEnd+')');
+    if(sumLive > 0)
+      infos.push(nm+' 실시간결제 '+sumLive+'건 (monthPayment에 합산됨 → Pay파일과 이중계산 가능성 체크 필요)');
+  });
+
+  // ── 2. 선생님별 이상값 탐지 ────────────────────────────
+  data.teachers.forEach(function(t) {
+    var payOnly = (t.monthPayment||0) - (t.livePayment||0);
+    // 청철이 총결제보다 큰 경우
+    if((t.withdrawal||0) > (t.monthPayment||0))
+      issues.push('['+t.name+'/'+t.team+'] 청철('+t.withdrawal+') > 결제('+t.monthPayment+')');
+    // 음수 realPay
+    if((t.realPay||0) < 0)
+      issues.push('['+t.name+'/'+t.team+'] realPay 음수: '+t.realPay);
+    // 이중계산 의심: livePayment > 0 이고 Pay파일 today 컬럼도 존재
+    if((t.livePayment||0) > 0) {
+      var todayPay = 0;
+      if(t.daily_pay) {
+        var todayD = data.today;
+        todayPay = parseInt(t.daily_pay[todayD])||0;
+      }
+      if(todayPay > 0 && (t.livePayment||0) > 0)
+        warns.push('['+t.name+'] 이중계산 의심: Pay파일 오늘('+todayPay+')+실시간('+t.livePayment+') → monthPayment='+t.monthPayment);
+    }
+  });
+
+  // ── 3. 전체 총계 교차검증 ──────────────────────────────
+  var totalPayFromTeams = TEAM_NAMES.reduce(function(s,nm){ return s+data.teams[nm].monthPayment; },0);
+  var totalEndFromTeams = TEAM_NAMES.reduce(function(s,nm){ return s+data.teams[nm].monthEnd; },0);
+  var totalPayFromTchrs = data.teachers.reduce(function(s,t){ return s+(t.monthPayment||0); },0);
+  var totalEndFromTchrs = data.teachers.reduce(function(s,t){ return s+(t.monthEnd||0); },0);
+  if(totalPayFromTeams !== totalPayFromTchrs)
+    issues.push('전체 결제합 불일치: 팀합계('+totalPayFromTeams+') ≠ 선생님합계('+totalPayFromTchrs+')');
+  if(totalEndFromTeams !== totalEndFromTchrs)
+    issues.push('전체 종료합 불일치: 팀합계('+totalEndFromTeams+') ≠ 선생님합계('+totalEndFromTchrs+')');
+
+  // ── 4. 팀별 선생님 상세 테이블 ────────────────────────
+  var detailHTML = TEAM_NAMES.map(function(nm) {
+    var cfg = TEAM_CFG[nm];
+    var tList = data.teachers.filter(function(t){ return t.team === nm; })
+      .sort(function(a,b){ return b.monthPayment - a.monthPayment; });
+    var rows = tList.map(function(t) {
+      var payOnly = (t.monthPayment||0) - (t.livePayment||0);
+      var todayPay = 0;
+      if(t.daily_pay){ todayPay = parseInt(t.daily_pay[data.today])||0; }
+      var dupWarn = (t.livePayment>0 && todayPay>0) ? '⚠' : '';
+      var liveStr = t.livePayment > 0 ? '<span style="color:#f59e0b;font-weight:700;">+'+t.livePayment+'</span>' : '-';
+      var todayPayStr = todayPay > 0 ? '<span style="color:#6366f1;">'+todayPay+'</span>' : '-';
+      return '<tr style="border-bottom:0.5px solid #f3f4f6;">'+
+        '<td style="padding:3px 8px;font-size:11px;white-space:nowrap;">'+t.name+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;">'+t.monthEnd+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;color:#374151;">'+payOnly+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;">'+liveStr+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;font-weight:700;color:'+cfg.bar+';">'+t.monthPayment+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;color:#9ca3af;">'+t.withdrawal+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;">'+todayPayStr+'</td>'+
+        '<td style="padding:3px 8px;font-size:11px;text-align:right;color:#ef4444;">'+dupWarn+'</td>'+
+      '</tr>';
+    }).join('');
+    var mPay = data.teams[nm].monthPayment;
+    var mEnd = data.teams[nm].monthEnd;
+    var sumPay = tList.reduce(function(s,t){return s+(t.monthPayment||0);},0);
+    var sumEnd = tList.reduce(function(s,t){return s+(t.monthEnd||0);},0);
+    var payOk = mPay === sumPay;
+    var endOk = mEnd === sumEnd;
+    return '<div style="margin-bottom:12px;">'+
+      '<div style="font-size:11px;font-weight:700;color:'+cfg.txt+';padding:4px 8px;background:'+cfg.hdr+';border-radius:6px 6px 0 0;border-left:3px solid '+cfg.bar+';display:flex;justify-content:space-between;align-items:center;">'+
+        '<span>'+nm+'</span>'+
+        '<span style="font-weight:400;font-size:10px;color:#6b7280;">'+
+          '종료합: '+(endOk?'<span style="color:#22c55e;">✓ '+mEnd+'</span>':'<span style="color:#ef4444;">✗ 팀='+mEnd+'/선생님합='+sumEnd+'</span>')+
+          ' &nbsp; 결제합: '+(payOk?'<span style="color:#22c55e;">✓ '+mPay+'</span>':'<span style="color:#ef4444;">✗ 팀='+mPay+'/선생님합='+sumPay+'</span>')+
+        '</span>'+
+      '</div>'+
+      '<table style="width:100%;border-collapse:collapse;background:#fff;border-radius:0 0 6px 6px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">'+
+      '<thead><tr style="background:#f8f9fc;font-size:10px;color:#6b7280;">'+
+        '<th style="padding:4px 8px;text-align:left;font-weight:600;">교사명</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">종료</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">Pay파일</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">실시간</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">결제합</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">청철</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">오늘Pay</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">중복?</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+      '</table>'+
+    '</div>';
+  }).join('');
+
+  // ── 5. 이중계산 설명 ───────────────────────────────────
+  var dupExplain = '<div style="font-size:10px;color:#6b7280;padding:6px 8px;background:#fffbeb;border-radius:6px;border-left:3px solid #f59e0b;margin-bottom:8px;">'+
+    '⚠ <b>이중계산 체크</b>: "오늘Pay" 컬럼은 Pay파일의 오늘 컬럼값입니다. '+
+    '"실시간" 컬럼은 live feed에서 추가된 건수입니다. '+
+    '두 값이 모두 양수이면 오늘치가 중복 계산될 수 있습니다.'+
+  '</div>';
+
+  // ── 결과 렌더링 ────────────────────────────────────────
+  var issueHTML = '';
+  if(issues.length) {
+    issueHTML += '<div style="background:#fef2f2;border-radius:6px;border-left:3px solid #ef4444;padding:8px 12px;margin-bottom:8px;">'+
+      '<div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:4px;">🚨 오류 ('+issues.length+'건)</div>'+
+      issues.map(function(s){ return '<div style="font-size:11px;color:#7f1d1d;padding:1px 0;">'+s+'</div>'; }).join('')+
+    '</div>';
+  }
+  var warnHTML = '';
+  if(warns.length) {
+    warnHTML += '<div style="background:#fffbeb;border-radius:6px;border-left:3px solid #f59e0b;padding:8px 12px;margin-bottom:8px;">'+
+      '<div style="font-size:11px;font-weight:700;color:#d97706;margin-bottom:4px;">⚠ 경고 ('+warns.length+'건)</div>'+
+      warns.map(function(s){ return '<div style="font-size:11px;color:#78350f;padding:1px 0;">'+s+'</div>'; }).join('')+
+    '</div>';
+  }
+  var infoHTML = '';
+  if(infos.length) {
+    infoHTML += '<div style="background:#eff6ff;border-radius:6px;border-left:3px solid #3b82f6;padding:8px 12px;margin-bottom:8px;">'+
+      '<div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:4px;">ℹ 참고 ('+infos.length+'건)</div>'+
+      infos.map(function(s){ return '<div style="font-size:11px;color:#1e3a5f;padding:1px 0;">'+s+'</div>'; }).join('')+
+    '</div>';
+  }
+  if(!issues.length && !warns.length) {
+    issueHTML = '<div style="background:#f0fdf4;border-radius:6px;border-left:3px solid #22c55e;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#15803d;font-weight:600;">✅ 팀/선생님 집계 합계 일치 — 명백한 오류 없음</div>';
+  }
+
+  var panel = document.getElementById('validationPanel');
+  if(!panel) return;
+  panel.innerHTML =
+    '<div style="padding:8px 0;">'+
+      issueHTML + warnHTML + infoHTML +
+      dupExplain +
+      detailHTML +
+    '</div>';
+
+  // 뱃지 업데이트
+  var badge = document.getElementById('validBadge');
+  if(badge) {
+    if(issues.length) badge.innerHTML = '<span style="background:#fecaca;color:#dc2626;padding:1px 6px;border-radius:10px;">오류 '+issues.length+'</span>';
+    else if(warns.length) badge.innerHTML = '<span style="background:#fde68a;color:#d97706;padding:1px 6px;border-radius:10px;">경고 '+warns.length+'</span>';
+    else badge.innerHTML = '<span style="background:#dcfce7;color:#15803d;padding:1px 6px;border-radius:10px;">✓ 정상</span>';
+  }
 }
 
 
