@@ -56,7 +56,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 
 /* PAGE */
 .page{padding:14px 18px;display:flex;flex-direction:column;gap:14px;}
-.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;}
+.sec-lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#374151;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--accent);}
 
 /* TEAM CARDS */
 .team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 11:50</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 12:04</span></span>
 </div>
 
 <div class="page">
@@ -1732,15 +1732,7 @@ function renderChannelStats() {
 
   var rows = (d.rows || []).slice(1); // 헤더 1행 제거
 
-  // 전환율 최대값 (이상치 제외)
-  var maxRate = 0;
-  rows.forEach(function(r){
-    var rt = parseRate(r[3]);
-    if(rt && rt < 2 && rt > maxRate) maxRate = rt;
-  });
-  if(maxRate === 0) maxRate = 0.5;
-
-  // 그룹 정의 (이름 → 그룹 레이블)
+  // 그룹 정의 (채널명 → 그룹)
   var groupMap = {
     '순수 자체':'자체','마케팅 연계 자체':'자체','마케팅연계 자체':'자체','공감':'자체',
     '상담교사_지인소개':'지인소개','관리교사_지인소개':'지인소개','중앙_지인소개':'지인소개',
@@ -1750,76 +1742,106 @@ function renderChannelStats() {
     '가공DB':'가공','가공DB_해피콜':'가공','사개발센터':'가공','사업개발센터':'가공','오프라인 DB':'가공'
   };
 
-  var html = '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
-  html += '<thead><tr style="background:#f8f9fc;border-bottom:1px solid #eaecf2;">';
-  html += '<th style="padding:5px 8px;text-align:left;color:#9ca3af;font-weight:700;">채널</th>';
-  html += '<th style="padding:5px 4px;text-align:right;color:#9ca3af;font-weight:700;">종료</th>';
-  html += '<th style="padding:5px 4px;text-align:right;color:#9ca3af;font-weight:700;">전환</th>';
-  html += '<th style="padding:5px 8px;text-align:left;color:#9ca3af;font-weight:700;min-width:90px;">전환율</th>';
-  html += '</tr></thead><tbody>';
+  // 그룹별로 데이터 묶기
+  var groups = [];
+  var curGrp = null;
+  var totalRow = null;
 
-  var curGroup = '';
   rows.forEach(function(r){
-    var name  = String(r[0] || '').trim();
+    var name = String(r[0] || '').trim();
     if(!name) return;
-    var isTotal = (name === '전체');
-    var ended = parseInt(r[1]) || 0;
-    var paid  = parseInt(r[2]) || 0;
-    var rate  = parseRate(r[3]);
-    var grpRate = parseRate(r[4]); // 소계 전환율 (그룹 첫행에만 값 있음)
-    var grpTrial = parseRate(r[6]); // 소계 체험비율
-
-    // 그룹 헤더 (소계 포함)
-    if(!isTotal) {
-      var grp = groupMap[name] || '';
-      if(grp && grp !== curGroup) {
-        curGroup = grp;
-        // 소계 배지
-        var sogyeBadge = '';
-        if(grpRate !== null) {
-          var pct = (grpRate * 100).toFixed(1);
-          var bc  = grpRate >= 0.25 ? '#d1fae5' : grpRate >= 0.10 ? '#fef9c3' : '#ede9fe';
-          var tc  = grpRate >= 0.25 ? '#065f46' : grpRate >= 0.10 ? '#92400e' : '#4c1d95';
-          sogyeBadge = '<span style="margin-left:6px;padding:1px 7px;border-radius:10px;background:'+bc+';color:'+tc+';font-size:9px;font-weight:700;">'+pct+'%</span>';
-          if(grpTrial !== null) {
-            sogyeBadge += '<span style="margin-left:3px;font-size:9px;color:#9ca3af;font-weight:400;">체험 '+(grpTrial*100).toFixed(1)+'%</span>';
-          }
-        }
-        html += '<tr style="background:#f4f5f9;">'
-          +'<td colspan="4" style="padding:4px 8px;">'
-          +'<span style="font-size:9px;font-weight:700;color:#6b7280;letter-spacing:.05em;">'+grp.toUpperCase()+'</span>'
-          + sogyeBadge
-          +'</td></tr>';
-      }
+    if(name === '전체') { totalRow = r; return; }
+    var grp = groupMap[name] || '기타';
+    if(!curGrp || curGrp.name !== grp) {
+      curGrp = { name: grp, grpRate: parseRate(r[4]), grpTrial: parseRate(r[6]), channels: [] };
+      groups.push(curGrp);
     }
-
-    var rowStyle = isTotal
-      ? 'background:#eef2ff;border-top:1px solid #c7d2fe;font-weight:700;'
-      : 'border-bottom:0.5px solid #f3f4f6;';
-    var nameColor = isTotal ? '#4338ca' : '#4b5563';
-    var barW = (rate !== null && rate < 2) ? Math.min(100, rate / maxRate * 100) : 0;
-    var barColor = rate >= 0.25 ? '#10b981' : rate >= 0.10 ? '#f59e0b' : '#a78bfa';
-    var rateStr = rate !== null ? (rate*100).toFixed(1)+'%' : '-';
-
-    html += '<tr style="'+rowStyle+'">';
-    html += '<td style="padding:4px 8px;color:'+nameColor+';max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+name+'</td>';
-    html += '<td style="padding:4px 4px;text-align:right;color:#9ca3af;">'+(ended||'-')+'</td>';
-    html += '<td style="padding:4px 4px;text-align:right;color:#9ca3af;">'+(paid||'-')+'</td>';
-    html += '<td style="padding:4px 8px;">';
-    if(rate !== null) {
-      html += '<div style="display:flex;align-items:center;gap:4px;">'
-        +'<div style="flex:1;height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden;min-width:40px;">'
-        +'<div style="width:'+barW.toFixed(1)+'%;height:100%;background:'+barColor+';border-radius:2px;"></div>'
-        +'</div>'
-        +'<span style="min-width:34px;font-weight:700;color:'+(isTotal?'#4338ca':'#111827')+';">'+rateStr+'</span>'
-        +'</div>';
-    } else { html += '<span style="color:#d1d5db;">-</span>'; }
-    html += '</td></tr>';
+    curGrp.channels.push(r);
   });
 
-  html += '</tbody></table>';
+  // 최대 전환율 (바 스케일용)
+  var maxRate = 0;
+  groups.forEach(function(g){ g.channels.forEach(function(r){
+    var rt = parseRate(r[3]);
+    if(rt && rt < 2 && rt > maxRate) maxRate = rt;
+  }); });
+  if(maxRate === 0) maxRate = 0.5;
+
+  var html = '<table style="width:100%;border-collapse:collapse;font-size:10px;">';
+
+  groups.forEach(function(g, gi){
+    var gid = 'chg_' + gi;
+    var pct = g.grpRate !== null ? (g.grpRate * 100).toFixed(1) : null;
+    var bc  = (g.grpRate||0) >= 0.25 ? '#d1fae5' : (g.grpRate||0) >= 0.10 ? '#fef9c3' : '#ede9fe';
+    var tc  = (g.grpRate||0) >= 0.25 ? '#065f46' : (g.grpRate||0) >= 0.10 ? '#92400e' : '#4c1d95';
+
+    // ── 그룹 헤더 (클릭 시 접기/펼치기) ──
+    html += '<tr style="background:#f0f1f8;cursor:pointer;user-select:none;" onclick="toggleChannelGroup(\''+gid+'\')">';
+    html += '<td colspan="4" style="padding:6px 8px;">';
+    html += '<span id="arr_'+gid+'" style="font-size:8px;color:#9ca3af;margin-right:4px;display:inline-block;transition:transform .15s;">▶</span>';
+    html += '<span style="font-size:9px;font-weight:800;color:#374151;letter-spacing:.04em;">'+g.name.toUpperCase()+'</span>';
+    if(pct !== null) {
+      html += ' <span style="padding:1px 8px;border-radius:10px;background:'+bc+';color:'+tc+';font-size:9px;font-weight:700;">'+pct+'%</span>';
+    }
+    if(g.grpTrial !== null) {
+      html += ' <span style="font-size:9px;color:#9ca3af;font-weight:400;margin-left:2px;">체험 '+(g.grpTrial*100).toFixed(1)+'%</span>';
+    }
+    html += ' <span style="float:right;font-size:9px;color:#c4b5fd;font-weight:400;">'+g.channels.length+'개 채널</span>';
+    html += '</td></tr>';
+
+    // ── 채널 개별 행 (기본: 숨김) ──
+    g.channels.forEach(function(r){
+      var nm   = String(r[0]||'').trim();
+      var ended= parseInt(r[1])||0;
+      var paid = parseInt(r[2])||0;
+      var rate = parseRate(r[3]);
+      var rateStr = rate !== null ? (rate*100).toFixed(1)+'%' : '-';
+      var barColor= rate >= 0.25 ? '#10b981' : rate >= 0.10 ? '#f59e0b' : '#a78bfa';
+      var barW = (rate !== null && rate < 2) ? Math.min(100, rate/maxRate*100) : 0;
+
+      html += '<tr class="chg-row" data-group="'+gid+'" style="display:none;border-bottom:0.5px solid #f3f4f6;">';
+      html += '<td style="padding:3px 8px 3px 20px;color:#6b7280;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nm+'</td>';
+      html += '<td style="padding:3px 4px;text-align:right;color:#9ca3af;">'+(ended||'-')+'</td>';
+      html += '<td style="padding:3px 4px;text-align:right;color:#9ca3af;">'+(paid||'-')+'</td>';
+      html += '<td style="padding:3px 8px;">';
+      if(rate !== null){
+        html += '<div style="display:flex;align-items:center;gap:4px;">'
+          +'<div style="flex:1;height:3px;background:#f3f4f6;border-radius:2px;min-width:30px;overflow:hidden;">'
+          +'<div style="width:'+barW.toFixed(1)+'%;height:100%;background:'+barColor+';border-radius:2px;"></div>'
+          +'</div>'
+          +'<span style="min-width:32px;font-weight:600;color:#111827;font-size:9px;">'+rateStr+'</span>'
+          +'</div>';
+      } else { html += '<span style="color:#d1d5db;">-</span>'; }
+      html += '</td></tr>';
+    });
+  });
+
+  // ── 전체 합계 행 ──
+  if(totalRow){
+    var tRate = parseRate(totalRow[3]);
+    var tEnded = parseInt(totalRow[1])||0;
+    var tPaid  = parseInt(totalRow[2])||0;
+    var tRateStr = tRate !== null ? (tRate*100).toFixed(1)+'%' : '-';
+    html += '<tr style="background:#eef2ff;border-top:1.5px solid #c7d2fe;font-weight:700;">';
+    html += '<td style="padding:5px 8px;color:#4338ca;">전체</td>';
+    html += '<td style="padding:5px 4px;text-align:right;color:#6366f1;">'+tEnded+'</td>';
+    html += '<td style="padding:5px 4px;text-align:right;color:#6366f1;">'+tPaid+'</td>';
+    html += '<td style="padding:5px 8px;color:#4338ca;font-weight:800;">'+tRateStr+'</td>';
+    html += '</tr>';
+  }
+
+  html += '</table>';
   var el = document.getElementById('channelTable');
   if(el) el.innerHTML = html;
+}
+
+function toggleChannelGroup(gid) {
+  var chRows = document.querySelectorAll('.chg-row[data-group="'+gid+'"]');
+  var arr = document.getElementById('arr_'+gid);
+  if(!chRows.length) return;
+  var isOpen = chRows[0].style.display !== 'none';
+  chRows.forEach(function(tr){ tr.style.display = isOpen ? 'none' : 'table-row'; });
+  if(arr) arr.textContent = isOpen ? '▶' : '▼';
 }
 
 
