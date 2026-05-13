@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:53</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:56</span></span>
 </div>
 
 <div class="page">
@@ -2092,93 +2092,83 @@ function renderWeekChart(data) {
   var todayWi = -1;
   weeks.forEach(function(wk,wi){ if(data.today>=wk.start&&data.today<=wk.end) todayWi=wi; });
 
-  // 주별 팀별 결제/종료 집계
-  var weekStats = weeks.map(function(wk, wi) {
-    var wd = calcWeekData(wk, data);
+  // 주별 집계
+  var stats = weeks.map(function(wk, wi) {
+    var wd = (wi===todayWi && _weekData[wi]) ? _weekData[wi].wd : calcWeekData(wk, data);
     var teamPays = TEAM_NAMES.map(function(nm){ return wd.teams[nm]?wd.teams[nm].pay:0; });
-    var totalPay = wd.total.pay;
-    var totalEnd = wd.total.end;
-    // 진행중인 주에 live 반영
-    if(wi === todayWi && _weekData[wi]) {
-      totalPay = _weekData[wi].wd.total.pay;
-      totalEnd = _weekData[wi].wd.total.end;
-      TEAM_NAMES.forEach(function(nm,ti){
-        teamPays[ti] = _weekData[wi].wd.teams[nm]?_weekData[wi].wd.teams[nm].pay:teamPays[ti];
-      });
-    }
-    return {wk:wk, wi:wi, teamPays:teamPays, totalPay:totalPay, totalEnd:totalEnd, isCurrent:wi===todayWi};
+    var isPast   = wk.end < data.today;
+    var isFuture = wk.start > data.today;
+    return {wk:wk, wi:wi, teamPays:teamPays,
+            totalPay:wd.total.pay, totalEnd:wd.total.end,
+            isCurrent:wi===todayWi, isPast:isPast, isFuture:isFuture};
   });
 
-  var maxVal = Math.max.apply(null, weekStats.map(function(s){ return Math.max(s.totalEnd, s.totalPay); }));
-  if(maxVal===0) maxVal=1;
-
+  var maxPay = Math.max.apply(null, stats.map(function(s){ return s.totalPay; }).concat([1]));
   var teamColors = ['#f97316','#ec4899','#eab308','#22c55e'];
-  var barW = 46; // px per week group
-  var gap = 10;
-  var chartW = (barW + gap) * weeks.length + gap;
-  var chartH = 90;
-  var labelH = 22;
-  var totalH = chartH + labelH;
+  var teamNames  = ['땅이','다래','해태','단비'];
 
-  var svgParts = ['<svg viewBox="0 0 '+chartW+' '+totalH+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">'];
+  // HTML 기반으로 다시 렌더링 (SVG 대신)
+  var html = '<div style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 2px;">';
 
-  weekStats.forEach(function(s, wi) {
-    var x = gap + wi * (barW + gap);
-    var isFuture = s.totalEnd === 0 && !s.isCurrent;
-    var alpha = isFuture ? '0.25' : '1';
+  stats.forEach(function(s) {
+    var barMaxH  = 88; // px
+    var payH     = s.totalPay>0 ? Math.max(4, Math.round(s.totalPay/maxPay*barMaxH)) : 0;
+    var opacity  = s.isFuture ? '0.18' : s.isPast ? '0.55' : '1';
+    var borderCl = s.isCurrent ? 'border:1.5px solid #6366f1;background:#f5f3ff;' : 'border:1.5px solid transparent;background:#f9fafb;';
 
-    // 종료수 바 (흐린 배경)
-    if(s.totalEnd > 0) {
-      var endH = Math.round(s.totalEnd / maxVal * chartH);
-      svgParts.push('<rect x="'+x+'" y="'+(chartH-endH)+'" width="'+barW+'" height="'+endH+'" rx="3" fill="#e5e7eb" opacity="'+alpha+'"/>');
-    }
-
-    // 결제수 스택 바 (팀별 색상)
+    // 스택 바 조각들
+    var stackHtml = '';
     if(s.totalPay > 0) {
-      var payH = Math.round(s.totalPay / maxVal * chartH);
-      var stackY = chartH;
-      TEAM_NAMES.forEach(function(nm, ti) {
+      var remaining = payH;
+      for(var ti=TEAM_NAMES.length-1;ti>=0;ti--) {
         var tPay = s.teamPays[ti];
-        if(!tPay) return;
-        var tH = Math.round(tPay / maxVal * chartH);
-        stackY -= tH;
-        svgParts.push('<rect x="'+(x+4)+'" y="'+stackY+'" width="'+(barW-8)+'" height="'+tH+'" rx="2" fill="'+teamColors[ti]+'" opacity="'+alpha+'"/>');
-      });
+        if(!tPay) continue;
+        var tH = Math.max(2, Math.round(tPay/maxPay*barMaxH));
+        remaining -= tH;
+        stackHtml = '<div style="height:'+tH+'px;background:'+teamColors[ti]+';width:100%;'+(ti===TEAM_NAMES.length-1?'border-radius:3px 3px 0 0;':'')+'"></div>' + stackHtml;
+      }
     }
 
-    // 현재 주 강조 테두리
-    if(s.isCurrent) {
-      svgParts.push('<rect x="'+x+'" y="0" width="'+barW+'" height="'+chartH+'" rx="3" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.5"/>');
-    }
+    var numLabel = s.totalPay>0
+      ? '<div style="font-size:10px;font-weight:800;color:'+(s.isCurrent?'#6366f1':'#374151')+';text-align:center;line-height:1;margin-bottom:3px;">'+s.totalPay+'</div>'
+      : '<div style="height:13px;"></div>';
 
-    // 결제수 숫자
-    if(s.totalPay > 0) {
-      var numY = Math.round(s.totalPay / maxVal * chartH);
-      svgParts.push('<text x="'+(x+barW/2)+'" y="'+(chartH-numY-3)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+(s.isCurrent?'#6366f1':'#374151')+'" opacity="'+alpha+'">'+s.totalPay+'</text>');
-    }
+    var endLabel = s.totalEnd>0
+      ? '<div style="font-size:8px;color:#9ca3af;text-align:center;margin-top:2px;">종료 '+s.totalEnd+'</div>'
+      : '<div style="font-size:8px;color:#e5e7eb;text-align:center;margin-top:2px;">-</div>';
 
-    // 주 라벨
-    var lbl = (wi+1)+'주';
-    svgParts.push('<text x="'+(x+barW/2)+'" y="'+(chartH+15)+'" text-anchor="middle" font-size="9" fill="'+(s.isCurrent?'#6366f1':'#9ca3af')+'" font-weight="'+(s.isCurrent?'700':'400')+'">'+lbl+'</text>');
+    var weekLbl = s.isCurrent
+      ? '<div style="font-size:9px;font-weight:700;color:#6366f1;text-align:center;">'+(s.wi+1)+'주</div>'
+      : '<div style="font-size:9px;color:#9ca3af;text-align:center;">'+(s.wi+1)+'주</div>';
 
-    // 날짜 범위
-    var dateStr = s.wk.start+'/'+s.wk.end;
-    svgParts.push('<text x="'+(x+barW/2)+'" y="'+(chartH+24)+'" text-anchor="middle" font-size="7.5" fill="#c4b5fd" opacity="'+(s.isCurrent?'1':'0.6')+'">'+dateStr+'</text>');
+    var dateLbl = '<div style="font-size:7.5px;color:#c4b5fd;text-align:center;opacity:'+(s.isCurrent?'1':'0.7')+';">'+s.wk.start+'~'+s.wk.end+'일</div>';
+
+    html +=
+      '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;opacity:'+opacity+';">' +
+        numLabel +
+        '<div style="'+borderCl+'border-radius:4px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;height:'+barMaxH+'px;">' +
+          stackHtml +
+        '</div>' +
+        endLabel + weekLbl + dateLbl +
+      '</div>';
   });
 
-  // 범례 (팀별 색상)
-  var legY = 4;
-  var legX = chartW - gap;
-  TEAM_NAMES.slice().reverse().forEach(function(nm,ri){
-    var ti = TEAM_NAMES.length-1-ri;
-    legX -= (nm.length*5+14);
-    svgParts.push('<circle cx="'+(legX)+'" cy="'+legY+'" r="3" fill="'+teamColors[ti]+'"/>');
-    svgParts.push('<text x="'+(legX+5)+'" y="'+(legY+3.5)+'" font-size="7.5" fill="#6b7280">'+nm.replace('팀','')+'</text>');
-  });
+  html += '</div>';
 
-  svgParts.push('</svg>');
-  el.innerHTML = svgParts.join('');
+  // 범례
+  html += '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;padding-right:2px;">';
+  TEAM_NAMES.forEach(function(nm,ti){
+    html += '<div style="display:flex;align-items:center;gap:3px;">'+
+      '<div style="width:8px;height:8px;border-radius:50%;background:'+teamColors[ti]+'"></div>'+
+      '<span style="font-size:9px;color:#6b7280;">'+teamNames[ti]+'</span>'+
+    '</div>';
+  });
+  html += '</div>';
+
+  el.innerHTML = html;
 }
+
+function toggleChannelGroup
 
 function toggleChannelGroup(gid) {
   var chRows = document.querySelectorAll('.chg-row[data-group="'+gid+'"]');
