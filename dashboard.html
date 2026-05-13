@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:09</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:22</span></span>
 </div>
 
 <div class="page">
@@ -819,15 +819,19 @@ function renderTeams(data) {
     var convCls=m.monthEnd>0?(totalPay/m.monthEnd>=0.7?'kv-good':totalPay/m.monthEnd>=0.5?'kv-warn':'kv-bad'):'';
 
     // 선생님 목록: realPay 내림차순 정렬
-    var sortedT=teachers.slice().sort(function(a,b){return b.realPay-a.realPay||b.monthEnd-a.monthEnd;});
+    var sortedT=teachers.slice().sort(function(a,b){
+      var aP=(a.monthPayment-(a.livePayment||0)); var bP=(b.monthPayment-(b.livePayment||0));
+      return bP-aP||b.monthEnd-a.monthEnd;
+    });
     var tRows=sortedT.map(function(t){
-      var hasPay=t.realPay>0;
+      var tPayFile=t.monthPayment-(t.livePayment||0); // Pay파일 값만 (live 제외, withdrawal 미차감)
+      var hasPay=tPayFile>0;
       var hasLive=t.livePayment>0;
       var hasTodayEnd=t.todayEnd>0;
       return '<div class="tc-teacher" style="'+(hasPay?'background:'+cfg.hdr+';':'')+'">'+
         '<span class="tc-tname" style="'+(hasPay?'font-weight:700;':'')+'">'+t.name+'</span>'+
         '<span class="tc-tnum" style="color:#374151;">'+(t.monthEnd||'-')+'</span>'+
-        '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#d1d5db;')+'">'+(hasPay?t.realPay:'-')+'</span>'+
+        '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#d1d5db;')+'">'+(hasPay?tPayFile:'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasTodayEnd?'font-weight:600;color:#6366f1;':'color:#e5e7eb;')+'">'+(hasTodayEnd?t.todayEnd:'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasLive?'font-weight:700;color:#f59e0b;':'color:#e5e7eb;')+'">'+(hasLive?'+'+t.livePayment:'-')+'</span>'+
       '</div>';
@@ -852,7 +856,7 @@ function renderTeams(data) {
         '<div class="tc-group"><span></span><span class="tc-group-lbl g-acc">── 누적 ──</span><span class="tc-group-lbl g-tod">── 오늘 ──</span></div>'+
         '<div class="tc-thead"><span>이름</span><span style="text-align:right;color:#1d4ed8;">종료</span><span style="text-align:right;color:#1d4ed8;">달성</span><span style="text-align:right;color:#6366f1;">종료</span><span style="text-align:right;color:#f59e0b;">달성</span></div>'+
         tRows+
-        '<div class="tc-total"><span>총계</span><span style="color:#374151;">'+(m.monthEnd||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+(m.realPay||'-')+'</span><span style="color:#6366f1;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
+        '<div class="tc-total"><span>총계</span><span style="color:#374151;">'+(m.monthEnd||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+((m.monthPayment-(m.livePayment||0))||'-')+'</span><span style="color:#6366f1;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
       '</div>'+
     '</div>';
   }).join('');
