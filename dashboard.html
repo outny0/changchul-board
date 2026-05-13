@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:22</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:16</span></span>
 </div>
 
 <div class="page">
@@ -289,6 +289,11 @@ tbody tr:hover td{background:var(--accent-lt);}
               <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:4px;">⏱ 시간순</div>
               <div id="liveTchBody" style="max-height:200px;overflow-y:auto;"><div class="live-empty">-</div></div>
             </div>
+          </div>
+          <!-- 가입경로별 -->
+          <div style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:8px;">
+            <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:6px;">🔀 가입경로별</div>
+            <div id="livePathBody"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
           <!-- 수기 결제 입력 -->
           <div style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:8px;">
@@ -1407,6 +1412,29 @@ function findCol(hdr, keywords, fallback){
   return fallback;
 }
 
+
+// ─── 가입경로 → 채널 카테고리 매핑 ─────────────────────
+function categorizePath(path) {
+  if(!path) return '기타';
+  var p = path.trim();
+  // groupMap 직접 매칭
+  if(typeof groupMap !== 'undefined' && groupMap[p]) return groupMap[p];
+  var lo = p.toLowerCase();
+  // 키워드 기반 분류
+  if(lo.indexOf('자체')>=0) return '자체DB';
+  if(lo.indexOf('공감')>=0) return '자체DB';
+  if(lo.indexOf('지인')>=0) return '지인소개';
+  if(lo.indexOf('일반')>=0) return '일반DB';
+  if(lo.indexOf('형제')>=0 || (lo.indexOf('tc')>=0 && lo.indexOf('캐')< 0)) return '형제DB';
+  if(lo.indexOf('눕스')>=0 || lo.indexOf('늘스')>=0 || lo.indexOf('키즈노트')>=0 ||
+     lo.indexOf('카카오')>=0 || lo.indexOf('맘스')>=0 || lo.indexOf('카드')>=0) return '온라인DB';
+  if(lo.indexOf('캐잉')>=0 || lo.indexOf('캠')>=0) return '캐잉DB';
+  if(lo.indexOf('정부')>=0 || lo.indexOf('단체')>=0 || lo.indexOf('해외')>=0 || lo.indexOf('무료')>=0) return '기타DB';
+  if(lo.indexOf('가공')>=0) return '가공DB';
+  if(lo.indexOf('사업개발')>=0 || lo.indexOf('사개발')>=0 || lo.indexOf('오프라인')>=0 || lo.indexOf('오프')>=0) return '오프DB';
+  return '기타';
+}
+
 function parseLiveCSV(text) {
   var rows=[];
   text.split('\n').forEach(function(line){
@@ -1429,6 +1457,7 @@ function parseLiveCSV(text) {
   var iProd  = findCol(hdr,['상품명','상품'],           12);
   var iCoup  = findCol(hdr,['쿠폰'],                   15);
   var iTeach = findCol(hdr,['교사명','교사','선생'],    16);
+  var iPath  = findCol(hdr,['가입경로','경로','채널'],  23); // X열
 
   // 이름→팀 매핑
   var nameToTeam={};
@@ -1441,6 +1470,7 @@ function parseLiveCSV(text) {
 
   var teamTotals={'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0};
   var byTime={}, products={}, teamProducts={}, feed=[], rawNames=[], total=0, skipped=0, unassigned=[];
+  var channelCounts={}; // 가입경로 카테고리별 건수
   TEAM_NAMES.forEach(function(nm){teamProducts[nm]={};});
 
   for(var i=dataStart;i<rows.length;i++){
@@ -1455,6 +1485,8 @@ function parseLiveCSV(text) {
     var rawTime  = String(r[iTime] ||'').trim();
     var rawTeach = String(r[iTeach]||'').replace(/♥/g,'').trim();
     var prod     = String(r[iProd] ||'').trim();
+    var rawPath  = String(r[iPath] ||'').trim();
+    var pathCat  = categorizePath(rawPath);
     var timeStr  = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'');
     var time = timeStr.slice(0,5); // 표시용 HH:MM
     if(!time || time.length<4) continue;
@@ -1476,13 +1508,14 @@ function parseLiveCSV(text) {
       products[prod]=(products[prod]||0)+1;
       if(teamProducts[team]) teamProducts[team][prod]=(teamProducts[team][prod]||0)+1;
     }
-    feed.push({time:time,name:rawTeach||'미배정',team:team,product:prod});
+    feed.push({time:time,name:rawTeach||'미배정',team:team,product:prod,path:rawPath,pathCat:pathCat});
+    if(pathCat) channelCounts[pathCat]=(channelCounts[pathCat]||0)+1;
     total++;
   }
 
   console.log('[Live] 총'+total+'건 / 제외'+skipped+'건 / 미배정'+unassigned.length+'건');
   var productList=Object.keys(products).sort(function(a,b){return products[b]-products[a];});
-  return{teamTotals:teamTotals,byTime:byTime,products:products,teamProducts:teamProducts,productList:productList,feed:feed,rawNames:rawNames,total:total};
+  return{teamTotals:teamTotals,byTime:byTime,products:products,teamProducts:teamProducts,productList:productList,feed:feed,rawNames:rawNames,total:total,channelCounts:channelCounts};
 }
 
 // ─── 수기 결제 입력 ──────────────────────────────────────
@@ -1702,6 +1735,46 @@ function renderLive() {
           (teamBars?'<div style="font-size:9px;color:#9ca3af;padding-left:2px;">'+teamBars+'</div>':'')+
         '</div>';
       }).join('');
+    }
+  }
+
+  // 가입경로별 집계
+  var pathBody = document.getElementById('livePathBody');
+  if(pathBody) {
+    var cc = (d && d.channelCounts) ? d.channelCounts : {};
+    // 카테고리 순서: 인입채널별 전환율과 동일한 순서
+    var catOrder = ['자체DB','지인소개','일반DB','형제DB','온라인DB','캐잉DB','기타DB','가공DB','오프DB','기타'];
+    var catColors = {
+      '자체DB':'#6366f1','지인소개':'#8b5cf6','일반DB':'#3b82f6','형제DB':'#f97316',
+      '온라인DB':'#10b981','캐잉DB':'#ec4899','기타DB':'#9ca3af','가공DB':'#f59e0b',
+      '오프DB':'#14b8a6','기타':'#d1d5db'
+    };
+    var pathTotal = Object.values(cc).reduce(function(s,v){return s+v;},0);
+    var hasPath = pathTotal > 0;
+    if(!hasPath) {
+      pathBody.innerHTML = '<div class="live-empty" style="padding:4px;font-size:10px;color:#9ca3af;">가입경로 데이터 없음 (X열 미확인)</div>';
+    } else {
+      var rows = catOrder.filter(function(c){ return cc[c]>0; }).map(function(cat){
+        var cnt = cc[cat]||0;
+        var pct = pathTotal ? Math.round(cnt/pathTotal*100) : 0;
+        var col = catColors[cat]||'#9ca3af';
+        return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">' +
+          '<span style="min-width:54px;font-size:10px;font-weight:700;color:'+col+';">'+cat+'</span>' +
+          '<div style="flex:1;height:5px;background:#f3f4f6;border-radius:3px;overflow:hidden;">' +
+            '<div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:3px;"></div>' +
+          '</div>' +
+          '<span style="min-width:28px;text-align:right;font-size:10px;font-weight:700;color:#374151;">'+cnt+'건</span>' +
+          '<span style="min-width:26px;text-align:right;font-size:9px;color:#9ca3af;">'+pct+'%</span>' +
+        '</div>';
+      }).join('');
+      // 미분류 rawPath들 표시 (디버깅용: 경로 텍스트 확인)
+      var rawPaths = {};
+      (d.feed||[]).forEach(function(row){
+        if(row.path) rawPaths[row.path]=(rawPaths[row.path]||0)+1;
+      });
+      var unknowns = Object.keys(rawPaths).filter(function(p){ return categorizePath(p)==='기타' && p; });
+      var debugLine = unknowns.length ? '<div style="margin-top:4px;font-size:9px;color:#d1d5db;padding-top:3px;border-top:0.5px solid #f3f4f6;">미분류: '+unknowns.slice(0,5).join(', ')+'</div>' : '';
+      pathBody.innerHTML = '<div style="padding:2px 0;">' + rows + debugLine + '</div>';
     }
   }
 
