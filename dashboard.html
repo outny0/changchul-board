@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:16</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:27</span></span>
 </div>
 
 <div class="page">
@@ -1413,25 +1413,81 @@ function findCol(hdr, keywords, fallback){
 }
 
 
-// ─── 가입경로 → 채널 카테고리 매핑 ─────────────────────
+// ─── 채널 분류 규칙 (우선순위 순서) ────────────────────
+// 키워드가 겹칠 때 앞에 있는 규칙이 우선 적용됨 (ex. TC_형제 > TC)
+var channelRules = [
+  // 우선순위 1: 사업개발센터 계열 → 오프DB
+  {group:'오프DB',   keys:['사업개발센터','사개발센터','오프DB_B2B','오프DB_방문교사','오프DB_현장직결제','오프B2B','오프DB_직결제']},
+  // 우선순위 2: TC_형제 → 형제DB (TC보다 먼저 체크)
+  {group:'형제DB',   keys:['TC_형제']},
+  // 우선순위 3: TC → 형제DB
+  {group:'형제DB',   keys:['TC']},
+  // 우선순위 4: 오프라인 DB → 오프DB
+  {group:'오프DB',   keys:['오프라인 DB','오프DB_고객창출센터','오프DB_오프라인마케팅팀']},
+  // 우선순위 5: 순수 자체 → 자체DB
+  {group:'자체DB',   keys:['순수 자체','APP','M_WEB','PC_WEB','홈페이지']},
+  // 우선순위 6: 마케팅 연계 자체 → 자체DB
+  {group:'자체DB',   keys:['마케팅 연계 자체','마케팅연계 자체','자체','SA']},
+  // 우선순위 7: 공감 → 자체DB
+  {group:'자체DB',   keys:['공감','고객직접문의','공감팀문의']},
+  // 우선순위 8: 지인소개 → 지인소개
+  {group:'지인소개', keys:['상담교사_지인소개','관리교사_지인소개','중앙_지인소개','지인소개','지인추천']},
+  // 우선순위 9: 10일무료체험 → 기타DB
+  {group:'기타DB',   keys:['10일무료체험_미출하미로그인','10일무료체험_로그인체험종료','10일무료체험','정부지원','단체가입','해외판매']},
+  // 우선순위 10: 가공DB_해피콜 → 가공DB (가공DB보다 먼저)
+  {group:'가공DB',   keys:['가공DB_해피콜','로그인체험종료_해피콜DB']},
+  // 우선순위 11: 가공DB → 가공DB
+  {group:'가공DB',   keys:['가공DB','로그인체험종료_상담교사해피콜','미출하','미로그인']},
+  // 우선순위 12: 캐잉18년생 → 캐잉DB
+  {group:'캐잉DB',   keys:['캐잉18년생','캠18년생']},
+  // 우선순위 13: 캐잉미취학 → 캐잉DB
+  {group:'캐잉DB',   keys:['캐잉미취학','캠미취학']},
+  // 우선순위 14: 눕스콘 → 온라인DB
+  {group:'온라인DB', keys:['눕스콘','늘스콘']},
+  // 우선순위 15: 키즈노트 → 온라인DB
+  {group:'온라인DB', keys:['키즈노트']},
+  // 우선순위 16: 카카오페이 → 온라인DB
+  {group:'온라인DB', keys:['카카오페이']},
+  // 우선순위 17: 맘스다이어리 → 온라인DB
+  {group:'온라인DB', keys:['맘스다이어리']},
+  // 우선순위 18: 카드 → 온라인DB
+  {group:'온라인DB', keys:['카드']},
+  // 우선순위 19: 일반 DB → 일반DB (가장 후순위 - 다른 매칭 없을 때)
+  {group:'일반DB',   keys:['일반 DB','일반DB']},
+];
+
+// channelRules → groupMap 자동 생성 (renderChannelStats용 exact 매핑)
+var _builtGroupMap = {};
+channelRules.forEach(function(rule){
+  rule.keys.forEach(function(k){ _builtGroupMap[k] = rule.group; });
+});
+
+// 가입경로 → 그룹 변환 (우선순위 순서: exact → lowercase exact → contains)
 function categorizePath(path) {
-  if(!path) return '기타';
+  if(!path) return '';
   var p = path.trim();
-  // groupMap 직접 매칭
-  if(typeof groupMap !== 'undefined' && groupMap[p]) return groupMap[p];
   var lo = p.toLowerCase();
-  // 키워드 기반 분류
-  if(lo.indexOf('자체')>=0) return '자체DB';
-  if(lo.indexOf('공감')>=0) return '자체DB';
-  if(lo.indexOf('지인')>=0) return '지인소개';
-  if(lo.indexOf('일반')>=0) return '일반DB';
-  if(lo.indexOf('형제')>=0 || (lo.indexOf('tc')>=0 && lo.indexOf('캐')< 0)) return '형제DB';
-  if(lo.indexOf('눕스')>=0 || lo.indexOf('늘스')>=0 || lo.indexOf('키즈노트')>=0 ||
-     lo.indexOf('카카오')>=0 || lo.indexOf('맘스')>=0 || lo.indexOf('카드')>=0) return '온라인DB';
-  if(lo.indexOf('캐잉')>=0 || lo.indexOf('캠')>=0) return '캐잉DB';
-  if(lo.indexOf('정부')>=0 || lo.indexOf('단체')>=0 || lo.indexOf('해외')>=0 || lo.indexOf('무료')>=0) return '기타DB';
-  if(lo.indexOf('가공')>=0) return '가공DB';
-  if(lo.indexOf('사업개발')>=0 || lo.indexOf('사개발')>=0 || lo.indexOf('오프라인')>=0 || lo.indexOf('오프')>=0) return '오프DB';
+  // 1단계: exact match (우선순위 순서)
+  for(var i=0;i<channelRules.length;i++){
+    var r=channelRules[i];
+    for(var j=0;j<r.keys.length;j++){
+      if(p === r.keys[j]) return r.group;
+    }
+  }
+  // 2단계: case-insensitive exact
+  for(var i=0;i<channelRules.length;i++){
+    var r=channelRules[i];
+    for(var j=0;j<r.keys.length;j++){
+      if(lo === r.keys[j].toLowerCase()) return r.group;
+    }
+  }
+  // 3단계: contains (우선순위 순서 — 짧은 키워드가 긴 것을 삼키지 않도록 exact 우선)
+  for(var i=0;i<channelRules.length;i++){
+    var r=channelRules[i];
+    for(var j=0;j<r.keys.length;j++){
+      if(lo.indexOf(r.keys[j].toLowerCase())>=0) return r.group;
+    }
+  }
   return '기타';
 }
 
@@ -1901,26 +1957,7 @@ function renderChannelStats() {
   var rows = (d.rows || []).slice(1); // 헤더 1행 제거
 
   // 그룹 정의 (채널명 → 그룹) — 순서가 곧 표시 순서
-  var groupMap = {
-    // 자체DB
-    '순수 자체':'자체DB', '마케팅 연계 자체':'자체DB', '마케팅연계 자체':'자체DB', '공감':'자체DB',
-    // 지인소개
-    '상담교사_지인소개':'지인소개', '관리교사_지인소개':'지인소개', '중앙_지인소개':'지인소개',
-    // 일반DB
-    '일반 DB':'일반DB',
-    // 형제DB
-    'TC_형제':'형제DB', 'TC':'형제DB',
-    // 온라인DB
-    '눕스콘':'온라인DB', '늘스콘':'온라인DB', '키즈노트':'온라인DB', '카카오페이':'온라인DB', '맘스다이어리':'온라인DB', '카드':'온라인DB',
-    // 캐잉DB
-    '캐잉18년생':'캐잉DB', '캐잉미취학':'캐잉DB', '캠18년생':'캐잉DB', '캠미취학':'캐잉DB',
-    // 기타DB
-    '정부지원':'기타DB', '단체가입':'기타DB', '해외판매':'기타DB', '10일무료체험':'기타DB',
-    // 가공DB
-    '가공DB':'가공DB', '가공DB_해피콜':'가공DB',
-    // 오프DB
-    '사업개발센터':'오프DB', '사개발센터':'오프DB', '오프라인 DB':'오프DB'
-  };
+  var groupMap = _builtGroupMap; // channelRules에서 자동 생성
 
   // 그룹별로 데이터 묶기
   var groups = [];
