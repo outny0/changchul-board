@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 13:23</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 13:27</span></span>
 </div>
 
 <div class="page">
@@ -1728,7 +1728,31 @@ function renderChannelStats() {
   if(!state.channel) return;
   var d = state.channel;
   var updEl = document.getElementById('channelUpdatedAt');
-  if(updEl) updEl.textContent = d.updatedAt ? d.updatedAt + ' 기준' : '';
+  if(updEl) {
+    var periodStr = '';
+    if(d.updatedAt) {
+      var dm = String(d.updatedAt).match(/(\d{1,2})월?(\d{1,2})일?|[\d]{4}-(\d{2})-(\d{2})/);
+      var endD = new Date(d.updatedAt);
+      if(!isNaN(endD.getTime())) {
+        endD.setDate(endD.getDate() - 1);
+        var sm = endD.getMonth()+1; // 전달 넘어갈 수 있으니 endDate 기준 월 사용
+        // 시작: 해당 월 1일
+        var startMonth = sm; var startDay = 1;
+        // 만약 기준일이 1일이면 전달 말일까지
+        var baseDate = new Date(d.updatedAt);
+        if(baseDate.getDate() === 1) {
+          startMonth = baseDate.getMonth() === 0 ? 12 : baseDate.getMonth();
+          var lastDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0).getDate();
+          periodStr = startMonth + '월1일~' + startMonth + '월' + lastDay + '일';
+        } else {
+          periodStr = baseDate.getMonth()+1 + '월1일~' + sm + '월' + endD.getDate() + '일';
+        }
+      } else {
+        periodStr = d.updatedAt;
+      }
+    }
+    updEl.textContent = periodStr;
+  }
 
   var rows = (d.rows || []).slice(1); // 헤더 1행 제거
 
@@ -1765,9 +1789,12 @@ function renderChannelStats() {
     if(name === '전체') { totalRow = r; return; }
     var grp = groupMap[name] || '기타';
     if(!curGrp || curGrp.name !== grp) {
-      curGrp = { name: grp, grpRate: parseRate(r[4]), grpTrial: parseRate(r[6]), channels: [] };
+      curGrp = { name: grp, grpRate: null, grpTrial: null, channels: [] };
       groups.push(curGrp);
     }
+    // 그룹 내 첫 번째 non-null 소계값 사용 (어느 행에 있어도 잡힘)
+    if(curGrp.grpRate === null) { var rt = parseRate(r[4]); if(rt !== null) curGrp.grpRate = rt; }
+    if(curGrp.grpTrial === null) { var rt2 = parseRate(r[6]); if(rt2 !== null) curGrp.grpTrial = rt2; }
     curGrp.channels.push(r);
   });
 
