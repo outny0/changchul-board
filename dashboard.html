@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 13:20</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 13:23</span></span>
 </div>
 
 <div class="page">
@@ -1848,4 +1848,14 @@ function renderChannelStats() {
 }
 
 function toggleChannelGroup(gid) {
-  var chRows
+  var chRows = document.querySelectorAll('.chg-row[data-group="'+gid+'"]');
+  var arr = document.getElementById('arr_'+gid);
+  if(!chRows.length) return;
+  var isOpen = chRows[0].style.display !== 'none';
+  chRows.forEach(function(tr){ tr.style.display = isOpen ? 'none' : 'table-row'; });
+  if(arr) arr.textContent = isOpen ? '▶' : '▼';
+}
+
+
+</script></body>
+</html>
