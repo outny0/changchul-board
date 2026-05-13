@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:00</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 15:03</span></span>
 </div>
 
 <div class="page">
@@ -693,7 +693,7 @@ function combineData() {
         teacherMap[tid]={name:info.name||n,team:info.team||'',daily_end:{},daily_pay:{},monthEnd:0,monthPayment:0,withdrawal:0,target:localTargetMap[String(tid)]||parseInt(info.target)||0};
       }
       var liveCnt = liveByName[n]||0;
-      teacherMap[tid].monthPayment += liveCnt;
+      // monthPayment는 Pay파일 일별합산이 authoritative — live 별도 추가 안 함
       teacherMap[tid].livePayment  = (teacherMap[tid].livePayment||0) + liveCnt;
     });
   }
@@ -2018,15 +2018,13 @@ function renderValidation(data) {
     // 음수 realPay
     if((t.realPay||0) < 0)
       issues.push('['+t.name+'/'+t.team+'] realPay 음수: '+t.realPay);
-    // 이중계산 의심: livePayment > 0 이고 Pay파일 today 컬럼도 존재
+    // live는 monthPayment에 더해지지 않으므로 이중계산 없음
+    // 단, livePayment > Pay파일 오늘컬럼이면 Pay파일이 아직 최신화 안 됐을 수 있음 (참고용)
     if((t.livePayment||0) > 0) {
       var todayPay = 0;
-      if(t.daily_pay) {
-        var todayD = data.today;
-        todayPay = parseInt(t.daily_pay[todayD])||0;
-      }
-      if(todayPay > 0 && (t.livePayment||0) > 0)
-        warns.push('['+t.name+'] 이중계산 의심: Pay파일 오늘('+todayPay+')+실시간('+t.livePayment+') → monthPayment='+t.monthPayment);
+      if(t.daily_pay) { todayPay = parseInt(t.daily_pay[data.today])||0; }
+      if(todayPay === 0 && (t.livePayment||0) > 0)
+        infos.push('['+t.name+'] Pay파일 오늘컬럼=0, 실시간='+t.livePayment+'건 (Pay파일 미반영 상태일 수 있음)');
     }
   });
 
@@ -2046,7 +2044,7 @@ function renderValidation(data) {
     var tList = data.teachers.filter(function(t){ return t.team === nm; })
       .sort(function(a,b){ return b.monthPayment - a.monthPayment; });
     var rows = tList.map(function(t) {
-      var payOnly = (t.monthPayment||0) - (t.livePayment||0);
+      var payOnly = t.monthPayment||0; // live 더하지 않으므로 monthPayment = Pay파일값
       var todayPay = 0;
       if(t.daily_pay){ todayPay = parseInt(t.daily_pay[data.today])||0; }
       var dupWarn = (t.livePayment>0 && todayPay>0) ? '⚠' : '';
@@ -2081,7 +2079,7 @@ function renderValidation(data) {
       '<thead><tr style="background:#f8f9fc;font-size:10px;color:#6b7280;">'+
         '<th style="padding:4px 8px;text-align:left;font-weight:600;">교사명</th>'+
         '<th style="padding:4px 8px;text-align:right;font-weight:600;">종료</th>'+
-        '<th style="padding:4px 8px;text-align:right;font-weight:600;">Pay파일</th>'+
+        '<th style="padding:4px 8px;text-align:right;font-weight:600;">누적달성</th>'+
         '<th style="padding:4px 8px;text-align:right;font-weight:600;">실시간</th>'+
         '<th style="padding:4px 8px;text-align:right;font-weight:600;">결제합</th>'+
         '<th style="padding:4px 8px;text-align:right;font-weight:600;">청철</th>'+
