@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 12:04</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 13:20</span></span>
 </div>
 
 <div class="page">
@@ -1732,14 +1732,26 @@ function renderChannelStats() {
 
   var rows = (d.rows || []).slice(1); // 헤더 1행 제거
 
-  // 그룹 정의 (채널명 → 그룹)
+  // 그룹 정의 (채널명 → 그룹) — 순서가 곧 표시 순서
   var groupMap = {
-    '순수 자체':'자체','마케팅 연계 자체':'자체','마케팅연계 자체':'자체','공감':'자체',
-    '상담교사_지인소개':'지인소개','관리교사_지인소개':'지인소개','중앙_지인소개':'지인소개',
-    '일반 DB':'DB','TC_형제':'DB','TC':'DB',
-    '늘스콘':'온라인','키즈노트':'온라인','카카오페이':'온라인','맘스다이어리':'온라인','카드':'온라인',
-    '캠18년생':'기타','캠미취학':'기타','정부지원':'기타','단체가입':'기타','해외판매':'기타','10일무료체험':'기타',
-    '가공DB':'가공','가공DB_해피콜':'가공','사개발센터':'가공','사업개발센터':'가공','오프라인 DB':'가공'
+    // 자체DB
+    '순수 자체':'자체DB', '마케팅 연계 자체':'자체DB', '마케팅연계 자체':'자체DB', '공감':'자체DB',
+    // 지인소개
+    '상담교사_지인소개':'지인소개', '관리교사_지인소개':'지인소개', '중앙_지인소개':'지인소개',
+    // 일반DB
+    '일반 DB':'일반DB',
+    // 형제DB
+    'TC_형제':'형제DB', 'TC':'형제DB',
+    // 온라인DB
+    '눕스콘':'온라인DB', '늘스콘':'온라인DB', '키즈노트':'온라인DB', '카카오페이':'온라인DB', '맘스다이어리':'온라인DB', '카드':'온라인DB',
+    // 캐잉DB
+    '캐잉18년생':'캐잉DB', '캐잉미취학':'캐잉DB', '캠18년생':'캐잉DB', '캠미취학':'캐잉DB',
+    // 기타DB
+    '정부지원':'기타DB', '단체가입':'기타DB', '해외판매':'기타DB', '10일무료체험':'기타DB',
+    // 가공DB
+    '가공DB':'가공DB', '가공DB_해피콜':'가공DB',
+    // 오프DB
+    '사업개발센터':'오프DB', '사개발센터':'오프DB', '오프라인 DB':'오프DB'
   };
 
   // 그룹별로 데이터 묶기
@@ -1836,15 +1848,4 @@ function renderChannelStats() {
 }
 
 function toggleChannelGroup(gid) {
-  var chRows = document.querySelectorAll('.chg-row[data-group="'+gid+'"]');
-  var arr = document.getElementById('arr_'+gid);
-  if(!chRows.length) return;
-  var isOpen = chRows[0].style.display !== 'none';
-  chRows.forEach(function(tr){ tr.style.display = isOpen ? 'none' : 'table-row'; });
-  if(arr) arr.textContent = isOpen ? '▶' : '▼';
-}
-
-
-</script>
-</body>
-</html>
+  var chRows
