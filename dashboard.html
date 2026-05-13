@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:38</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 16:53</span></span>
 </div>
 
 <div class="page">
@@ -247,6 +247,11 @@ tbody tr:hover td{background:var(--accent-lt);}
       <div class="sec-lbl">월 달성 요약</div>
       <div class="kpi-grid" id="kpiGrid" style="margin-bottom:10px;"></div>
       <div id="summaryTbl"></div>
+      <!-- 주별 결제 현황 차트 -->
+      <div style="margin-top:10px;" id="weekChartWrap">
+        <div class="sec-lbl" style="margin-bottom:6px;">📈 주별 결제 현황</div>
+        <div id="weekChart" style="background:#fff;border-radius:8px;border:0.5px solid var(--border);padding:12px 10px 8px;"></div>
+      </div>
       <!-- 인입채널별 전환율 -->
       <div style="margin-top:10px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -790,6 +795,7 @@ function tryRender() {
   renderRanking(data);
   renderKPI(data);
   renderWeeks(data);
+  renderWeekChart(data);
   buildTabs();
   renderTable(data, currentFilter);
   renderValidation(data);
@@ -2076,6 +2082,102 @@ function renderChannelStats() {
   html += '</table>';
   var el = document.getElementById('channelTable');
   if(el) el.innerHTML = html;
+}
+
+
+function renderWeekChart(data) {
+  var el = document.getElementById('weekChart');
+  if(!el) return;
+  var weeks = getWeeks(data.year, data.month);
+  var todayWi = -1;
+  weeks.forEach(function(wk,wi){ if(data.today>=wk.start&&data.today<=wk.end) todayWi=wi; });
+
+  // 주별 팀별 결제/종료 집계
+  var weekStats = weeks.map(function(wk, wi) {
+    var wd = calcWeekData(wk, data);
+    var teamPays = TEAM_NAMES.map(function(nm){ return wd.teams[nm]?wd.teams[nm].pay:0; });
+    var totalPay = wd.total.pay;
+    var totalEnd = wd.total.end;
+    // 진행중인 주에 live 반영
+    if(wi === todayWi && _weekData[wi]) {
+      totalPay = _weekData[wi].wd.total.pay;
+      totalEnd = _weekData[wi].wd.total.end;
+      TEAM_NAMES.forEach(function(nm,ti){
+        teamPays[ti] = _weekData[wi].wd.teams[nm]?_weekData[wi].wd.teams[nm].pay:teamPays[ti];
+      });
+    }
+    return {wk:wk, wi:wi, teamPays:teamPays, totalPay:totalPay, totalEnd:totalEnd, isCurrent:wi===todayWi};
+  });
+
+  var maxVal = Math.max.apply(null, weekStats.map(function(s){ return Math.max(s.totalEnd, s.totalPay); }));
+  if(maxVal===0) maxVal=1;
+
+  var teamColors = ['#f97316','#ec4899','#eab308','#22c55e'];
+  var barW = 46; // px per week group
+  var gap = 10;
+  var chartW = (barW + gap) * weeks.length + gap;
+  var chartH = 90;
+  var labelH = 22;
+  var totalH = chartH + labelH;
+
+  var svgParts = ['<svg viewBox="0 0 '+chartW+' '+totalH+'" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">'];
+
+  weekStats.forEach(function(s, wi) {
+    var x = gap + wi * (barW + gap);
+    var isFuture = s.totalEnd === 0 && !s.isCurrent;
+    var alpha = isFuture ? '0.25' : '1';
+
+    // 종료수 바 (흐린 배경)
+    if(s.totalEnd > 0) {
+      var endH = Math.round(s.totalEnd / maxVal * chartH);
+      svgParts.push('<rect x="'+x+'" y="'+(chartH-endH)+'" width="'+barW+'" height="'+endH+'" rx="3" fill="#e5e7eb" opacity="'+alpha+'"/>');
+    }
+
+    // 결제수 스택 바 (팀별 색상)
+    if(s.totalPay > 0) {
+      var payH = Math.round(s.totalPay / maxVal * chartH);
+      var stackY = chartH;
+      TEAM_NAMES.forEach(function(nm, ti) {
+        var tPay = s.teamPays[ti];
+        if(!tPay) return;
+        var tH = Math.round(tPay / maxVal * chartH);
+        stackY -= tH;
+        svgParts.push('<rect x="'+(x+4)+'" y="'+stackY+'" width="'+(barW-8)+'" height="'+tH+'" rx="2" fill="'+teamColors[ti]+'" opacity="'+alpha+'"/>');
+      });
+    }
+
+    // 현재 주 강조 테두리
+    if(s.isCurrent) {
+      svgParts.push('<rect x="'+x+'" y="0" width="'+barW+'" height="'+chartH+'" rx="3" fill="none" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.5"/>');
+    }
+
+    // 결제수 숫자
+    if(s.totalPay > 0) {
+      var numY = Math.round(s.totalPay / maxVal * chartH);
+      svgParts.push('<text x="'+(x+barW/2)+'" y="'+(chartH-numY-3)+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+(s.isCurrent?'#6366f1':'#374151')+'" opacity="'+alpha+'">'+s.totalPay+'</text>');
+    }
+
+    // 주 라벨
+    var lbl = (wi+1)+'주';
+    svgParts.push('<text x="'+(x+barW/2)+'" y="'+(chartH+15)+'" text-anchor="middle" font-size="9" fill="'+(s.isCurrent?'#6366f1':'#9ca3af')+'" font-weight="'+(s.isCurrent?'700':'400')+'">'+lbl+'</text>');
+
+    // 날짜 범위
+    var dateStr = s.wk.start+'/'+s.wk.end;
+    svgParts.push('<text x="'+(x+barW/2)+'" y="'+(chartH+24)+'" text-anchor="middle" font-size="7.5" fill="#c4b5fd" opacity="'+(s.isCurrent?'1':'0.6')+'">'+dateStr+'</text>');
+  });
+
+  // 범례 (팀별 색상)
+  var legY = 4;
+  var legX = chartW - gap;
+  TEAM_NAMES.slice().reverse().forEach(function(nm,ri){
+    var ti = TEAM_NAMES.length-1-ri;
+    legX -= (nm.length*5+14);
+    svgParts.push('<circle cx="'+(legX)+'" cy="'+legY+'" r="3" fill="'+teamColors[ti]+'"/>');
+    svgParts.push('<text x="'+(legX+5)+'" y="'+(legY+3.5)+'" font-size="7.5" fill="#6b7280">'+nm.replace('팀','')+'</text>');
+  });
+
+  svgParts.push('</svg>');
+  el.innerHTML = svgParts.join('');
 }
 
 function toggleChannelGroup(gid) {
