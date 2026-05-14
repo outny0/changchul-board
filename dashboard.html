@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 14:40</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 14:50</span></span>
 </div>
 
 <div class="page">
@@ -2339,7 +2339,12 @@ function renderValidation(data) {
     '</div>';
   }
   if(!issues.length && !warns.length) {
-    issueHTML = '<div style="background:#f0fdf4;border-radius:6
+    issueHTML = '<div style="background:#f0fdf4;border-radius:6px;border-left:3px solid #22c55e;padding:8px 12px;margin-bottom:8px;font-size:11px;color:#15803d;font-weight:600;">✅ 팀/선생님 집계 합계 일치 — 명백한 오류 없음</div>';
+  }
+
+  var panel = document.getElementById('validationPanel');
+  if(!panel) return;
+  panel.innerHTML =
     dupExplain +
     issueHTML + warnHTML + infoHTML +
     detailHTML;
