@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 19:53</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 19:57</span></span>
 </div>
 
 <div class="page">
@@ -2686,22 +2686,22 @@ function _parseCSV(txt){
 function _parseDailyCSV(csv){
   var map={};
   var rows=_parseCSV(csv);
-  // 헤더 찾기: col1이 "신규" 또는 "랭크" 포함인 행
+  // 헤더 찾기: col2가 "신규" 또는 "랭크" 포함인 행 (IMPORTRANGE로 col0이 빈칸, col1=날짜/교사명)
   var dataStart=2;
   for(var i=0;i<Math.min(rows.length,6);i++){
-    var c1=(rows[i][1]||'');
-    if(c1.indexOf('신규')>=0||c1.indexOf('랭크')>=0){ dataStart=i+2; break; }
+    var c2=(rows[i][2]||'');
+    if(c2.indexOf('신규')>=0||c2.indexOf('랭크')>=0){ dataStart=i+2; break; }
   }
   for(var i=dataStart;i<rows.length;i++){
     var r=rows[i];
-    var name=_normPN(r[0]);
+    var name=_normPN(r[1]);  // col1 = 교사명
     if(!name) continue;
     var bad=['교사명','시작일','마감일','업데이트','평균','합계','전체',':-:'];
     if(bad.some(function(w){return name.indexOf(w)>=0;})) continue;
     if(name.match(/^\d{4}-/)) continue;  // 날짜 행
-    var payVal=parseInt((r[1]||'').replace(/,/g,''));
-    if(isNaN(payVal)&&!(r[2]||'').trim()) continue;
-    map[name]={pay:(r[1]||'').trim(), fee:(r[2]||'').replace(/,/g,'').trim(), rank:(r[3]||'').trim()};
+    var payVal=parseInt((r[2]||'').replace(/,/g,''));
+    if(isNaN(payVal)&&!(r[3]||'').trim()) continue;
+    map[name]={pay:(r[2]||'').trim(), fee:(r[3]||'').replace(/,/g,'').trim(), rank:(r[4]||'').trim()};
   }
   return map;
 }
@@ -2714,23 +2714,23 @@ function _parseWeeklyCSV(csv){
   var SKIP=['교사명','전체','창출실','팀','시작일','마감일','업데이트','평균',':-:','랭킹','주간등급','월누적'];
   for(var i=0;i<rows.length;i++){
     var r=rows[i];
-    var c0=(r[0]||'').trim();
-    // 섹션 감지
-    if(c0==='주간등급'||(r[1]&&r[1].indexOf('전환율')>=0&&r[2]&&r[2].indexOf('랭킹')>=0)){mode='w';continue;}
-    if(c0.indexOf('월누적')>=0){mode='m';continue;}
-    var name=_normPN(c0);
+    var c1=(r[1]||'').trim();  // col1 = 교사명 (col0은 IMPORTRANGE 빈칸)
+    // 섹션 감지 (col1 기준)
+    if(c1==='주간등급'||(r[2]&&r[2].indexOf('전환율')>=0&&r[3]&&r[3].indexOf('랭킹')>=0)){mode='w';continue;}
+    if(c1.indexOf('월누적')>=0){mode='m';continue;}
+    var name=_normPN(c1);
     if(!name) continue;
     if(SKIP.some(function(w){return name.indexOf(w)>=0;})) continue;
     if(name.match(/^\d{4}-/)) continue;
-    if(name.match(/^[0-9.,]+$/)) continue; // 숫자만
+    if(name.match(/^[0-9.,]+$/)) continue;
     if(name.indexOf('팀')>=0||name.indexOf('합계')>=0||name.indexOf('전체')>=0) continue;
     if(mode==='w'){
-      wMap[name]={convRate:(r[1]||'').trim(),convRank:(r[2]||'').trim(),
-                  payCount:(r[3]||'').trim(),avgTalk:(r[4]||'').trim(),
-                  avgCall:(r[5]||'').trim(),loginRate:(r[6]||'').trim()};
+      wMap[name]={convRate:(r[2]||'').trim(),convRank:(r[3]||'').trim(),
+                  payCount:(r[4]||'').trim(),avgTalk:(r[5]||'').trim(),
+                  avgCall:(r[6]||'').trim(),loginRate:(r[7]||'').trim()};
     } else if(mode==='m'){
-      mMap[name]={endCount:(r[1]||'').trim(),payCount:(r[2]||'').trim(),
-                  convRate:(r[3]||'').trim(),rank:(r[4]||'').trim()};
+      mMap[name]={endCount:(r[2]||'').trim(),payCount:(r[3]||'').trim(),
+                  convRate:(r[4]||'').trim(),rank:(r[5]||'').trim()};
     }
   }
   return {weekly:wMap, monthly:mMap};
