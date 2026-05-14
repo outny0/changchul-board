@@ -5,45 +5,50 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>창출팀 월요약 대시보드</title>
 <style>
-/* ── 모던 라이트 테마 ──────────────────── */
+/* ── 클린 블루 대시보드 테마 ──────────────────────── */
 :root{
-  --bg:#edf1f7;
+  --bg:#f0f4ff;
   --card:#ffffff;
-  --card2:#f3f6fb;
-  --border:#dde3ed;
-  --border2:#e8edf5;
-  --txt:#0f1c33;
-  --txt2:#3d5170;
-  --txt3:#7b90aa;
-  --accent:#1a3a6b;
-  --accent-lt:#e6eef8;
-  --accent-md:#b5c9e8;
-  --red:#e63946;
-  --red-lt:#fdecea;
+  --card2:#f7f9fe;
+  --border:#e2e8f8;
+  --border2:#edf1fc;
+  --txt:#1e293b;
+  --txt2:#475569;
+  --txt3:#94a3b8;
+  --accent:#2563eb;
+  --accent-lt:#eff6ff;
+  --accent-md:#bfdbfe;
+  --amber:#f59e0b;
+  --amber-lt:#fffbeb;
+  --teal:#0d9488;
+  --teal-lt:#f0fdfa;
+  --red:#dc2626;
+  --red-lt:#fef2f2;
+  --green:#16a34a;
+  --green-lt:#f0fdf4;
   --navy:#1a3a6b;
-  --navy-dk:#0f2448;
-  --navy-md:#243558;
+  --red-acc:#e63946;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);font-size:13px;}
 
-/* HEADER */
-.hdr{background:#1a3a6b;padding:0;display:flex;flex-direction:column;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 3px 14px rgba(10,30,70,.3);}
+/* ── HEADER ────────────────────────────────────────── */
+.hdr{background:#1a3a6b;padding:0;position:sticky;top:0;z-index:100;box-shadow:0 3px 14px rgba(10,30,70,.3);}
 .hdr-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:9px 18px;border-bottom:4px solid #e63946;}
 .hdr-title{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:10px;}
 .hdr-logo{width:32px;height:32px;background:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#1a3a6b;font-size:17px;font-weight:800;flex-shrink:0;line-height:1;}
 .hdr-date{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0;}
-.hdr-pills{display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;}
+.hdr-pills{display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;margin-left:auto;}
 
 .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap;}
 .p-gray{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.25);}
-.p-blue{background:rgba(199,210,254,.25);color:#c7d2fe;border:1px solid rgba(199,210,254,.4);}
-.p-pink{background:rgba(247,37,133,.2);color:#fba5c8;border:1px solid rgba(247,37,133,.35);}
-.p-amber{background:rgba(251,191,36,.2);color:#fde68a;border:1px solid rgba(251,191,36,.35);}
-.p-green{background:rgba(52,211,153,.2);color:#a7f3d0;border:1px solid rgba(52,211,153,.35);}
-.p-violet{background:rgba(196,181,253,.25);color:#ddd6fe;border:1px solid rgba(196,181,253,.4);}
+.p-blue{background:rgba(37,99,235,.2);color:#93c5fd;border:1px solid rgba(37,99,235,.35);}
+.p-pink{background:rgba(220,38,38,.2);color:#fca5a5;border:1px solid rgba(220,38,38,.35);}
+.p-amber{background:rgba(245,158,11,.2);color:#fde68a;border:1px solid rgba(245,158,11,.35);}
+.p-green{background:rgba(22,163,74,.2);color:#86efac;border:1px solid rgba(22,163,74,.35);}
+.p-violet{background:rgba(124,58,237,.2);color:#c4b5fd;border:1px solid rgba(124,58,237,.35);}
 
-/* UPLOAD BAR */
+/* ── UPLOAD BAR ─────────────────────────────────────── */
 .upload-bar{background:#fff;border-bottom:2px solid #e63946;padding:6px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .up-item{display:flex;align-items:center;gap:6px;}
 .up-label{font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;}
@@ -54,20 +59,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .file-btn:hover{background:var(--border);}
 .file-input{display:none;}
 .vd{width:1px;height:18px;background:var(--border);flex-shrink:0;}
-.pay-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid #b5c9e8;background:#e6eef8;cursor:pointer;color:#1a3a6b;white-space:nowrap;font-weight:600;}
-.pay-btn:hover{background:#b5c9e8;}
+.pay-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid var(--accent-md);background:var(--accent-lt);cursor:pointer;color:var(--accent);white-space:nowrap;font-weight:600;}
+.pay-btn:hover{background:var(--accent-md);}
 @keyframes spin{to{transform:rotate(360deg);}}
-.spn{display:inline-block;width:9px;height:9px;border:2px solid rgba(0,0,0,.1);border-top-color:#1a3a6b;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:3px;}
+.spn{display:inline-block;width:9px;height:9px;border:2px solid rgba(0,0,0,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:3px;}
 .up-hint{font-size:10px;color:var(--txt3);margin-left:auto;}
 
-/* PAGE */
+/* ── PAGE LAYOUT ────────────────────────────────────── */
 .page{padding:14px 18px;display:flex;flex-direction:column;gap:14px;}
 .sec-lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1a3a6b;margin-bottom:8px;padding-left:10px;border-left:4px solid #e63946;display:flex;align-items:center;gap:5px;}
 
-/* TEAM CARDS */
+/* ── BENTO GRID ─────────────────────────────────────── */
+.bento{display:grid;gap:12px;}
+.bento-top{grid-template-columns:320px 1fr 1fr;align-items:start;}
+.bento-mid{grid-template-columns:1fr 1fr 1fr;align-items:start;}
+@media(max-width:1100px){.bento-top{grid-template-columns:1fr 1fr;}.bento-mid{grid-template-columns:1fr 1fr;}}
+@media(max-width:720px){.bento-top,.bento-mid{grid-template-columns:1fr;}}
+
+/* ── CARD BASE ──────────────────────────────────────── */
+.card{background:#fff;border-radius:14px;border:1px solid var(--border);box-shadow:0 1px 6px rgba(30,50,120,.05);overflow:hidden;}
+.card-hdr{padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border2);}
+.card-title{font-size:12px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:6px;}
+.card-sub{font-size:10px;color:var(--txt3);}
+.card-body{padding:12px 16px;}
+
+/* ── KPI 도넛 카드 ──────────────────────────────────── */
+.kpi-donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 12px;}
+.kpi-donut-val{font-size:22px;font-weight:800;color:var(--txt);letter-spacing:-.02em;margin-top:10px;}
+.kpi-donut-lbl{font-size:10px;font-weight:700;color:var(--txt3);margin-top:2px;letter-spacing:.04em;text-transform:uppercase;}
+
+/* ── KPI 숫자 그리드 ────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+.kpi-box{background:#fff;border-radius:12px;padding:12px 14px;border:1px solid var(--border);border-top:3px solid var(--accent);position:relative;overflow:hidden;}
+.kpi-lbl{font-size:9px;font-weight:700;color:var(--accent);margin-bottom:5px;letter-spacing:.05em;text-transform:uppercase;}
+.kpi-val{font-size:24px;font-weight:800;color:var(--txt);letter-spacing:-.03em;line-height:1;}
+.kpi-sub{font-size:10px;color:var(--txt3);margin-top:4px;}
+.kpi-icon{position:absolute;right:10px;top:10px;font-size:20px;opacity:.1;}
+
+/* ── 팀 카드 ────────────────────────────────────────── */
 .team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 @media(max-width:900px){.team-row{grid-template-columns:repeat(2,1fr);}}
-.team-card{background:#fff;border-radius:10px;border-top:4px solid;overflow:hidden;box-shadow:0 2px 8px rgba(10,30,70,.07);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.team-card{background:#fff;border-radius:12px;border-top:4px solid;overflow:hidden;border:1px solid var(--border);box-shadow:0 2px 8px rgba(10,30,70,.06);}
 .tc-hdr{padding:10px 12px 8px;display:flex;align-items:center;justify-content:space-between;}
 .tc-name{font-size:13px;font-weight:700;color:var(--txt);}
 .tc-badge{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;}
@@ -79,17 +112,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-teachers{border-top:1px solid var(--border2);}
 .tc-group{display:grid;grid-template-columns:2fr 2fr 2fr;padding:3px 10px 0;font-size:9px;font-weight:700;background:var(--card2);}
 .tc-group-lbl{text-align:center;padding:1px 0;border-radius:3px 3px 0 0;letter-spacing:.03em;}
-.tc-group-lbl.g-acc{background:#e0e7ff;color:#4338ca;}
+.tc-group-lbl.g-acc{background:#dbeafe;color:#1d4ed8;}
 .tc-group-lbl.g-tod{background:#fef3c7;color:#d97706;}
 .tc-thead{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:9px;font-weight:700;color:var(--txt3);background:var(--card2);}
 .tc-kpi-3{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border2);}
-.tc-kpi-cell{padding:6px 4px;text-align:center;}
+.tc-kpi-cell{padding:6px 4px;text-align:center;position:relative;}
 .tc-kpi-lbl{font-size:9px;color:var(--txt3);margin-bottom:1px;}
 .tc-kpi-num{font-size:15px;font-weight:900;letter-spacing:-.02em;}
+.tc-progress{height:3px;background:var(--border2);border-radius:2px;margin:0 0 0;overflow:hidden;}
+.tc-progress-fill{height:100%;border-radius:2px;transition:width .5s ease;}
 .tc-total{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:4px 10px;font-size:11px;font-weight:700;background:var(--card2);border-top:1px solid var(--border2);color:var(--txt2);}
 .tc-total span{text-align:right;}.tc-total span:first-child{text-align:left;color:var(--txt3);}
-.tc-teacher{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:5px 10px;font-size:11px;align-items:center;}
+.tc-teacher{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;padding:5px 10px;font-size:11px;align-items:center;border-bottom:1px solid var(--border2);}
 .tc-teacher:nth-child(even){background:var(--card2);}
+.tc-teacher:last-child{border-bottom:none;}
 .tc-tid-small{display:block;font-size:9px;color:var(--txt3);margin-top:1px;}
 .tc-tname{color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tc-tid{color:var(--txt3);font-size:10px;}
@@ -98,18 +134,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tc-treal{text-align:right;font-weight:700;}
 .tc-trate{text-align:right;font-size:10px;}
 
-/* KPI GRID */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
-@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
-.kpi-box{background:#fff;border-radius:8px;padding:10px 12px;text-align:center;box-shadow:0 1px 4px rgba(10,30,70,.07);border:1px solid var(--border);border-top:3px solid #1a3a6b;position:relative;}
-.kpi-lbl{font-size:9px;font-weight:700;color:#1a3a6b;margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase;}
-.kpi-val{font-size:26px;font-weight:800;color:#0f1c33;letter-spacing:-.02em;}
-.kpi-sub{font-size:10px;color:var(--txt3);margin-top:2px;}
-.kv-good{color:#059669;}
-.kv-warn{color:#d97706;}
-.kv-bad{color:#dc2626;}
-
-/* WEEKLY SECTION */
+/* ── 주별 섹션 ──────────────────────────────────────── */
 .week-list{display:flex;flex-direction:column;gap:5px;}
 .wk-team-row:hover{background:var(--card2);}
 .wk-team-row td{font-size:12px;color:var(--txt);}
@@ -117,11 +142,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .wk-expand-btn.open{transform:rotate(90deg);}
 .wk-tchr-row td{font-size:11px;padding:3px 8px;background:var(--card2);color:var(--txt2);}
 .wk-detail-tbl{width:100%;border-collapse:collapse;}
-.week-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.week-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(30,50,120,.05);}
 .week-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s;}
 .week-hdr:hover{background:var(--card2);}
-.week-hdr.open{background:#e6eef8;}
-.week-hdr.open .wk-label{color:#1a3a6b;}
+.week-hdr.open{background:var(--accent-lt);}
+.week-hdr.open .wk-label{color:var(--accent);}
 .wk-label{font-size:12px;font-weight:700;color:var(--txt);min-width:42px;}
 .wk-range{font-size:11px;color:var(--txt3);min-width:80px;}
 .wk-today{font-size:10px;padding:2px 7px;border-radius:4px;background:#fdecea;color:#e63946;border:1px solid #f9b8bc;font-weight:700;}
@@ -134,14 +159,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .wk-btn.open{transform:rotate(180deg);}
 .week-body{display:none;border-top:1px solid var(--border);padding:10px 14px 12px;}
 .week-body.open{display:block;}
-
 .wtbl{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:8px;}
 .wtbl th{text-align:left;padding:4px 8px;font-weight:600;color:var(--txt3);font-size:10px;border-bottom:1px solid var(--border);}
 .wtbl td{padding:5px 8px;color:var(--txt);}
 .team-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;}
-
-.daily-btn{font-size:10px;color:#1a3a6b;background:none;border:1px solid #b5c9e8;border-radius:5px;padding:3px 10px;cursor:pointer;margin-bottom:8px;}
-.daily-btn:hover{background:#e6eef8;}
+.daily-btn{font-size:10px;color:var(--accent);background:none;border:1px solid var(--accent-md);border-radius:5px;padding:3px 10px;cursor:pointer;margin-bottom:8px;}
+.daily-btn:hover{background:var(--accent-lt);}
 .daily-wrap{display:none;}
 .daily-wrap.open{display:block;}
 .dtbl{width:100%;border-collapse:collapse;font-size:11px;}
@@ -151,37 +174,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .d-today{font-size:9px;padding:1px 5px;border-radius:3px;background:#fef3c7;color:#92400e;margin-left:4px;}
 .dtbl .d-rate{font-size:10px;}
 
-/* TEACHER TABLE */
+/* ── 선생님 테이블 ──────────────────────────────────── */
 .tbl-wrap{overflow-x:auto;}
-.tbl-section{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
-.tbl-hdr{padding:10px 14px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.tbl-section{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 6px rgba(30,50,120,.05);}
+.tbl-hdr{padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
 .tbl-title{font-size:13px;font-weight:700;color:var(--txt);}
 .tab-row{display:flex;gap:4px;}
 .tab-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card2);cursor:pointer;color:var(--txt2);}
 .tab-btn:hover{background:var(--border);}
-.tab-btn.on{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
+.tab-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 table{width:100%;border-collapse:collapse;}
 thead th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--txt3);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);}
 tbody td{padding:7px 10px;font-size:11px;white-space:nowrap;color:var(--txt);}
 tbody tr:nth-child(even) td{background:var(--card2);}
-tbody tr:hover td{background:#e6eef8;}
+tbody tr:hover td{background:var(--accent-lt);}
 .td-name{font-weight:600;color:var(--txt);}
 .t-badge{font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;}
 .rh{color:#059669;font-weight:600;}
 .rm{color:#d97706;font-weight:600;}
 .rl{color:#dc2626;font-weight:600;}
-
 .empty-note{text-align:center;padding:30px;color:var(--txt3);font-size:12px;}
+.kv-good{color:#059669;}
+.kv-warn{color:#d97706;}
+.kv-bad{color:#dc2626;}
 
-/* LIVE 결제 */
-.live-section{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+/* ── LIVE 결제 ──────────────────────────────────────── */
+.live-section{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 6px rgba(30,50,120,.05);}
 .live-hdr{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:livepulse 1.5s infinite;}
 @keyframes livepulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.08);}}
 .live-title{font-size:13px;font-weight:700;color:var(--txt);}
 .live-body{padding:12px 16px;}
 .live-team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
-.live-team-box{border-radius:8px;padding:10px 12px;text-align:center;background:var(--card2);}
+.live-team-box{border-radius:10px;padding:10px 12px;text-align:center;background:var(--card2);border:1px solid var(--border2);}
 .live-team-name{font-size:10px;font-weight:700;margin-bottom:4px;color:var(--txt2);}
 .live-team-cnt{font-size:26px;font-weight:900;line-height:1;letter-spacing:-.02em;color:var(--txt);}
 .live-team-sub{font-size:10px;color:var(--txt3);margin-top:2px;}
@@ -189,7 +214,7 @@ tbody tr:hover td{background:#e6eef8;}
 .live-tl-table{width:100%;border-collapse:collapse;table-layout:fixed;}
 .live-tl-table th{background:var(--card2);color:var(--txt3);font-size:10px;font-weight:700;padding:4px 6px;text-align:right;border:1px solid var(--border);}
 .live-tl-table th:first-child{text-align:left;width:36px;}
-.live-tl-table td{padding:4px 6px;text-align:right;font-size:11px;border:1px solid #f0f0f0;}
+.live-tl-table td{padding:4px 6px;text-align:right;font-size:11px;border:1px solid var(--border2);}
 .live-tl-table td:first-child{text-align:left;color:var(--txt2);font-size:10px;font-weight:600;white-space:nowrap;}
 .live-tl-table tbody tr.tl-div td{border-top:2px solid var(--border);}
 .live-tl-table tbody tr.tl-dim td{opacity:.35;}
@@ -197,17 +222,17 @@ tbody tr:hover td{background:#e6eef8;}
 .live-sub-txt{font-size:11px;color:var(--txt3);margin-left:auto;}
 .live-empty{text-align:center;padding:24px;color:var(--txt3);font-size:12px;}
 
-/* RANKING */
+/* ── 랭킹 ───────────────────────────────────────────── */
 .rank-section{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.rank-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
-.rank-card-hdr{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.rank-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(30,50,120,.05);}
+.rank-card-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .rank-card-title{font-size:12px;font-weight:700;color:var(--txt);}
 .rank-card-formula{font-size:9px;color:var(--txt3);background:var(--card2);padding:2px 6px;border-radius:4px;}
 .rank-body{padding:4px 0;}
 .rank-group-lbl{font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 12px;color:var(--txt3);text-transform:uppercase;}
 .rank-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:6px;padding:4px 12px;}
 .rank-badge{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;}
-.rank-badge.top{background:#deeaf8;color:#1a3a6b;}
+.rank-badge.top{background:#dbeafe;color:#1d4ed8;}
 .rank-badge.bot{background:#fee2e2;color:#dc2626;}
 .rank-name{font-size:11px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rank-val{font-size:11px;font-weight:700;white-space:nowrap;}
@@ -215,6 +240,12 @@ tbody tr:hover td{background:#e6eef8;}
 .rank-val.bv{color:#dc2626;}
 .rank-divider{border:none;border-top:1px solid var(--border);margin:3px 12px;}
 .rank-footer{padding:4px 12px 6px;font-size:9px;color:var(--txt3);border-top:1px solid var(--border);margin-top:2px;}
+
+/* ── 주별 결제 현황 (게이지 카드) ──────────────────── */
+#weekChart{background:#fff;border-radius:12px;border:1px solid var(--border);border-top:3px solid var(--accent);padding:14px 12px 10px;}
+
+/* ── 인입채널 테이블 ────────────────────────────────── */
+#channelTable table{font-size:11px;}
 </style>
 </head>
 <body>
@@ -246,44 +277,48 @@ tbody tr:hover td{background:#e6eef8;}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 15:31</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 15:59</span></span>
 </div>
 
 <div class="page">
-  <!-- 상단: 3열 (월달성요약 | 주별마감 | 실시간결제) -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:start;margin-bottom:12px;">
-    <!-- Col1: 월 달성 요약 -->
+
+  <!-- ── ROW 1: KPI (달성률 도넛 + 숫자카드 + 전환율 도넛) ── -->
+  <div>
+    <div class="sec-lbl">월 달성 요약</div>
+    <div id="kpiGrid"></div>
+  </div>
+
+  <!-- ── ROW 2: 주별차트 + 팀요약 + 실시간 ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 340px;gap:12px;align-items:start;">
+
+    <!-- 주별 결제 현황 -->
     <div>
-      <div class="sec-lbl">월 달성 요약</div>
-      <div class="kpi-grid" id="kpiGrid" style="margin-bottom:10px;"></div>
-      <div id="summaryTbl"></div>
-      <!-- 주별 결제 현황 차트 -->
-      <div style="margin-top:10px;" id="weekChartWrap">
-        <div class="sec-lbl" style="margin-bottom:6px;">📈 주별 결제 현황</div>
-        <div id="weekChart" style="background:#fff;border-radius:8px;border:1px solid var(--border);border-top:3px solid #1a3a6b;padding:12px 10px 8px;"></div>
-      </div>
-      <!-- 인입채널별 전환율 -->
-      <div style="margin-top:10px;">
+      <div class="sec-lbl">주별 결제 현황</div>
+      <div id="weekChart"></div>
+      <!-- 팀별 요약 -->
+      <div id="summaryTbl" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- 주별 마감 + 채널 전환율 -->
+    <div>
+      <div class="sec-lbl">주별 마감 현황</div>
+      <div class="week-list" id="weekList"></div>
+      <div style="margin-top:14px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="sec-lbl">📊 인입채널별 전환율
+          <div class="sec-lbl">인입채널별 전환율
             <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
           </div>
-          <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid #b5c9e8;background:#e6eef8;border-radius:10px;cursor:pointer;color:#1a3a6b;font-weight:600;">↻</button>
+          <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid var(--accent-md);background:var(--accent-lt);border-radius:10px;cursor:pointer;color:var(--accent);font-weight:600;">↻</button>
         </div>
-        <div style="background:#fff;border-radius:8px;border:0.5px solid var(--border);overflow:hidden;">
+        <div class="card" style="overflow:hidden;">
           <div id="channelTable"></div>
         </div>
       </div>
     </div>
-    <!-- Col2: 주별 마감 현황 -->
-    <div>
-      <div class="sec-lbl">주별 마감 현황</div>
-      <div class="week-list" id="weekList"></div>
-    </div>
-    <!-- Col3: 실시간 결제 -->
+
+    <!-- 실시간 결제 -->
     <div id="livePanel">
       <div class="sec-lbl">실시간 결제</div>
-      <!-- 실시간패널 내용은 renderLivePanel()이 채움 -->
       <div class="live-section">
         <div class="live-hdr">
           <div class="live-dot"></div>
@@ -292,43 +327,54 @@ tbody tr:hover td{background:#e6eef8;}
           <span class="live-sub-txt" id="liveStatus" style="margin-left:auto;">불러오는 중...</span>
         </div>
         <div class="live-body" style="padding:10px 12px;">
-          <!-- 팀별 박스 -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:#9ca3af;">오늘 결제 현황</span><span style="font-size:13px;font-weight:800;color:#0f1c33;" id="liveTotalCnt">-</span></div><div class="live-team-row" id="liveTeamRow"><div class="live-team-box" id="liveBox_땅이팀"><div class="live-team-name">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_다래팀"><div class="live-team-name">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_해태팀"><div class="live-team-name">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_단비팀"><div class="live-team-name">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀">-</div><div class="live-team-sub">건</div></div></div>
-          <!-- 상품별 + 피드 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:10px;font-weight:700;color:var(--txt3);">오늘 결제 현황</span>
+            <span style="font-size:14px;font-weight:800;color:var(--txt);" id="liveTotalCnt">-</span>
+          </div>
+          <div class="live-team-row" id="liveTeamRow">
+            <div class="live-team-box" id="liveBox_땅이팀"><div class="live-team-name">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_다래팀"><div class="live-team-name">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_해태팀"><div class="live-team-name">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_단비팀"><div class="live-team-name">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀">-</div><div class="live-team-sub">건</div></div>
+          </div>
+          <!-- 상품별 + 시간순 -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
             <div>
-              <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:4px;">📦 상품별</div>
-              <div id="liveProdBody" style="max-height:200px;overflow-y:auto;"><div class="live-empty" style="padding:8px">-</div></div>
+              <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:4px;">상품별</div>
+              <div id="liveProdBody" style="max-height:180px;overflow-y:auto;"><div class="live-empty" style="padding:8px">-</div></div>
             </div>
             <div>
-              <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:4px;">⏱ 시간순</div>
-              <div id="liveTchBody" style="max-height:200px;overflow-y:auto;"><div class="live-empty">-</div></div>
+              <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:4px;">시간순</div>
+              <div id="liveTchBody" style="max-height:180px;overflow-y:auto;"><div class="live-empty">-</div></div>
             </div>
           </div>
           <!-- 가입경로별 -->
-          <div style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:8px;">
-            <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:6px;">🔀 가입경로별</div>
+          <div style="margin-top:8px;border-top:1px solid var(--border2);padding-top:8px;">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:6px;">가입경로별</div>
             <div id="livePathBody"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
           <!-- 수기 결제 입력 -->
-          <div style="margin-top:8px;border-top:1px solid #f3f4f6;padding-top:8px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:#9ca3af;">✏️ 수기 결제 입력</span><button onclick="clearManualEntries()" style="font-size:9px;padding:2px 8px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">전체 초기화</button></div>
-            <div style="display:grid;grid-template-columns:1fr 70px 1fr auto;gap:5px;margin-bottom:6px;" id="manualInputRow">
+          <div style="margin-top:8px;border-top:1px solid var(--border2);padding-top:8px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:10px;font-weight:700;color:var(--txt3);">수기 결제 입력</span>
+              <button onclick="clearManualEntries()" style="font-size:9px;padding:2px 8px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">전체 초기화</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 60px 1fr auto;gap:4px;margin-bottom:6px;" id="manualInputRow">
               <input id="manualName" placeholder="선생님 이름" list="manualNameList"
-                style="font-size:11px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;">
+                style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;">
               <datalist id="manualNameList"></datalist>
-              <input id="manualTime" placeholder="시간 (13:00)" maxlength="5"
-                style="font-size:11px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;text-align:center;">
-              <input id="manualProd" placeholder="상품명 (선택)"
-                style="font-size:11px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;">
+              <input id="manualTime" placeholder="13:00" maxlength="5"
+                style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;text-align:center;">
+              <input id="manualProd" placeholder="상품명"
+                style="font-size:11px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:#fff;">
               <button onclick="addManualEntry()"
                 style="padding:5px 10px;background:#1a3a6b;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">추가</button>
             </div>
             <div id="manualEntryList"></div>
           </div>
           <!-- 시간대별 -->
-          <div style="margin-top:10px;border-top:1px solid #f3f4f6;padding-top:8px;">
-            <div style="font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:6px;">⏰ 시간대별</div>
+          <div style="margin-top:10px;border-top:1px solid var(--border2);padding-top:8px;">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:6px;">시간대별</div>
             <table class="live-tl-table">
               <thead><tr>
                 <th>시간</th>
@@ -346,30 +392,28 @@ tbody tr:hover td{background:#e6eef8;}
     </div>
   </div>
 
-  <!-- 팀별현황 -->
-  <div style="margin-bottom:12px;">
+  <!-- ── ROW 3: 팀별 현황 카드 ── -->
+  <div>
     <div class="sec-lbl">팀별 현황</div>
     <div class="team-row" id="teamRow"></div>
   </div>
 
-  <!-- 선생님 랭킹 -->
-  <div style="margin-bottom:12px;">
-    <div class="sec-lbl">🏆 선생님 랭킹 <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;">(종료 3건 이상)</span></div>
+  <!-- ── ROW 4: 랭킹 ── -->
+  <div>
+    <div class="sec-lbl">선생님 랭킹 <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;">(종료 3건 이상)</span></div>
     <div class="rank-section" id="rankingSection"></div>
   </div>
 
-
-
-  <!-- 데이터 정합성 검증 -->
-  <div style="margin-bottom:12px;" id="validationSection">
+  <!-- ── ROW 5: 데이터 정합성 검증 ── -->
+  <div id="validationSection">
     <div class="sec-lbl" style="cursor:pointer;user-select:none;" onclick="toggleValidation()">
-      🔍 데이터 정합성 검증 <span id="validArrow" style="font-size:10px;margin-left:4px;">▶</span>
+      데이터 정합성 검증 <span id="validArrow" style="font-size:10px;margin-left:4px;">▶</span>
       <span id="validBadge" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px;"></span>
     </div>
     <div id="validationPanel" style="display:none;"></div>
   </div>
 
-  <!-- 교사별 세부 현황 -->
+  <!-- ── ROW 6: 교사별 세부 현황 ── -->
   <div class="tbl-section">
     <div class="tbl-hdr">
       <span class="tbl-title">교사별 세부 현황</span>
@@ -852,51 +896,87 @@ function renderTeams(data) {
     var m=data.teams[nm], cfg=TEAM_CFG[nm];
     var teachers=data.teachers.filter(function(t){return t.team===nm;})
       .sort(function(a,b){return b.monthPayment-a.monthPayment;});
-    var totalPay=m.monthPayment; // Pay파일 일별합산(오늘포함) — livePayment별도 표시
+
+    var totalPay=m.monthPayment;
     var rate=m.target>0?Math.round(totalPay/m.target*100):0;
     var rCls=rate>=100?'kv-good':rate>=80?'kv-warn':'kv-bad';
     var conv=m.monthEnd>0?Math.round(totalPay/m.monthEnd*100)+'%':'-';
     var convCls=m.monthEnd>0?(totalPay/m.monthEnd>=0.7?'kv-good':totalPay/m.monthEnd>=0.5?'kv-warn':'kv-bad'):'';
 
-    // 선생님 목록: realPay 내림차순 정렬
+    // 팀 달성률 프로그레스 바
+    var barPct = Math.min(100, rate);
+    var barColor = rate>=100?'#16a34a':rate>=80?'#f59e0b':cfg.bar;
+
+    // 선생님 최대치 (바 기준)
+    var maxPay = Math.max(1, Math.max.apply(null, teachers.map(function(t){ return t.monthPayment-(t.livePayment||0); })));
+
     var sortedT=teachers.slice().sort(function(a,b){
-      var aP=(a.monthPayment-(a.livePayment||0)); var bP=(b.monthPayment-(b.livePayment||0));
+      var aP=(a.monthPayment-(a.livePayment||0));
+      var bP=(b.monthPayment-(b.livePayment||0));
       return bP-aP||b.monthEnd-a.monthEnd;
     });
+
     var tRows=sortedT.map(function(t){
-      var tPayFile=t.monthPayment-(t.livePayment||0); // Pay파일 값만 (live 제외, withdrawal 미차감)
+      var tPayFile=t.monthPayment-(t.livePayment||0);
       var hasPay=tPayFile>0;
       var hasLive=t.livePayment>0;
       var hasTodayEnd=t.todayEnd>0;
+      // 미니 바 (달성 수 기반)
+      var tBarW = hasPay ? Math.round(tPayFile/maxPay*100) : 0;
       return '<div class="tc-teacher" style="'+(hasPay?'background:'+cfg.hdr+';':'')+'">'+
-        '<span class="tc-tname" style="'+(hasPay?'font-weight:700;':'')+'">'+t.name+'</span>'+
-        '<span class="tc-tnum" style="color:#374151;">'+(t.monthEnd||'-')+'</span>'+
-        '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#d1d5db;')+'">'+(hasPay?tPayFile:'-')+'</span>'+
-        '<span class="tc-tnum" style="'+(hasTodayEnd?'font-weight:600;color:#6366f1;':'color:#e5e7eb;')+'">'+(hasTodayEnd?t.todayEnd:'-')+'</span>'+
-        '<span class="tc-tnum" style="'+(hasLive?'font-weight:700;color:#f59e0b;':'color:#e5e7eb;')+'">'+(hasLive?'+'+t.livePayment:'-')+'</span>'+
+        '<div style="overflow:hidden;">'+
+          '<span class="tc-tname" style="'+(hasPay?'font-weight:700;color:'+cfg.txt+';':'')+'">'+t.name+'</span>'+
+          (hasPay?'<div style="height:2px;background:'+cfg.bar+';border-radius:1px;width:'+tBarW+'%;margin-top:2px;opacity:.6;"></div>':'<div style="height:2px;background:#f1f5f9;border-radius:1px;margin-top:2px;"></div>')+
+        '</div>'+
+        '<span class="tc-tnum" style="color:#475569;">'+(t.monthEnd||'-')+'</span>'+
+        '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#e2e8f0;')+'">'+(hasPay?tPayFile:'-')+'</span>'+
+        '<span class="tc-tnum" style="'+(hasTodayEnd?'font-weight:600;color:#2563eb;':'color:#e2e8f0;')+'">'+(hasTodayEnd?t.todayEnd:'-')+'</span>'+
+        '<span class="tc-tnum" style="'+(hasLive?'font-weight:700;color:#f59e0b;':'color:#e2e8f0;')+'">'+(hasLive?'+'+t.livePayment:'-')+'</span>'+
       '</div>';
     }).join('');
 
     var wdBadge=m.withdrawal?'<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:#fee2e2;color:#991b1b;margin-left:4px;">청철 '+m.withdrawal+'</span>':'';
 
-    return '<div class="team-card" style="border-top:3px solid '+cfg.bar+'">'+
-      '<div class="tc-hdr" style="background:'+cfg.hdr+'">'+
-        '<span class="tc-name" style="color:'+cfg.txt+'">'+nm+'</span>'+
+    return '<div class="team-card" style="border-top-color:'+cfg.bar+';">'+
+      // 헤더: 팀명 + 달성률 도넛 미니
+      '<div class="tc-hdr" style="background:'+cfg.hdr+';">'+
+        '<span class="tc-name" style="color:'+cfg.txt+';">'+nm+'</span>'+
         '<div style="display:flex;gap:4px;align-items:center;">'+
-          '<span class="tc-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+m.headcount+'명</span>'+
+          '<span class="tc-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+';">'+m.headcount+'명</span>'+
           wdBadge+
         '</div>'+
       '</div>'+
-      '<div class="tc-kpi-3">'+
-        '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">종료</div><div class="tc-kpi-num">'+m.monthEnd+'</div></div>'+
-        '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">달성</div><div class="tc-kpi-num '+rCls+'">'+totalPay+'</div></div>'+
-        '<div class="tc-kpi-cell"><div class="tc-kpi-lbl">전환율</div><div class="tc-kpi-num '+convCls+'" style="font-size:13px;">'+conv+'</div></div>'+
+      // 팀 달성 프로그레스 바
+      '<div style="padding:6px 12px 4px;background:'+cfg.hdr+';">'+
+        '<div style="display:flex;justify-content:space-between;font-size:9px;color:'+cfg.txt+';margin-bottom:3px;opacity:.8;">'+
+          '<span>달성 '+totalPay+' / 목표 '+m.target+'</span>'+
+          '<span class="'+rCls+'" style="font-weight:700;">'+rate+'%</span>'+
+        '</div>'+
+        '<div style="height:5px;background:rgba(0,0,0,.08);border-radius:3px;overflow:hidden;">'+
+          '<div style="width:'+barPct+'%;height:100%;background:'+barColor+';border-radius:3px;transition:width .5s;"></div>'+
+        '</div>'+
       '</div>'+
+      // KPI 3개
+      '<div class="tc-kpi-3">'+
+        '<div class="tc-kpi-cell">'+
+          '<div class="tc-kpi-lbl">종료</div>'+
+          '<div class="tc-kpi-num">'+m.monthEnd+'</div>'+
+        '</div>'+
+        '<div class="tc-kpi-cell" style="border-left:1px solid var(--border2);border-right:1px solid var(--border2);">'+
+          '<div class="tc-kpi-lbl">달성</div>'+
+          '<div class="tc-kpi-num '+rCls+'">'+totalPay+'</div>'+
+        '</div>'+
+        '<div class="tc-kpi-cell">'+
+          '<div class="tc-kpi-lbl">전환율</div>'+
+          '<div class="tc-kpi-num '+convCls+'" style="font-size:13px;">'+conv+'</div>'+
+        '</div>'+
+      '</div>'+
+      // 선생님 리스트
       '<div class="tc-teachers">'+
         '<div class="tc-group"><span></span><span class="tc-group-lbl g-acc">── 누적 ──</span><span class="tc-group-lbl g-tod">── 오늘 ──</span></div>'+
-        '<div class="tc-thead"><span>이름</span><span style="text-align:right;color:#1d4ed8;">종료</span><span style="text-align:right;color:#1d4ed8;">달성</span><span style="text-align:right;color:#6366f1;">종료</span><span style="text-align:right;color:#f59e0b;">달성</span></div>'+
+        '<div class="tc-thead"><span>이름</span><span style="text-align:right;color:#2563eb;">종료</span><span style="text-align:right;color:'+cfg.bar+';">달성</span><span style="text-align:right;color:#2563eb;">종료</span><span style="text-align:right;color:#f59e0b;">달성</span></div>'+
         tRows+
-        '<div class="tc-total"><span>총계</span><span style="color:#374151;">'+(m.monthEnd||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+((m.monthPayment-(m.livePayment||0))||'-')+'</span><span style="color:#6366f1;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
+        '<div class="tc-total"><span>총계</span><span style="color:#475569;">'+(m.monthEnd||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+((m.monthPayment-(m.livePayment||0))||'-')+'</span><span style="color:#2563eb;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -905,72 +985,157 @@ function renderTeams(data) {
 function renderKPI(data) {
   var tot={target:0,pay:0,end:0,wd:0};
   TEAM_NAMES.forEach(function(nm){var m=data.teams[nm];tot.target+=m.target;tot.pay+=m.monthPayment;tot.end+=m.monthEnd;tot.wd+=m.withdrawal;});
-  var realPay=tot.pay; // Pay파일 일별합산(오늘포함)
+  var realPay=tot.pay;
   var liveTot=0; TEAM_NAMES.forEach(function(nm){liveTot+=(data.teams[nm].livePayment||0);});
-  var realPayWithLive=realPay; // livePayment는 이미 Pay파일에 포함 — 별도 합산 안함
-  // 월 목표: 주차별 합산 우선, 없으면 선생님 개인목표 합산 fallback
   var displayTarget = data.hasWeeklyGoals ? data.monthGoal : tot.target;
-  // 당일까지 종료수 집계 (요약 전환율 분모 — 미래종료 제외)
   var todayStr=new Date().toISOString().slice(0,10);
   var endUpToToday=0; var endByTeamToday={};
   TEAM_NAMES.forEach(function(nm){endByTeamToday[nm]=0;});
   data.teachers.forEach(function(t){
     Object.keys(t.daily_end||{}).forEach(function(dt){
-      if(dt<=todayStr){
-        endUpToToday+=(t.daily_end[dt]||0);
-        if(t.team&&endByTeamToday[t.team]!==undefined) endByTeamToday[t.team]+=(t.daily_end[dt]||0);
-      }
+      if(dt<=todayStr){endUpToToday+=(t.daily_end[dt]||0);
+        if(t.team&&endByTeamToday[t.team]!==undefined)endByTeamToday[t.team]+=(t.daily_end[dt]||0);}
     });
   });
-  var rate=displayTarget>0?Math.round(realPayWithLive/displayTarget*100):0;
-  var convRate=endUpToToday>0?(realPayWithLive/endUpToToday*100).toFixed(1):'0';
+  var rate=displayTarget>0?Math.round(realPay/displayTarget*100):0;
+  var convRate=endUpToToday>0?(realPay/endUpToToday*100).toFixed(1):'0';
   var rCls=rate>=100?'kv-good':rate>=80?'kv-warn':'kv-bad';
   var cCls=parseFloat(convRate)>=70?'kv-good':parseFloat(convRate)>=50?'kv-warn':'kv-bad';
-  document.getElementById('kpiGrid').innerHTML=
-    kpiBox('월 목표',displayTarget,'건')+
-    kpiBox('결제','<span class="'+rCls+'">'+realPayWithLive+'</span>','달성률 '+rate+'%')+
-    kpiBox('청철',tot.wd,'건')+
-    kpiBox('월 종료',tot.end,'건 (미래포함)')+
-    kpiBox('당일까지 종료',endUpToToday,'건')+
-    kpiBox('전환율','<span class="'+cCls+'">'+convRate+'%</span>','결제÷당일종료');
 
-  // 팀 요약 테이블 (Col1 하단)
-  var teams2=data.teams, tot2={end:0,pay:0};
-  TEAM_NAMES.forEach(function(nm){tot2.end+=teams2[nm].monthEnd;tot2.pay+=teams2[nm].realPay;});
+  // 도넛 SVG 생성 (r=36, 둘레=226.2)
+  function donutSVG(pct, color, bg, size) {
+    var r = size === 'lg' ? 44 : 32;
+    var sw = size === 'lg' ? 9 : 7;
+    var circ = 2 * Math.PI * r;
+    var dash = Math.min(pct, 100) / 100 * circ;
+    var gap = circ - dash;
+    var over = pct > 100;
+    var trackColor = '#e8edf8';
+    return '<svg width="'+(r*2+sw*2)+'" height="'+(r*2+sw*2)+'" viewBox="0 0 '+(r*2+sw*2)+' '+(r*2+sw*2)+'">'
+      + '<circle cx="'+(r+sw)+'" cy="'+(r+sw)+'" r="'+r+'" fill="none" stroke="'+trackColor+'" stroke-width="'+sw+'"/>'
+      + '<circle cx="'+(r+sw)+'" cy="'+(r+sw)+'" r="'+r+'" fill="none" stroke="'+(over?'#16a34a':color)+'" stroke-width="'+sw+'"'
+      + ' stroke-dasharray="'+dash.toFixed(1)+' '+gap.toFixed(1)+'"'
+      + ' stroke-linecap="round" transform="rotate(-90 '+(r+sw)+' '+(r+sw)+')" style="transition:stroke-dasharray .6s ease;"/>'
+      + '</svg>';
+  }
+
+  // 달성률 도넛 카드
+  var rateColor = rate>=100?'#16a34a':rate>=80?'#f59e0b':'#2563eb';
+  var rateLabelColor = rate>=100?'#15803d':rate>=80?'#b45309':'#1d4ed8';
+  var donutBig = donutSVG(rate, rateColor, '#e8edf8', 'lg');
+
+  // 전환율 도넛 카드
+  var convNum = parseFloat(convRate);
+  var convColor = convNum>=70?'#16a34a':convNum>=50?'#f59e0b':'#0d9488';
+  var donutMid = donutSVG(convNum, convColor, '#e8edf8', 'md');
+
+  // 달성률 도넛 카드 HTML
+  var donutCard = '<div class="card" style="display:flex;flex-direction:column;align-items:center;padding:16px 12px 14px;">'
+    + '<div style="font-size:10px;font-weight:700;color:#1a3a6b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;">월 달성률</div>'
+    + '<div style="position:relative;display:inline-flex;align-items:center;justify-content:center;">'
+    + donutBig
+    + '<div style="position:absolute;text-align:center;">'
+    + '<div style="font-size:22px;font-weight:800;color:'+rateLabelColor+';letter-spacing:-.02em;">'+rate+'%</div>'
+    + '<div style="font-size:9px;color:#94a3b8;margin-top:1px;">달성</div>'
+    + '</div></div>'
+    + '<div style="margin-top:10px;font-size:22px;font-weight:800;color:#1e293b;letter-spacing:-.02em;">'+realPay+'<span style="font-size:12px;font-weight:500;color:#94a3b8;margin-left:3px;">건</span></div>'
+    + '<div style="font-size:10px;color:#94a3b8;margin-top:2px;">결제 ÷ 목표 '+displayTarget+'</div>'
+    + '</div>';
+
+  // 숫자 카드 그리드 (목표 제외, 도넛에 포함)
+  var numGrid = '<div class="kpi-grid" style="margin-top:0;">'
+    + kpiBox2('청철',tot.wd,'건','#e63946','🔴')
+    + kpiBox2('월 종료',tot.end,'건 전체','#7c3aed','📋')
+    + kpiBox2('당일종료',endUpToToday,'건','#0d9488','📅')
+    + '</div>';
+
+  // 전환율 카드
+  var convCard = '<div class="card" style="display:flex;flex-direction:column;align-items:center;padding:14px 12px;">'
+    + '<div style="font-size:10px;font-weight:700;color:#1a3a6b;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">전환율</div>'
+    + '<div style="position:relative;display:inline-flex;align-items:center;justify-content:center;">'
+    + donutMid
+    + '<div style="position:absolute;text-align:center;">'
+    + '<div style="font-size:17px;font-weight:800;color:'+convColor+';letter-spacing:-.02em;">'+convRate+'%</div>'
+    + '</div></div>'
+    + '<div style="font-size:9px;color:#94a3b8;margin-top:6px;text-align:center;">결제÷당일종료</div>'
+    + numGrid
+    + '</div>';
+
+  // kpiGrid에 합쳐서 출력: [도넛카드] [숫자 3+3] [전환율도넛]
+  // 팀 요약은 summaryTbl에 별도 렌더
+  var combined = '<div style="display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;">'
+    + donutCard
+    + '<div>'
+    + '<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:8px;">'
+    + kpiBox2('월 목표',displayTarget,'건','#2563eb','🎯')
+    + kpiBox2('결제',realPay,'건','#16a34a','💳')
+    + kpiBox2('청철',tot.wd,'건','#e63946','🔴')
+    + '</div>'
+    + '<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">'
+    + kpiBox2('월 종료',tot.end,'건','#7c3aed','📋')
+    + kpiBox2('당일종료',endUpToToday,'건','#0d9488','📅')
+    + kpiBox2('오늘+Live',realPay,'건','#f59e0b','⚡')
+    + '</div>'
+    + '</div>'
+    + convCard
+    + '</div>';
+
+  document.getElementById('kpiGrid').innerHTML = combined;
+
+  // 팀 요약 테이블
   var sumRows=TEAM_NAMES.map(function(nm){
-    var m2=teams2[nm],cfg2=TEAM_CFG[nm];
-    var m2pay=m2.monthPayment; // Pay파일 일별합산
+    var m2=data.teams[nm],cfg2=TEAM_CFG[nm];
+    var m2pay=m2.monthPayment;
     var m2end=endByTeamToday[nm]||0;
     var r2=m2end>0?Math.round(m2pay/m2end*100):0;
     var rc2=r2>=70?'kv-good':r2>=50?'kv-warn':'kv-bad';
-    return '<tr style="border-bottom:1px solid #f3f4f6;">'+
-      '<td style="padding:5px 10px;font-size:12px;font-weight:600;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cfg2.bar+';margin-right:5px;vertical-align:middle;"></span>'+nm+'</td>'+
-      '<td style="padding:5px 10px;font-size:12px;text-align:right;">'+m2end+'<span style="font-size:9px;color:#c4b5fd;"> /'+m2.monthEnd+'</span></td>'+
-      '<td style="padding:5px 10px;font-size:12px;text-align:right;font-weight:700;">'+m2pay+'</td>'+
-      '<td style="padding:5px 10px;font-size:12px;text-align:right;" class="'+rc2+'">'+r2+'%</td>'+
-    '</tr>';
+    var barW=displayTarget>0?Math.min(100,Math.round(m2pay/(displayTarget/4)*100)):0;
+    return '<tr style="border-bottom:1px solid var(--border2);">'
+      +'<td style="padding:5px 10px;font-size:12px;font-weight:600;white-space:nowrap;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+cfg2.bar+';margin-right:5px;vertical-align:middle;"></span>'+nm+'</td>'
+      +'<td style="padding:5px 10px;font-size:12px;text-align:right;">'+m2end+'<span style="font-size:9px;color:#94a3b8;"> /'+m2.monthEnd+'</span></td>'
+      +'<td style="padding:5px 10px;font-size:12px;text-align:right;font-weight:700;">'+m2pay+'</td>'
+      +'<td style="padding:5px 10px;text-align:right;">'
+      +'<div style="display:flex;align-items:center;gap:5px;justify-content:flex-end;">'
+      +'<div style="width:50px;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;"><div style="width:'+Math.min(100,barW)+'%;height:100%;background:'+cfg2.bar+';border-radius:3px;"></div></div>'
+      +'<span style="font-size:11px;font-weight:700;" class="'+rc2+'">'+r2+'%</span>'
+      +'</div>'
+      +'</td>'
+      +'</tr>';
   }).join('');
-  var totR2=endUpToToday>0?Math.round(realPayWithLive/endUpToToday*100):0;
+  var totR2=endUpToToday>0?Math.round(realPay/endUpToToday*100):0;
   var totRc2=totR2>=70?'kv-good':totR2>=50?'kv-warn':'kv-bad';
   var stEl=document.getElementById('summaryTbl');
-  if(stEl) stEl.innerHTML='<div style="background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);">'+
-    '<table style="width:100%;border-collapse:collapse;">'+
-    '<thead><tr style="background:#f8f9fc;border-bottom:1px solid #eaecf2;">'+
-      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:left;">팀</th>'+
-      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:right;">종료</th>'+
-      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:right;">달성</th>'+
-      '<th style="padding:5px 10px;font-size:10px;font-weight:700;color:#9ca3af;text-align:right;">전환율</th>'+
-    '</tr></thead>'+
-    '<tbody>'+sumRows+
-    '<tr style="background:#f8f9fc;font-weight:700;">'+
-      '<td style="padding:5px 10px;font-size:12px;">합계</td>'+
-      '<td style="padding:5px 10px;font-size:12px;text-align:right;">'+endUpToToday+'<span style="font-size:9px;color:#c4b5fd;"> /'+tot2.end+'</span></td>'+
-      '<td style="padding:5px 10px;font-size:12px;text-align:right;">'+realPayWithLive+'</td>'+
-      '<td style="padding:5px 10px;font-size:12px;text-align:right;" class="'+totRc2+'">'+totR2+'%</td>'+
-    '</tr>'+
-    '</tbody></table></div>';
+  if(stEl) stEl.innerHTML='<div class="card" style="margin-top:8px;">'
+    +'<div class="card-hdr"><span class="card-title">팀별 현황 요약</span></div>'
+    +'<table style="width:100%;border-collapse:collapse;">'
+    +'<thead><tr style="background:var(--card2);border-bottom:1px solid var(--border);">'
+    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:left;">팀</th>'
+    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">종료</th>'
+    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">달성</th>'
+    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">전환율</th>'
+    +'</tr></thead>'
+    +'<tbody>'+sumRows
+    +'<tr style="background:var(--card2);font-weight:700;border-top:2px solid var(--border);">'
+    +'<td style="padding:6px 10px;font-size:12px;">합계</td>'
+    +'<td style="padding:6px 10px;font-size:12px;text-align:right;">'+endUpToToday+'<span style="font-size:9px;color:#94a3b8;"> /'+tot.end+'</span></td>'
+    +'<td style="padding:6px 10px;font-size:12px;text-align:right;color:#2563eb;font-weight:800;">'+realPay+'</td>'
+    +'<td style="padding:6px 10px;font-size:12px;text-align:right;" class="'+totRc2+'">'+totR2+'%</td>'
+    +'</tr>'
+    +'</tbody></table></div>';
 }
-function kpiBox(lbl,val,sub){return '<div class="kpi-box"><div class="kpi-lbl">'+lbl+'</div><div class="kpi-val">'+val+'</div><div class="kpi-sub">'+sub+'</div></div>';}
+
+function kpiBox(lbl,val,sub){
+  return '<div class="kpi-box"><div class="kpi-lbl">'+lbl+'</div><div class="kpi-val">'+val+'</div><div class="kpi-sub">'+sub+'</div></div>';
+}
+function kpiBox2(lbl,val,sub,color,icon){
+  var c=color||'#2563eb';
+  return '<div class="kpi-box" style="border-top-color:'+c+';">'
+    +'<div class="kpi-icon">'+icon+'</div>'
+    +'<div class="kpi-lbl" style="color:'+c+';">'+lbl+'</div>'
+    +'<div class="kpi-val">'+val+'</div>'
+    +'<div class="kpi-sub">'+sub+'</div>'
+    +'</div>';
+}
 
 
 // ─── 랭킹 렌더 ──────────────────────────────────────────
