@@ -277,153 +277,145 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 16:36</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 16:44</span></span>
 </div>
 
 <div class="page">
 
-  <!-- ── ROW 1: KPI 컴팩트 스트립 ── -->
-  <div>
-    <div class="sec-lbl" style="margin-bottom:6px;">월 달성 요약</div>
-    <div id="kpiGrid"></div>
-  </div>
+  <!-- ── 메인 그리드: PPT 레이아웃 기반 ── -->
+  <!-- 좌열: [월달성+팀별요약] / [주별결제] / [주별마감]  |  우열: [실시간결제 rowspan2] / [인입채널] -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:12px;align-items:start;">
 
-  <!-- ── ROW 2: 좌(주별+실시간) | 우(팀요약+마감+채널) ── -->
-  <div style="display:grid;grid-template-columns:1fr 300px;gap:12px;align-items:start;">
-
-    <!-- 좌: 주별 결제 현황 → 실시간 결제 (가로 넓게) -->
-    <div style="display:flex;flex-direction:column;gap:10px;">
-
-      <!-- 주별 결제 현황 -->
+    <!-- ① 좌상: 월 달성 요약 + 팀별 요약 (합체) -->
+    <div style="grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:10px;">
       <div>
-        <div class="sec-lbl" style="margin-bottom:6px;">주별 결제 현황</div>
-        <div id="weekChart"></div>
+        <div class="sec-lbl" style="margin-bottom:6px;">월 달성 요약 + 팀별 요약</div>
+        <div id="kpiGrid"></div>
       </div>
-
-      <!-- 실시간 결제: 가로 와이드 카드 -->
-      <div id="livePanel">
-        <div class="sec-lbl" style="margin-bottom:6px;">실시간 결제</div>
-        <div class="live-section">
-
-          <!-- 상단 헤더 바 -->
-          <div class="live-hdr" style="background:linear-gradient(90deg,#1a3a6b,#2563eb);padding:6px 12px;">
-            <div class="live-dot"></div>
-            <span class="live-title" style="color:#fff;font-size:13px;">오늘 실시간 결제</span>
-            <button class="live-btn" onclick="fetchLive()" style="margin-left:8px;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;font-size:10px;">새로고침</button>
-            <span id="liveStatus" style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.6);">불러오는 중...</span>
-          </div>
-
-          <!-- 메인: 총 건수 + 팀별 박스 가로 나열 -->
-          <div style="display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid var(--border2);">
-            <!-- 총 건수 -->
-            <div style="padding:8px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border2);background:var(--accent-lt);">
-              <div style="font-size:9px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;">오늘 총 결제</div>
-              <div style="font-size:30px;font-weight:900;color:#1a3a6b;letter-spacing:-.04em;line-height:1;" id="liveTotalCnt">-</div>
-              <div style="font-size:11px;color:var(--txt3);margin-top:2px;">건</div>
-            </div>
-            <!-- 팀별 4박스 가로 -->
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;" id="liveTeamRow">
-              <div class="live-team-box" id="liveBox_땅이팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #f97316;"><div class="live-team-name" style="color:#ea580c;">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀" style="color:#ea580c;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
-              <div class="live-team-box" id="liveBox_다래팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #ec4899;"><div class="live-team-name" style="color:#db2777;">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀" style="color:#db2777;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
-              <div class="live-team-box" id="liveBox_해태팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #eab308;"><div class="live-team-name" style="color:#ca8a04;">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀" style="color:#ca8a04;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
-              <div class="live-team-box" id="liveBox_단비팀" style="border-radius:0;border-top:3px solid #22c55e;"><div class="live-team-name" style="color:#16a34a;">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀" style="color:#16a34a;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
-            </div>
-          </div>
-
-          <!-- 하단: 5열 정보 패널 -->
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;border-top:0;gap:0;">
-
-            <!-- 상품별 -->
-            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">상품별</div>
-              <div id="liveProdBody" style="max-height:110px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
-            </div>
-
-            <!-- 시간순 -->
-            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간순</div>
-              <div id="liveTchBody" style="max-height:110px;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
-            </div>
-
-            <!-- 가입경로 -->
-            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">가입경로</div>
-              <div id="livePathBody" style="max-height:110px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
-            </div>
-
-            <!-- 수기 결제 입력 -->
-            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-                <span style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;">수기 입력</span>
-                <button onclick="clearManualEntries()" style="font-size:9px;padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">초기화</button>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:3px;" id="manualInputRow">
-                <input id="manualName" placeholder="선생님 이름" list="manualNameList"
-                  style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;">
-                <datalist id="manualNameList"></datalist>
-                <input id="manualTime" placeholder="시간 13:00" maxlength="5"
-                  style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;text-align:center;">
-                <input id="manualProd" placeholder="상품명"
-                  style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;">
-                <button onclick="addManualEntry()"
-                  style="padding:5px;background:#1a3a6b;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">추가</button>
-              </div>
-              <div id="manualEntryList" style="margin-top:4px;font-size:10px;"></div>
-            </div>
-
-            <!-- 시간대별 결제 (테이블) -->
-            <div style="padding:5px 8px;">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간대별</div>
-              <div style="overflow-x:auto;">
-                <table class="live-tl-table" style="min-width:140px;">
-                  <thead><tr>
-                    <th style="font-size:9px;padding:3px 4px;">시</th>
-                    <th style="color:#f97316;font-size:9px;padding:3px 4px;">땅</th>
-                    <th style="color:#ec4899;font-size:9px;padding:3px 4px;">다</th>
-                    <th style="color:#eab308;font-size:9px;padding:3px 4px;">해</th>
-                    <th style="color:#22c55e;font-size:9px;padding:3px 4px;">단</th>
-                    <th style="font-size:9px;padding:3px 4px;">계</th>
-                  </tr></thead>
-                  <tbody id="liveTlBody"><tr><td colspan="6" class="live-empty" style="padding:6px;font-size:10px;">-</td></tr></tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    </div><!-- end 좌 -->
-
-    <!-- 우: 팀요약 + 주별마감 + 채널 -->
-    <div style="display:flex;flex-direction:column;gap:10px;">
-
-      <!-- 팀별 요약 -->
       <div>
-        <div class="sec-lbl" style="margin-bottom:6px;">팀별 요약</div>
         <div id="summaryTbl"></div>
       </div>
+    </div>
 
-      <!-- 주별 마감 현황 -->
-      <div>
-        <div class="sec-lbl" style="margin-bottom:6px;">주별 마감 현황</div>
-        <div class="week-list" id="weekList"></div>
-      </div>
+    <!-- ② 우: 실시간 결제 (row 1~2 span) -->
+    <div id="livePanel" style="grid-column:2;grid-row:1/3;">
+      <div class="sec-lbl" style="margin-bottom:6px;">실시간 결제 현황</div>
+      <div class="live-section">
 
-      <!-- 인입채널별 전환율 -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <div class="sec-lbl">인입채널별 전환율
-            <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
+        <!-- 상단 헤더 바 -->
+        <div class="live-hdr" style="background:linear-gradient(90deg,#1a3a6b,#2563eb);padding:6px 12px;">
+          <div class="live-dot"></div>
+          <span class="live-title" style="color:#fff;font-size:13px;">오늘 실시간 결제</span>
+          <button class="live-btn" onclick="fetchLive()" style="margin-left:8px;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;font-size:10px;">새로고침</button>
+          <span id="liveStatus" style="margin-left:auto;font-size:10px;color:rgba(255,255,255,.6);">불러오는 중...</span>
+        </div>
+
+        <!-- 메인: 총 건수 + 팀별 박스 가로 나열 -->
+        <div style="display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid var(--border2);">
+          <!-- 총 건수 -->
+          <div style="padding:8px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border2);background:var(--accent-lt);">
+            <div style="font-size:9px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;">오늘 총 결제</div>
+            <div style="font-size:30px;font-weight:900;color:#1a3a6b;letter-spacing:-.04em;line-height:1;" id="liveTotalCnt">-</div>
+            <div style="font-size:11px;color:var(--txt3);margin-top:2px;">건</div>
           </div>
-          <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid var(--accent-md);background:var(--accent-lt);border-radius:10px;cursor:pointer;color:var(--accent);font-weight:600;">↻</button>
+          <!-- 팀별 4박스 가로 -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;" id="liveTeamRow">
+            <div class="live-team-box" id="liveBox_땅이팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #f97316;"><div class="live-team-name" style="color:#ea580c;">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀" style="color:#ea580c;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_다래팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #ec4899;"><div class="live-team-name" style="color:#db2777;">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀" style="color:#db2777;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_해태팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #eab308;"><div class="live-team-name" style="color:#ca8a04;">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀" style="color:#ca8a04;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_단비팀" style="border-radius:0;border-top:3px solid #22c55e;"><div class="live-team-name" style="color:#16a34a;">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀" style="color:#16a34a;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+          </div>
         </div>
-        <div class="card" style="overflow:hidden;">
-          <div id="channelTable"></div>
+
+        <!-- 하단: 5열 정보 패널 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;border-top:0;gap:0;">
+
+          <!-- 상품별 -->
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">상품별</div>
+            <div id="liveProdBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
+          </div>
+
+          <!-- 시간순 -->
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간순</div>
+            <div id="liveTchBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
+          </div>
+
+          <!-- 가입경로 -->
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">가입경로</div>
+            <div id="livePathBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
+          </div>
+
+          <!-- 수기 결제 입력 -->
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;">수기 입력</span>
+              <button onclick="clearManualEntries()" style="font-size:9px;padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">초기화</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;" id="manualInputRow">
+              <input id="manualName" placeholder="선생님 이름" list="manualNameList"
+                style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;">
+              <datalist id="manualNameList"></datalist>
+              <input id="manualTime" placeholder="시간 13:00" maxlength="5"
+                style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;text-align:center;">
+              <input id="manualProd" placeholder="상품명"
+                style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;">
+              <button onclick="addManualEntry()"
+                style="padding:5px;background:#1a3a6b;color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">추가</button>
+            </div>
+            <div id="manualEntryList" style="margin-top:4px;font-size:10px;"></div>
+          </div>
+
+          <!-- 시간대별 결제 (테이블) -->
+          <div style="padding:5px 8px;">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간대별</div>
+            <div style="overflow-x:auto;">
+              <table class="live-tl-table" style="min-width:140px;">
+                <thead><tr>
+                  <th style="font-size:9px;padding:3px 4px;">시</th>
+                  <th style="color:#f97316;font-size:9px;padding:3px 4px;">땅</th>
+                  <th style="color:#ec4899;font-size:9px;padding:3px 4px;">다</th>
+                  <th style="color:#eab308;font-size:9px;padding:3px 4px;">해</th>
+                  <th style="color:#22c55e;font-size:9px;padding:3px 4px;">단</th>
+                  <th style="font-size:9px;padding:3px 4px;">계</th>
+                </tr></thead>
+                <tbody id="liveTlBody"><tr><td colspan="6" class="live-empty" style="padding:6px;font-size:10px;">-</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
+    </div><!-- end 실시간결제 -->
 
-    </div><!-- end 우 -->
-  </div><!-- end ROW 2 -->
+    <!-- ③ 좌중: 주별 결제 현황 -->
+    <div style="grid-column:1;grid-row:2;">
+      <div class="sec-lbl" style="margin-bottom:6px;">주별 결제 현황</div>
+      <div id="weekChart"></div>
+    </div>
+
+    <!-- ④ 좌하: 주별 마감 현황 -->
+    <div style="grid-column:1;grid-row:3;">
+      <div class="sec-lbl" style="margin-bottom:6px;">주별 마감 현황</div>
+      <div class="week-list" id="weekList"></div>
+    </div>
+
+    <!-- ⑤ 우하: 인입채널별 전환율 -->
+    <div style="grid-column:2;grid-row:3;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="sec-lbl">인입채널별 전환율
+          <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
+        </div>
+        <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid var(--accent-md);background:var(--accent-lt);border-radius:10px;cursor:pointer;color:var(--accent);font-weight:600;">↻</button>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <div id="channelTable"></div>
+      </div>
+    </div>
+
+  </div><!-- end 메인 그리드 -->
 
   <!-- ── ROW 3: 팀별 현황 카드 ── -->
   <div>
