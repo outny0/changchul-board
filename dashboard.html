@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:36</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:50</span></span>
 </div>
 
 <div class="page">
@@ -2682,55 +2682,87 @@ function _parseCSV(txt){
   return rows;
 }
 
-/* 일일업뎃 CSV 파싱 */
+/* 일일업뎃 CSV 파싱 — 헤더행에서 컬럼 동적 매핑 */
 function _parseDailyCSV(csv){
   var map={};
   var rows=_parseCSV(csv);
-  // 헤더 찾기: col2가 "신규" 또는 "랭크" 포함인 행 (IMPORTRANGE로 col0이 빈칸, col1=날짜/교사명)
-  var dataStart=2;
-  for(var i=0;i<Math.min(rows.length,6);i++){
+  // 헤더행 찾기: col2에 "신규" 또는 "랭크" 포함
+  var hdrIdx=-1;
+  for(var i=0;i<Math.min(rows.length,8);i++){
     var c2=(rows[i][2]||'');
-    if(c2.indexOf('신규')>=0||c2.indexOf('랭크')>=0){ dataStart=i+2; break; }
+    if(c2.indexOf('신규')>=0||c2.indexOf('랭크')>=0){hdrIdx=i;break;}
   }
-  for(var i=dataStart;i<rows.length;i++){
+  if(hdrIdx<0) return map;
+  var hdr=rows[hdrIdx];
+  // 컬럼 인덱스 매핑
+  var ci={pay:2,fee:3,rank:4,w2:-1,w1:-1,m2:-1,m1:-1,wd:-1,ex:-1};
+  for(var c=0;c<hdr.length;c++){
+    var h=(hdr[c]||'').replace(/[\n\r]/g,' ');
+    if(h.indexOf('윙크표')>=0&&h.indexOf('2년')>=0) ci.w2=c;
+    else if(h.indexOf('윙크표')>=0&&h.indexOf('1년')>=0) ci.w1=c;
+    else if(h.indexOf('엄마표')>=0&&h.indexOf('2년')>=0) ci.m2=c;
+    else if(h.indexOf('엄마표')>=0&&h.indexOf('1년')>=0) ci.m1=c;
+    else if(h.indexOf('청약')>=0) ci.wd=c;
+    else if(h.indexOf('중도')>=0) ci.ex=c;
+  }
+  var SKIP=['교사명','시작일','마감일','업데이트','평균','합계','전체',':-:'];
+  for(var i=hdrIdx+2;i<rows.length;i++){  // +2: 헤더+전체합계행 스킵
     var r=rows[i];
-    var name=_normPN(r[1]);  // col1 = 교사명
+    var name=_normPN(r[1]);
     if(!name) continue;
-    var bad=['교사명','시작일','마감일','업데이트','평균','합계','전체',':-:'];
-    if(bad.some(function(w){return name.indexOf(w)>=0;})) continue;
-    if(name.match(/^\d{4}-/)) continue;  // 날짜 행
-    var payVal=parseInt((r[2]||'').replace(/,/g,''));
-    if(isNaN(payVal)&&!(r[3]||'').trim()) continue;
-    map[name]={pay:(r[2]||'').trim(), fee:(r[3]||'').replace(/,/g,'').trim(), rank:(r[4]||'').trim()};
+    if(SKIP.some(function(w){return name.indexOf(w)>=0;})) continue;
+    if(name.match(/^\d{4}-/)||name.match(/^[0-9]/)) continue;
+    var payVal=parseInt((r[ci.pay]||'').replace(/,/g,''));
+    if(isNaN(payVal)&&!name) continue;
+    function gc(idx){return idx>=0?(r[idx]||'').trim():'-';}
+    map[name]={
+      pay: gc(ci.pay),    // 총 신규결제
+      fee: (r[ci.fee]||'').replace(/,/g,'').trim(),  // 예상수수료
+      rank: gc(ci.rank),  // 총 결제 순위
+      w2: gc(ci.w2), w1: gc(ci.w1),  // 윙크표
+      m2: gc(ci.m2), m1: gc(ci.m1),  // 엄마표
+      wd: gc(ci.wd),  // 청약철회
+      ex: gc(ci.ex)   // 중도해지
+    };
   }
   return map;
 }
 
-/* 주간업뎃 CSV 파싱 (주간등급 / 월누적 두 섹션) */
+/* 주간업뎃 CSV 파싱
+   한 행에 두 섹션이 나란히 있음:
+   - 월누적: col1=교사명, col2=종료수, col3=결제수, col4=전환율, col5=랭킹
+   - 주간등급: col7=교사명, col8=전환율(1주), col9=전환율랭킹, col10=결제수,
+               col11=평균통화, col12=평균콜수, col13=로그인율, col20=등급
+*/
 function _parseWeeklyCSV(csv){
   var wMap={}, mMap={};
   var rows=_parseCSV(csv);
-  var mode=null;
-  var SKIP=['교사명','전체','창출실','팀','시작일','마감일','업데이트','평균',':-:','랭킹','주간등급','월누적'];
+  var SKIP=['교사명','전체','창출실','시작일','마감일','업데이트','평균',':-:','랭킹',
+            '주간등급','월누적','팀','합계','점수','등급','통화','전환율'];
+  function isTeacher(n){
+    if(!n||n.match(/^\d/)||n.match(/^[0-9.,:%]+$/)) return false;
+    return !SKIP.some(function(w){return n.indexOf(w)>=0;});
+  }
   for(var i=0;i<rows.length;i++){
     var r=rows[i];
-    var c1=(r[1]||'').trim();  // col1 = 교사명 (col0은 IMPORTRANGE 빈칸)
-    // 섹션 감지 (col1 기준)
-    if(c1==='주간등급'||(r[2]&&r[2].indexOf('전환율')>=0&&r[3]&&r[3].indexOf('랭킹')>=0)){mode='w';continue;}
-    if(c1.indexOf('월누적')>=0){mode='m';continue;}
-    var name=_normPN(c1);
-    if(!name) continue;
-    if(SKIP.some(function(w){return name.indexOf(w)>=0;})) continue;
-    if(name.match(/^\d{4}-/)) continue;
-    if(name.match(/^[0-9.,]+$/)) continue;
-    if(name.indexOf('팀')>=0||name.indexOf('합계')>=0||name.indexOf('전체')>=0) continue;
-    if(mode==='w'){
-      wMap[name]={convRate:(r[2]||'').trim(),convRank:(r[3]||'').trim(),
-                  payCount:(r[4]||'').trim(),avgTalk:(r[5]||'').trim(),
-                  avgCall:(r[6]||'').trim(),loginRate:(r[7]||'').trim()};
-    } else if(mode==='m'){
-      mMap[name]={endCount:(r[2]||'').trim(),payCount:(r[3]||'').trim(),
-                  convRate:(r[4]||'').trim(),rank:(r[5]||'').trim()};
+    // 월누적 섹션: col1에 교사명
+    var nm1=_normPN(r[1]);
+    if(isTeacher(nm1)&&nm1!='전체'&&nm1.indexOf('팀')<0){
+      mMap[nm1]={endCount:(r[2]||'').trim(),payCount:(r[3]||'').trim(),
+                 convRate:(r[4]||'').trim(),rank:(r[5]||'').trim()};
+    }
+    // 주간등급 섹션: col7에 교사명
+    var nm7=_normPN(r[7]);
+    if(isTeacher(nm7)){
+      wMap[nm7]={
+        convRate: (r[8]||'').trim(),   // 전환율(1주)
+        convRank: (r[9]||'').trim(),   // 전환율랭킹
+        payCount: (r[10]||'').trim(),  // 결제수
+        avgTalk:  (r[11]||'').trim(),  // 평균통화량
+        avgCall:  (r[12]||'').trim(),  // 평균콜수
+        loginRate:(r[13]||'').trim(),  // 로그인율
+        grade:    (r[20]||'').trim()   // 등급
+      };
     }
   }
   return {weekly:wMap, monthly:mMap};
@@ -2807,54 +2839,54 @@ function showPerfPopup(el){
     '</div>';
 
     if(noData){
-      var dbg=_perfDebug;
-      var dbgHtml='<div style="font-size:10px;color:#64748b;background:#f8fafc;border-radius:8px;padding:10px;margin-top:8px;text-align:left;word-break:break-all;">'+
-        '<b>조회 이름:</b> '+name+'<br>'+
-        '<b>일일 HTTP:</b> '+(dbg.dailyStatus||'?')+' / 파싱키: '+(dbg.dailyKeys?(dbg.dailyKeys.join(', ')||'없음'):'?')+'<br>'+
-        '<b>일일 오류:</b> '+(dbg.dailyErr||'없음')+'<br>'+
-        '<b>주간 HTTP:</b> '+(dbg.weeklyStatus||'?')+' / 파싱키: '+(dbg.weeklyKeys?(dbg.weeklyKeys.join(', ')||'없음'):'?')+'<br>'+
-        '<b>주간 오류:</b> '+(dbg.weeklyErr||'없음')+'<br>'+
-        '<b>일일 CSV 앞:</b><br><pre style="font-size:9px;overflow:auto;max-height:60px;">'+((dbg.dailyRaw||'').replace(/</g,'&lt;'))+'</pre>'+
-        '<b>주간 CSV 앞:</b><br><pre style="font-size:9px;overflow:auto;max-height:80px;">'+((dbg.weeklyRaw||'').replace(/</g,'&lt;'))+'</pre>'+
-      '</div>';
-      html+='<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12px;">데이터를 불러올 수 없습니다.</div>'+dbgHtml;
+      html+='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px;">데이터를 불러올 수 없습니다.<br><span style="font-size:10px;">시트 IMPORTRANGE 연결 또는 공유 설정을 확인해 주세요.</span></div>';
     } else {
-      // 당일
-      html+='<div style="background:#f8fafc;border-radius:12px;padding:12px 16px;margin-bottom:10px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.08em;margin-bottom:8px;">📅 이번 달 누적 (일별 업뎃)</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">'+
-          _st('신규결제', d.pay?(d.pay+'건'):'-', '#1e40af')+
-          _st('예상수수료', _fmtFee(d.fee), '#1e40af')+
-          _st('랭킹', d.rank||'-', '#1e40af')+
-        '</div></div>';
-      // 주간
-      var weeklyContent;
-      if(w.convRate||w.payCount||w.avgTalk){
-        weeklyContent='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">'+
-          _st('전환율', w.convRate||'-', '#0369a1')+
-          _st('전환율랭킹', w.convRank||'-', '#0369a1')+
-          _st('주간결제', w.payCount?(w.payCount+'건'):'-', '#0369a1')+
-          _st('평균통화', w.avgTalk||'-', '#0369a1')+
+      // ── 일일업뎃: 상품별 + 청약철회/중도해지 + 순위/수수료 ──
+      function _n(v){var n=parseInt((v||'').replace(/,/g,''));return isNaN(n)?0:n;}
+      function _prd(lbl,val,accent){
+        var n=_n(val);
+        var color=n>0?accent:(n<0?'#dc2626':'#9ca3af');
+        return '<div style="text-align:center;padding:4px 2px;">'+
+          '<div style="font-size:14px;font-weight:800;color:'+color+';">'+(n!==0?n+'건':'-')+'</div>'+
+          '<div style="font-size:8px;color:#94a3b8;margin-top:2px;">'+lbl+'</div>'+
         '</div>';
-      } else {
-        // 주간 데이터 없으면 CSV 앞부분 표시 (구조 파악용)
-        weeklyContent='<div style="font-size:9px;color:#94a3b8;">주간 데이터 미파싱 — CSV 구조:<br>'+
-          '<pre style="font-size:8px;overflow:auto;max-height:70px;background:#f8fafc;padding:4px;border-radius:4px;">'+
-          ((_perfDebug.weeklyRaw||'없음').slice(0,400).replace(/</g,'&lt;'))+'</pre></div>';
       }
-      html+='<div style="background:#f0f9ff;border-radius:12px;padding:12px 16px;margin-bottom:10px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#0369a1;letter-spacing:.08em;margin-bottom:8px;">📊 이번 주</div>'+
-        weeklyContent+
+      html+='<div style="background:#f8fafc;border-radius:12px;padding:12px 16px;margin-bottom:8px;">'+
+        '<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;">'+
+          '📅 이번 달 (일별 업뎃) &nbsp;'+
+          '<span style="font-weight:400;color:#94a3b8;">순위 </span>'+
+          '<span style="font-weight:800;color:#1e40af;">'+(d.rank||'-')+'</span>'+
+          '&nbsp;·&nbsp;<span style="font-weight:400;color:#94a3b8;">예상수수료 </span>'+
+          '<span style="font-weight:800;color:#1e40af;">'+_fmtFee(d.fee)+'</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:6px;">'+
+          _prd('윙크표2년',d.w2,'#3b82f6')+
+          _prd('윙크표1년',d.w1,'#3b82f6')+
+          _prd('엄마표2년',d.m2,'#6366f1')+
+          _prd('엄마표1년',d.m1,'#6366f1')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">'+
+          _prd('청약철회',d.wd,'#dc2626')+
+          _prd('중도해지',d.ex,'#f97316')+
+        '</div>'+
       '</div>';
-      // 월누적
-      html+='<div style="background:#f5f3ff;border-radius:12px;padding:12px 16px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#6d28d9;letter-spacing:.08em;margin-bottom:8px;">📈 이번 달</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">'+
-          _st('종료수', m.endCount||'-', '#6d28d9')+
-          _st('결제수', m.payCount?(m.payCount+'건'):'-', '#6d28d9')+
-          _st('전환율', m.convRate||'-', '#6d28d9')+
-          _st('랭킹', m.rank||'-', '#6d28d9')+
-        '</div></div>';
+      // ── 주간업뎃: 등급 + 전환율 + 통화 ──
+      html+='<div style="background:#f0f9ff;border-radius:12px;padding:12px 16px;">'+
+        '<div style="font-size:9px;font-weight:700;color:#0369a1;letter-spacing:.06em;margin-bottom:8px;">'+
+          '📊 이번 주 &nbsp;'+
+          '<span style="background:'+(w.grade?'#0369a1':'#e2e8f0')+';color:'+(w.grade?'#fff':'#94a3b8')+
+          ';padding:1px 7px;border-radius:10px;font-size:10px;font-weight:900;">'+(w.grade||'-')+'</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">'+
+          _st('전환율(1주)', w.convRate||'-', '#0369a1')+
+          _st('전환율순위', w.convRank||'-', '#0369a1')+
+          _st('주간결제', w.payCount?(w.payCount+'건'):'-', '#0369a1')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;">'+
+          _st('일평균통화', w.avgTalk||'-', '#0369a1')+
+          _st('평균콜수', w.avgCall||'-', '#0369a1')+
+        '</div>'+
+      '</div>';
     }
     body.innerHTML=html;
   });
