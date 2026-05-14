@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:50</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:57</span></span>
 </div>
 
 <div class="page">
@@ -2682,47 +2682,42 @@ function _parseCSV(txt){
   return rows;
 }
 
-/* 일일업뎃 CSV 파싱 — 헤더행에서 컬럼 동적 매핑 */
+/* 일일업뎃 CSV 파싱 — VLOOKUP 수식 기반 고정 컬럼 인덱스
+   Sheet col A=CSV0, B=CSV1(교사명), C=CSV2(신규결제), D=CSV3(수수료), E=CSV4(순위)
+   G=CSV6(엄마표1년), H=CSV7(엄마표2년), I=CSV8(윙크표1년), J=CSV9(윙크표2년)
+   K=CSV10(단과1년), L=CSV11(단과2년-a), M=CSV12(단과2년-b), N=CSV13(단단과)
+   O=CSV14(무교재엄마표1년), P=CSV15(무교재엄마표2년)
+   Q=CSV16(무교재윙크표1년), R=CSV17(무교재윙크표2년)
+   CM=CSV90(청약철회), CN=CSV91(중도해지)
+*/
 function _parseDailyCSV(csv){
   var map={};
   var rows=_parseCSV(csv);
-  // 헤더행 찾기: col2에 "신규" 또는 "랭크" 포함
-  var hdrIdx=-1;
+  // 데이터 시작행: col1이 날짜가 아니고 교사명인 첫 번째 행 (헤더+합계 2행 스킵)
+  var dataStart=3;
   for(var i=0;i<Math.min(rows.length,8);i++){
     var c2=(rows[i][2]||'');
-    if(c2.indexOf('신규')>=0||c2.indexOf('랭크')>=0){hdrIdx=i;break;}
-  }
-  if(hdrIdx<0) return map;
-  var hdr=rows[hdrIdx];
-  // 컬럼 인덱스 매핑
-  var ci={pay:2,fee:3,rank:4,w2:-1,w1:-1,m2:-1,m1:-1,wd:-1,ex:-1};
-  for(var c=0;c<hdr.length;c++){
-    var h=(hdr[c]||'').replace(/[\n\r]/g,' ');
-    if(h.indexOf('윙크표')>=0&&h.indexOf('2년')>=0) ci.w2=c;
-    else if(h.indexOf('윙크표')>=0&&h.indexOf('1년')>=0) ci.w1=c;
-    else if(h.indexOf('엄마표')>=0&&h.indexOf('2년')>=0) ci.m2=c;
-    else if(h.indexOf('엄마표')>=0&&h.indexOf('1년')>=0) ci.m1=c;
-    else if(h.indexOf('청약')>=0) ci.wd=c;
-    else if(h.indexOf('중도')>=0) ci.ex=c;
+    if(c2.indexOf('신규')>=0||c2.indexOf('랭크')>=0){dataStart=i+2;break;}
   }
   var SKIP=['교사명','시작일','마감일','업데이트','평균','합계','전체',':-:'];
-  for(var i=hdrIdx+2;i<rows.length;i++){  // +2: 헤더+전체합계행 스킵
+  for(var i=dataStart;i<rows.length;i++){
     var r=rows[i];
     var name=_normPN(r[1]);
     if(!name) continue;
     if(SKIP.some(function(w){return name.indexOf(w)>=0;})) continue;
     if(name.match(/^\d{4}-/)||name.match(/^[0-9]/)) continue;
-    var payVal=parseInt((r[ci.pay]||'').replace(/,/g,''));
-    if(isNaN(payVal)&&!name) continue;
-    function gc(idx){return idx>=0?(r[idx]||'').trim():'-';}
+    if(!name.match(/[가-힣]/)) continue;  // 한글 없으면 스킵
+    function gv(idx){return (r[idx]||'').replace(/,/g,'').trim();}
     map[name]={
-      pay: gc(ci.pay),    // 총 신규결제
-      fee: (r[ci.fee]||'').replace(/,/g,'').trim(),  // 예상수수료
-      rank: gc(ci.rank),  // 총 결제 순위
-      w2: gc(ci.w2), w1: gc(ci.w1),  // 윙크표
-      m2: gc(ci.m2), m1: gc(ci.m1),  // 엄마표
-      wd: gc(ci.wd),  // 청약철회
-      ex: gc(ci.ex)   // 중도해지
+      pay:  gv(2),   fee:  gv(3),   rank: gv(4),
+      m1:   gv(6),   m2:   gv(7),   // 엄마표1년/2년
+      w1:   gv(8),   w2:   gv(9),   // 윙크표1년/2년
+      da1:  gv(10),                  // 단과1년
+      da2:  String(parseInt(gv(11)||'0')+(parseInt(gv(12)||'0'))),  // 단과2년 합산
+      dd:   gv(13),                  // 단단과
+      wm1:  gv(14),  wm2:  gv(15),  // 무교재엄마표
+      ww1:  gv(16),  ww2:  gv(17),  // 무교재윙크표
+      wd:   gv(90),  ex:   gv(91)   // 청약철회/중도해지
     };
   }
   return map;
@@ -2859,11 +2854,23 @@ function showPerfPopup(el){
           '&nbsp;·&nbsp;<span style="font-weight:400;color:#94a3b8;">예상수수료 </span>'+
           '<span style="font-weight:800;color:#1e40af;">'+_fmtFee(d.fee)+'</span>'+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:6px;">'+
-          _prd('윙크표2년',d.w2,'#3b82f6')+
-          _prd('윙크표1년',d.w1,'#3b82f6')+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:6px;">'+
           _prd('엄마표2년',d.m2,'#6366f1')+
           _prd('엄마표1년',d.m1,'#6366f1')+
+          _prd('윙크표2년',d.w2,'#3b82f6')+
+          _prd('윙크표1년',d.w1,'#3b82f6')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:6px;">'+
+          _prd('무교재엄마2',d.wm2,'#a78bfa')+
+          _prd('무교재엄마1',d.wm1,'#a78bfa')+
+          _prd('무교재윙크2',d.ww2,'#60a5fa')+
+          _prd('무교재윙크1',d.ww1,'#60a5fa')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:6px;">'+
+          _prd('단과2년',d.da2,'#10b981')+
+          _prd('단과1년',d.da1,'#10b981')+
+          _prd('단단과',d.dd,'#34d399')+
+          '<div></div>'+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">'+
           _prd('청약철회',d.wd,'#dc2626')+
