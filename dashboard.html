@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 18:04</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 18:09</span></span>
 </div>
 
 <div class="page">
@@ -334,7 +334,7 @@ tbody tr:hover td{background:var(--accent-lt);}
         </div>
 
         <!-- 하단: 5열 정보 패널 -->
-        <div style="display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr;border-top:0;gap:0;align-items:stretch;overflow:hidden;">
+        <div id="liveBottomPanel" style="display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr;border-top:0;gap:0;align-items:stretch;overflow:hidden;">
 
           <!-- 상품별 -->
           <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;height:100%;">
@@ -375,7 +375,7 @@ tbody tr:hover td{background:var(--accent-lt);}
           </div>
 
           <!-- 시간대별 결제 (테이블) -->
-          <div style="padding:5px 8px;">
+          <div id="liveTlCol" style="padding:5px 8px;">
             <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간대별</div>
             <div style="overflow-x:auto;">
               <table class="live-tl-table" style="min-width:140px;">
@@ -2201,6 +2201,16 @@ function renderLive() {
 
   // 수기 입력 목록은 renderManualList()에서 독립 렌더링
   renderManualList();
+
+  // 시간대별 컬럼 높이 기준으로 패널 고정 (스크롤 처리)
+  requestAnimationFrame(function(){
+    var tlCol = document.getElementById('liveTlCol');
+    var panel = document.getElementById('liveBottomPanel');
+    if(tlCol && panel){
+      var h = tlCol.scrollHeight;
+      panel.style.height = h + 'px';
+    }
+  });
 }
 
 
