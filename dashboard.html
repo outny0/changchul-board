@@ -7,30 +7,36 @@
 <style>
 /* ── 모던 라이트 테마 ──────────────────── */
 :root{
-  --bg:#f4f5f9;
+  --bg:#edf1f7;
   --card:#ffffff;
-  --card2:#f8f9fc;
-  --border:#eaecf2;
-  --border2:#f0f2f7;
-  --txt:#1e1e2e;
-  --txt2:#6b7280;
-  --txt3:#9ca3af;
-  --accent:#6366f1;
-  --accent-lt:#eef2ff;
-  --accent-md:#c7d2fe;
+  --card2:#f3f6fb;
+  --border:#dde3ed;
+  --border2:#e8edf5;
+  --txt:#0f1c33;
+  --txt2:#3d5170;
+  --txt3:#7b90aa;
+  --accent:#1a3a6b;
+  --accent-lt:#e6eef8;
+  --accent-md:#b5c9e8;
+  --red:#e63946;
+  --red-lt:#fdecea;
+  --navy:#1a3a6b;
+  --navy-dk:#0f2448;
+  --navy-md:#243558;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--txt);font-size:13px;}
 
 /* HEADER */
-.hdr{background:linear-gradient(135deg,#1e1b4b,#312e81,#4338ca);padding:8px 20px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(67,56,202,.25);}
-.hdr-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-.hdr-title{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0;}
+.hdr{background:#1a3a6b;padding:0;display:flex;flex-direction:column;gap:0;position:sticky;top:0;z-index:100;box-shadow:0 3px 14px rgba(10,30,70,.3);}
+.hdr-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:9px 18px;border-bottom:4px solid #e63946;}
+.hdr-title{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.hdr-logo{width:32px;height:32px;background:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#1a3a6b;font-size:17px;font-weight:800;flex-shrink:0;line-height:1;}
 .hdr-date{font-size:11px;color:rgba(255,255,255,.45);white-space:nowrap;flex-shrink:0;}
 .hdr-pills{display:flex;align-items:center;gap:5px;flex:1;flex-wrap:wrap;}
 
 .pill{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:600;white-space:nowrap;}
-.p-gray{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.2);}
+.p-gray{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.25);}
 .p-blue{background:rgba(199,210,254,.25);color:#c7d2fe;border:1px solid rgba(199,210,254,.4);}
 .p-pink{background:rgba(247,37,133,.2);color:#fba5c8;border:1px solid rgba(247,37,133,.35);}
 .p-amber{background:rgba(251,191,36,.2);color:#fde68a;border:1px solid rgba(251,191,36,.35);}
@@ -38,7 +44,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .p-violet{background:rgba(196,181,253,.25);color:#ddd6fe;border:1px solid rgba(196,181,253,.4);}
 
 /* UPLOAD BAR */
-.upload-bar{background:#fff;border-bottom:1px solid var(--border);padding:7px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.upload-bar{background:#fff;border-bottom:2px solid #e63946;padding:6px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .up-item{display:flex;align-items:center;gap:6px;}
 .up-label{font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;}
 .up-status{font-size:10px;color:var(--txt3);white-space:nowrap;}
@@ -48,20 +54,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .file-btn:hover{background:var(--border);}
 .file-input{display:none;}
 .vd{width:1px;height:18px;background:var(--border);flex-shrink:0;}
-.pay-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid var(--accent-md);background:var(--accent-lt);cursor:pointer;color:var(--accent);white-space:nowrap;}
-.pay-btn:hover{background:var(--accent-md);}
+.pay-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid #b5c9e8;background:#e6eef8;cursor:pointer;color:#1a3a6b;white-space:nowrap;font-weight:600;}
+.pay-btn:hover{background:#b5c9e8;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.spn{display:inline-block;width:9px;height:9px;border:2px solid rgba(0,0,0,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:3px;}
+.spn{display:inline-block;width:9px;height:9px;border:2px solid rgba(0,0,0,.1);border-top-color:#1a3a6b;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:3px;}
 .up-hint{font-size:10px;color:var(--txt3);margin-left:auto;}
 
 /* PAGE */
 .page{padding:14px 18px;display:flex;flex-direction:column;gap:14px;}
-.sec-lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#374151;margin-bottom:8px;padding-left:8px;border-left:3px solid var(--accent);}
+.sec-lbl{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#1a3a6b;margin-bottom:8px;padding-left:10px;border-left:4px solid #e63946;display:flex;align-items:center;gap:5px;}
 
 /* TEAM CARDS */
 .team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 @media(max-width:900px){.team-row{grid-template-columns:repeat(2,1fr);}}
-.team-card{background:#fff;border-radius:12px;border-top:3px solid;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.team-card{background:#fff;border-radius:10px;border-top:4px solid;overflow:hidden;box-shadow:0 2px 8px rgba(10,30,70,.07);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
 .tc-hdr{padding:10px 12px 8px;display:flex;align-items:center;justify-content:space-between;}
 .tc-name{font-size:13px;font-weight:700;color:var(--txt);}
 .tc-badge{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;}
@@ -95,9 +101,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 /* KPI GRID */
 .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
 @media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
-.kpi-box{background:#fff;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05);}
-.kpi-lbl{font-size:10px;color:var(--txt3);margin-bottom:4px;}
-.kpi-val{font-size:28px;font-weight:800;color:var(--txt);letter-spacing:-.02em;}
+.kpi-box{background:#fff;border-radius:8px;padding:10px 12px;text-align:center;box-shadow:0 1px 4px rgba(10,30,70,.07);border:1px solid var(--border);border-top:3px solid #1a3a6b;position:relative;}
+.kpi-lbl{font-size:9px;font-weight:700;color:#1a3a6b;margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase;}
+.kpi-val{font-size:26px;font-weight:800;color:#0f1c33;letter-spacing:-.02em;}
 .kpi-sub{font-size:10px;color:var(--txt3);margin-top:2px;}
 .kv-good{color:#059669;}
 .kv-warn{color:#d97706;}
@@ -114,10 +120,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .week-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 .week-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s;}
 .week-hdr:hover{background:var(--card2);}
-.week-hdr.open{background:var(--accent-lt);}
+.week-hdr.open{background:#e6eef8;}
+.week-hdr.open .wk-label{color:#1a3a6b;}
 .wk-label{font-size:12px;font-weight:700;color:var(--txt);min-width:42px;}
 .wk-range{font-size:11px;color:var(--txt3);min-width:80px;}
-.wk-today{font-size:10px;padding:2px 7px;border-radius:4px;background:#fef3c7;color:#b45309;border:1px solid #fde68a;}
+.wk-today{font-size:10px;padding:2px 7px;border-radius:4px;background:#fdecea;color:#e63946;border:1px solid #f9b8bc;font-weight:700;}
 .wk-total{display:flex;gap:14px;margin-left:auto;align-items:center;}
 .wk-stat{display:flex;align-items:center;gap:4px;}
 .wk-sn{font-size:10px;color:var(--txt3);}
@@ -133,8 +140,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .wtbl td{padding:5px 8px;color:var(--txt);}
 .team-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;}
 
-.daily-btn{font-size:10px;color:var(--accent);background:none;border:1px solid var(--accent-md);border-radius:5px;padding:3px 10px;cursor:pointer;margin-bottom:8px;}
-.daily-btn:hover{background:var(--accent-lt);}
+.daily-btn{font-size:10px;color:#1a3a6b;background:none;border:1px solid #b5c9e8;border-radius:5px;padding:3px 10px;cursor:pointer;margin-bottom:8px;}
+.daily-btn:hover{background:#e6eef8;}
 .daily-wrap{display:none;}
 .daily-wrap.open{display:block;}
 .dtbl{width:100%;border-collapse:collapse;font-size:11px;}
@@ -152,12 +159,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sa
 .tab-row{display:flex;gap:4px;}
 .tab-btn{font-size:10px;padding:3px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card2);cursor:pointer;color:var(--txt2);}
 .tab-btn:hover{background:var(--border);}
-.tab-btn.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.tab-btn.on{background:#1a3a6b;color:#fff;border-color:#1a3a6b;}
 table{width:100%;border-collapse:collapse;}
 thead th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--txt3);border-bottom:1px solid var(--border);white-space:nowrap;background:var(--card2);}
 tbody td{padding:7px 10px;font-size:11px;white-space:nowrap;color:var(--txt);}
 tbody tr:nth-child(even) td{background:var(--card2);}
-tbody tr:hover td{background:var(--accent-lt);}
+tbody tr:hover td{background:#e6eef8;}
 .td-name{font-weight:600;color:var(--txt);}
 .t-badge{font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;}
 .rh{color:#059669;font-weight:600;}
@@ -200,7 +207,7 @@ tbody tr:hover td{background:var(--accent-lt);}
 .rank-group-lbl{font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 12px;color:var(--txt3);text-transform:uppercase;}
 .rank-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:6px;padding:4px 12px;}
 .rank-badge{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;}
-.rank-badge.top{background:#d1fae5;color:#059669;}
+.rank-badge.top{background:#deeaf8;color:#1a3a6b;}
 .rank-badge.bot{background:#fee2e2;color:#dc2626;}
 .rank-name{font-size:11px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rank-val{font-size:11px;font-weight:700;white-space:nowrap;}
@@ -214,11 +221,14 @@ tbody tr:hover td{background:var(--accent-lt);}
 
 <div class="hdr">
   <div class="hdr-top">
-    <div>
-      <div class="hdr-title">창출팀 월요약 대시보드</div>
-      <div class="hdr-date" id="hdrDate"></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="hdr-logo">i</div>
+      <div>
+        <div class="hdr-title">창출팀 월요약 대시보드</div>
+        <div class="hdr-date" id="hdrDate" style="font-size:10px;color:rgba(255,255,255,.55);margin-top:2px;"></div>
+      </div>
     </div>
-    <div class="hdr-pills" id="hdrPills">
+    <div class="hdr-pills" id="hdrPills" style="margin-left:auto;">
       <span class="pill p-gray">데이터 불러오는 중...</span>
     </div>
   </div>
@@ -236,7 +246,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 14:50</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 15:31</span></span>
 </div>
 
 <div class="page">
@@ -250,7 +260,7 @@ tbody tr:hover td{background:var(--accent-lt);}
       <!-- 주별 결제 현황 차트 -->
       <div style="margin-top:10px;" id="weekChartWrap">
         <div class="sec-lbl" style="margin-bottom:6px;">📈 주별 결제 현황</div>
-        <div id="weekChart" style="background:#fff;border-radius:8px;border:0.5px solid var(--border);padding:12px 10px 8px;"></div>
+        <div id="weekChart" style="background:#fff;border-radius:8px;border:1px solid var(--border);border-top:3px solid #1a3a6b;padding:12px 10px 8px;"></div>
       </div>
       <!-- 인입채널별 전환율 -->
       <div style="margin-top:10px;">
@@ -258,7 +268,7 @@ tbody tr:hover td{background:var(--accent-lt);}
           <div class="sec-lbl">📊 인입채널별 전환율
             <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
           </div>
-          <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid #e5e7eb;background:#fff;border-radius:10px;cursor:pointer;color:#6366f1;font-weight:600;">↻</button>
+          <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid #b5c9e8;background:#e6eef8;border-radius:10px;cursor:pointer;color:#1a3a6b;font-weight:600;">↻</button>
         </div>
         <div style="background:#fff;border-radius:8px;border:0.5px solid var(--border);overflow:hidden;">
           <div id="channelTable"></div>
@@ -283,7 +293,7 @@ tbody tr:hover td{background:var(--accent-lt);}
         </div>
         <div class="live-body" style="padding:10px 12px;">
           <!-- 팀별 박스 -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:#9ca3af;">오늘 결제 현황</span><span style="font-size:13px;font-weight:800;color:#1a1a2e;" id="liveTotalCnt">-</span></div><div class="live-team-row" id="liveTeamRow"><div class="live-team-box" id="liveBox_땅이팀"><div class="live-team-name">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_다래팀"><div class="live-team-name">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_해태팀"><div class="live-team-name">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_단비팀"><div class="live-team-name">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀">-</div><div class="live-team-sub">건</div></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-size:10px;font-weight:700;color:#9ca3af;">오늘 결제 현황</span><span style="font-size:13px;font-weight:800;color:#0f1c33;" id="liveTotalCnt">-</span></div><div class="live-team-row" id="liveTeamRow"><div class="live-team-box" id="liveBox_땅이팀"><div class="live-team-name">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_다래팀"><div class="live-team-name">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_해태팀"><div class="live-team-name">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀">-</div><div class="live-team-sub">건</div></div><div class="live-team-box" id="liveBox_단비팀"><div class="live-team-name">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀">-</div><div class="live-team-sub">건</div></div></div>
           <!-- 상품별 + 피드 -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
             <div>
@@ -312,7 +322,7 @@ tbody tr:hover td{background:var(--accent-lt);}
               <input id="manualProd" placeholder="상품명 (선택)"
                 style="font-size:11px;padding:5px 8px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;">
               <button onclick="addManualEntry()"
-                style="padding:5px 10px;background:#6366f1;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">추가</button>
+                style="padding:5px 10px;background:#1a3a6b;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">추가</button>
             </div>
             <div id="manualEntryList"></div>
           </div>
