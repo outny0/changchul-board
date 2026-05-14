@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:57</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 21:06</span></span>
 </div>
 
 <div class="page">
@@ -2647,12 +2647,12 @@ function renderValidation(data) {
 <div id="perfPopup" onclick="if(event.target===this)closePerfPopup()"
   style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9999;
          align-items:center;justify-content:center;backdrop-filter:blur(3px);">
-  <div style="background:#fff;border-radius:18px;width:400px;max-width:95vw;
-              padding:24px 24px 20px;box-shadow:0 24px 64px rgba(0,0,0,.22);position:relative;">
+  <div id="perfPopupBox" style="background:#fff;border-radius:18px;width:620px;max-width:97vw;max-height:92vh;overflow-y:auto;
+              padding:0;box-shadow:0 24px 64px rgba(0,0,0,.22);position:relative;">
     <button onclick="closePerfPopup()"
       style="position:absolute;top:14px;right:16px;background:none;border:none;
-             font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;">×</button>
-    <div id="perfPopupBody"><div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:13px;">불러오는 중…</div></div>
+             font-size:22px;cursor:pointer;color:#94a3b8;line-height:1;z-index:1;">×</button>
+    <div id="perfPopupBody"></div>
   </div>
 </div>
 
@@ -2660,13 +2660,14 @@ function renderValidation(data) {
 /* ═══════════════════════════════════════════════════════
    선생님 성과 팝업  (일일업뎃 · 주간업뎃 IMPORTRANGE 탭)
    ═══════════════════════════════════════════════════════ */
-var _perfDaily   = null;  // { 교사명: {pay,fee,rank} }
-var _perfWeekly  = null;  // { 교사명: {convRate,convRank,payCount,avgTalk,avgCall,loginRate} }
-var _perfMonthly = null;  // { 교사명: {endCount,payCount,convRate,rank} }
+var _perfDaily   = null;
+var _perfWeekly  = null;
+var _perfMonthly = null;
+var _perfAvg     = {};   // 창출실 합계 기준 평균
+var _perfDebug   = {};
 
 function _normPN(n){ return (n||'').replace(/[♥★✏]/g,'').trim(); }
 
-/* 간단한 RFC-4180 CSV 파서 */
 function _parseCSV(txt){
   var rows=[]; var inQ=false; var buf=''; var cells=[];
   for(var i=0;i<txt.length;i++){
@@ -2682,18 +2683,10 @@ function _parseCSV(txt){
   return rows;
 }
 
-/* 일일업뎃 CSV 파싱 — VLOOKUP 수식 기반 고정 컬럼 인덱스
-   Sheet col A=CSV0, B=CSV1(교사명), C=CSV2(신규결제), D=CSV3(수수료), E=CSV4(순위)
-   G=CSV6(엄마표1년), H=CSV7(엄마표2년), I=CSV8(윙크표1년), J=CSV9(윙크표2년)
-   K=CSV10(단과1년), L=CSV11(단과2년-a), M=CSV12(단과2년-b), N=CSV13(단단과)
-   O=CSV14(무교재엄마표1년), P=CSV15(무교재엄마표2년)
-   Q=CSV16(무교재윙크표1년), R=CSV17(무교재윙크표2년)
-   CM=CSV90(청약철회), CN=CSV91(중도해지)
-*/
+/* 일일업뎃 파싱 — VLOOKUP 기반 고정 컬럼 */
 function _parseDailyCSV(csv){
   var map={};
   var rows=_parseCSV(csv);
-  // 데이터 시작행: col1이 날짜가 아니고 교사명인 첫 번째 행 (헤더+합계 2행 스킵)
   var dataStart=3;
   for(var i=0;i<Math.min(rows.length,8);i++){
     var c2=(rows[i][2]||'');
@@ -2703,200 +2696,236 @@ function _parseDailyCSV(csv){
   for(var i=dataStart;i<rows.length;i++){
     var r=rows[i];
     var name=_normPN(r[1]);
-    if(!name) continue;
+    if(!name||!name.match(/[가-힣]/)) continue;
     if(SKIP.some(function(w){return name.indexOf(w)>=0;})) continue;
-    if(name.match(/^\d{4}-/)||name.match(/^[0-9]/)) continue;
-    if(!name.match(/[가-힣]/)) continue;  // 한글 없으면 스킵
+    if(name.match(/^\d/)) continue;
     function gv(idx){return (r[idx]||'').replace(/,/g,'').trim();}
     map[name]={
-      pay:  gv(2),   fee:  gv(3),   rank: gv(4),
-      m1:   gv(6),   m2:   gv(7),   // 엄마표1년/2년
-      w1:   gv(8),   w2:   gv(9),   // 윙크표1년/2년
-      da1:  gv(10),                  // 단과1년
-      da2:  String(parseInt(gv(11)||'0')+(parseInt(gv(12)||'0'))),  // 단과2년 합산
-      dd:   gv(13),                  // 단단과
-      wm1:  gv(14),  wm2:  gv(15),  // 무교재엄마표
-      ww1:  gv(16),  ww2:  gv(17),  // 무교재윙크표
-      wd:   gv(90),  ex:   gv(91)   // 청약철회/중도해지
+      pay:gv(2), fee:gv(3), rank:gv(4),
+      m1:gv(6),  m2:gv(7),
+      w1:gv(8),  w2:gv(9),
+      da1:gv(10),
+      da2:String((parseInt(gv(11))||0)+(parseInt(gv(12))||0)),
+      dd:gv(13),
+      wm1:gv(14), wm2:gv(15),
+      ww1:gv(16), ww2:gv(17),
+      wd:gv(90),  ex:gv(91)
     };
   }
   return map;
 }
 
-/* 주간업뎃 CSV 파싱
-   한 행에 두 섹션이 나란히 있음:
-   - 월누적: col1=교사명, col2=종료수, col3=결제수, col4=전환율, col5=랭킹
-   - 주간등급: col7=교사명, col8=전환율(1주), col9=전환율랭킹, col10=결제수,
-               col11=평균통화, col12=평균콜수, col13=로그인율, col20=등급
-*/
+/* 주간업뎃 파싱 */
 function _parseWeeklyCSV(csv){
   var wMap={}, mMap={};
   var rows=_parseCSV(csv);
   var SKIP=['교사명','전체','창출실','시작일','마감일','업데이트','평균',':-:','랭킹',
-            '주간등급','월누적','팀','합계','점수','등급','통화','전환율'];
+            '주간등급','월누적','점수','등급','통화','전환율','팀','합계'];
   function isTeacher(n){
-    if(!n||n.match(/^\d/)||n.match(/^[0-9.,:%]+$/)) return false;
+    if(!n||!n.match(/[가-힣]/)) return false;
     return !SKIP.some(function(w){return n.indexOf(w)>=0;});
   }
   for(var i=0;i<rows.length;i++){
     var r=rows[i];
-    // 월누적 섹션: col1에 교사명
+    // 월누적: col1
     var nm1=_normPN(r[1]);
-    if(isTeacher(nm1)&&nm1!='전체'&&nm1.indexOf('팀')<0){
+    if(nm1==='창출실 합계'||nm1==='창출실합계'){
+      _perfAvg.endCount=r[2]||''; _perfAvg.payCount=r[3]||'';
+      _perfAvg.convRate=r[4]||''; // 11.2% 등
+    }
+    if(isTeacher(nm1)&&nm1.indexOf('팀')<0){
       mMap[nm1]={endCount:(r[2]||'').trim(),payCount:(r[3]||'').trim(),
                  convRate:(r[4]||'').trim(),rank:(r[5]||'').trim()};
     }
-    // 주간등급 섹션: col7에 교사명
+    // 주간등급: col7
     var nm7=_normPN(r[7]);
     if(isTeacher(nm7)){
       wMap[nm7]={
-        convRate: (r[8]||'').trim(),   // 전환율(1주)
-        convRank: (r[9]||'').trim(),   // 전환율랭킹
-        payCount: (r[10]||'').trim(),  // 결제수
-        avgTalk:  (r[11]||'').trim(),  // 평균통화량
-        avgCall:  (r[12]||'').trim(),  // 평균콜수
-        loginRate:(r[13]||'').trim(),  // 로그인율
-        grade:    (r[20]||'').trim()   // 등급
+        convRate:(r[8]||'').trim(), convRank:(r[9]||'').trim(),
+        payCount:(r[10]||'').trim(),avgTalk:(r[11]||'').trim(),
+        avgCall:(r[12]||'').trim(), loginRate:(r[13]||'').trim(),
+        grade:(r[20]||'').trim()
       };
     }
   }
   return {weekly:wMap, monthly:mMap};
 }
 
-/* CSV 두 개 병렬 로드 (캐시) */
-var _perfDebug = {};
+/* 데이터 로드 */
+var _perfDebug={};
 function _loadPerfData(cb){
   if(_perfDaily!==null&&_perfWeekly!==null){cb();return;}
   var done=0;
   function tick(){if(++done===2)cb();}
   var base='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid=';
   fetch(base+DAILY_PERF_GID)
-    .then(function(r){
-      _perfDebug.dailyStatus=r.status;
-      return r.text();
-    })
-    .then(function(csv){
-      _perfDebug.dailyRaw=csv.slice(0,300);
-      _perfDaily=_parseDailyCSV(csv);
-      _perfDebug.dailyKeys=Object.keys(_perfDaily).slice(0,5);
-      tick();
-    })
+    .then(function(r){_perfDebug.dailyStatus=r.status;return r.text();})
+    .then(function(csv){_perfDaily=_parseDailyCSV(csv);tick();})
     .catch(function(e){_perfDebug.dailyErr=String(e);_perfDaily={};tick();});
   fetch(base+WEEKLY_PERF_GID)
-    .then(function(r){
-      _perfDebug.weeklyStatus=r.status;
-      return r.text();
-    })
-    .then(function(csv){
-      _perfDebug.weeklyRaw=csv.slice(0,600);
-      var p=_parseWeeklyCSV(csv);
-      _perfWeekly=p.weekly;_perfMonthly=p.monthly;
-      _perfDebug.weeklyKeys=Object.keys(_perfWeekly).slice(0,5);
-      tick();
-    })
+    .then(function(r){_perfDebug.weeklyStatus=r.status;return r.text();})
+    .then(function(csv){var p=_parseWeeklyCSV(csv);_perfWeekly=p.weekly;_perfMonthly=p.monthly;tick();})
     .catch(function(e){_perfDebug.weeklyErr=String(e);_perfWeekly={};_perfMonthly={};tick();});
 }
 
-/* 팝업 오픈 */
+/* ── 팝업 렌더 헬퍼 ── */
+function _gradeColor(g){
+  return {S:'#d97706',A:'#059669',B:'#2563eb',C:'#6b7280',D:'#dc2626'}[String(g).toUpperCase()]||'#64748b';
+}
+function _pct(v){return parseFloat((v||'').replace('%',''))||0;}
+function _timeToSec(t){
+  var p=(t||'').split(':');
+  if(p.length===3)return parseInt(p[0])*3600+parseInt(p[1])*60+parseInt(p[2]);
+  if(p.length===2)return parseInt(p[0])*60+parseInt(p[1]);
+  return 0;
+}
+function _fmtFee(v){
+  var n=parseInt((v||'').replace(/,/g,''));
+  return isNaN(n)?'-':n.toLocaleString()+'원';
+}
+function _num(v){
+  var n=parseInt((v||'').replace(/,/g,''));
+  return isNaN(n)?0:n;
+}
+
+/* 바 차트 한 줄 */
+function _bar(label, val, unit, pct, avgPct, color){
+  var w=Math.min(100,Math.max(0,pct)).toFixed(1);
+  var aw=Math.min(100,Math.max(0,avgPct)).toFixed(1);
+  return '<div style="margin-bottom:10px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">'+
+      '<span style="font-size:10px;color:#64748b;font-weight:600;">'+label+'</span>'+
+      '<span style="font-size:12px;font-weight:800;color:#1a1a2e;">'+val+' <span style="font-size:9px;font-weight:400;color:#94a3b8;">'+unit+'</span></span>'+
+    '</div>'+
+    '<div style="position:relative;height:6px;background:#e2e8f0;border-radius:4px;overflow:visible;">'+
+      '<div style="width:'+w+'%;height:100%;background:'+color+';border-radius:4px;opacity:.85;transition:width .4s;"></div>'+
+      (avgPct>0?'<div title="창출실 평균" style="position:absolute;top:-4px;left:'+aw+'%;width:2px;height:14px;background:#94a3b8;border-radius:1px;"></div>':'') +
+    '</div>'+
+  '</div>';
+}
+
+/* 상품행 */
+function _row(lbl,val,accent){
+  var n=_num(val);
+  var c=n>0?accent:(n<0?'#dc2626':'#cbd5e1');
+  return '<tr>'+
+    '<td style="padding:3px 0;font-size:11px;color:#475569;">'+lbl+'</td>'+
+    '<td style="padding:3px 8px;text-align:right;font-size:12px;font-weight:700;color:'+c+';">'+
+      (n>0?'+':'')+n+'건</td>'+
+    '<td style="padding:3px 0;width:80px;">'+
+      (n!==0?'<div style="height:4px;background:#f1f5f9;border-radius:2px;"><div style="width:'+
+      Math.min(100,Math.abs(n)/10*100).toFixed(0)+'%;height:100%;background:'+c+';border-radius:2px;opacity:.7;"></div></div>':'') +
+    '</td>'+
+  '</tr>';
+}
+
+/* ── 팝업 오픈 ── */
 function showPerfPopup(el){
-  var rawName=(el.textContent||el.innerText||'').replace(/✏/g,'').trim();
-  var name=_normPN(rawName);
+  var name=_normPN(el.textContent||el.innerText||'');
   var popup=document.getElementById('perfPopup');
   var body=document.getElementById('perfPopupBody');
   if(!popup||!body) return;
-  body.innerHTML='<div style="text-align:center;padding:24px 0;color:#94a3b8;font-size:13px;">불러오는 중…</div>';
+  body.innerHTML='<div style="padding:40px;text-align:center;color:#94a3b8;">불러오는 중…</div>';
   popup.style.display='flex';
 
   _loadPerfData(function(){
     var d=_perfDaily[name]||{};
     var w=_perfWeekly[name]||{};
     var m=_perfMonthly[name]||{};
-    var noData=!Object.keys(d).length&&!Object.keys(w).length&&!Object.keys(m).length;
+    var gc=_gradeColor(w.grade);
 
-    function _st(lbl,val,accent){
-      return '<div style="text-align:center;padding:6px 4px;">'+
-        '<div style="font-size:15px;font-weight:800;color:'+(accent||'#1a1a2e')+';line-height:1.2;">'+val+'</div>'+
-        '<div style="font-size:9px;color:#94a3b8;margin-top:3px;letter-spacing:.03em;">'+lbl+'</div>'+
-      '</div>';
-    }
-    function _fmtFee(v){
-      var n=parseInt((v||'').replace(/,/g,''));
-      return isNaN(n)?'-':Number(n).toLocaleString()+'원';
-    }
-
-    var html='<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">'+
-      '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);'+
-           'display:flex;align-items:center;justify-content:center;font-size:18px;">👩‍💼</div>'+
-      '<div>'+
-        '<div style="font-size:17px;font-weight:900;color:#1a1a2e;">'+name+'</div>'+
+    // ── 헤더 ──
+    var hdr='<div style="display:flex;align-items:center;gap:12px;padding:20px 24px 16px;border-bottom:1px solid #f1f5f9;">'+
+      '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);'+
+           'display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">👩‍💼</div>'+
+      '<div style="flex:1;">'+
+        '<div style="font-size:18px;font-weight:900;color:#1a1a2e;">'+name+'</div>'+
         '<div style="font-size:11px;color:#94a3b8;margin-top:1px;">성과 현황</div>'+
       '</div>'+
+      (w.grade?'<div style="font-size:28px;font-weight:900;padding:6px 16px;border-radius:12px;background:'+gc+'22;color:'+gc+';">'+w.grade+'</div>':'')+
     '</div>';
 
+    // ── 2컬럼 바디 ──
+    var noData=!Object.keys(d).length&&!Object.keys(w).length;
+    var body2;
     if(noData){
-      html+='<div style="text-align:center;padding:16px;color:#94a3b8;font-size:12px;">데이터를 불러올 수 없습니다.<br><span style="font-size:10px;">시트 IMPORTRANGE 연결 또는 공유 설정을 확인해 주세요.</span></div>';
+      body2='<div style="padding:32px;text-align:center;color:#94a3b8;">데이터를 불러올 수 없습니다.<br><small>시트 IMPORTRANGE 연결을 확인해 주세요.</small></div>';
     } else {
-      // ── 일일업뎃: 상품별 + 청약철회/중도해지 + 순위/수수료 ──
-      function _n(v){var n=parseInt((v||'').replace(/,/g,''));return isNaN(n)?0:n;}
-      function _prd(lbl,val,accent){
-        var n=_n(val);
-        var color=n>0?accent:(n<0?'#dc2626':'#9ca3af');
-        return '<div style="text-align:center;padding:4px 2px;">'+
-          '<div style="font-size:14px;font-weight:800;color:'+color+';">'+(n!==0?n+'건':'-')+'</div>'+
-          '<div style="font-size:8px;color:#94a3b8;margin-top:2px;">'+lbl+'</div>'+
-        '</div>';
-      }
-      html+='<div style="background:#f8fafc;border-radius:12px;padding:12px 16px;margin-bottom:8px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.06em;margin-bottom:6px;">'+
-          '📅 이번 달 (일별 업뎃) &nbsp;'+
-          '<span style="font-weight:400;color:#94a3b8;">순위 </span>'+
-          '<span style="font-weight:800;color:#1e40af;">'+(d.rank||'-')+'</span>'+
-          '&nbsp;·&nbsp;<span style="font-weight:400;color:#94a3b8;">예상수수료 </span>'+
-          '<span style="font-weight:800;color:#1e40af;">'+_fmtFee(d.fee)+'</span>'+
+      // ── 왼쪽: 이번 달 상품 테이블 ──
+      var rankStr=(d.rank||'-');
+      var left='<div style="padding:16px 20px;border-right:1px solid #f1f5f9;min-width:0;">'+
+        '<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.07em;margin-bottom:8px;">'+
+          '📅 이번 달 &nbsp;'+
+          '<span style="font-weight:400;">순위</span> <b style="color:#1e40af;">'+rankStr+'</b>'+
+          '&nbsp;·&nbsp;<span style="font-weight:400;">예상수수료</span> <b style="color:#1e40af;">'+_fmtFee(d.fee)+'</b>'+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:6px;">'+
-          _prd('엄마표2년',d.m2,'#6366f1')+
-          _prd('엄마표1년',d.m1,'#6366f1')+
-          _prd('윙크표2년',d.w2,'#3b82f6')+
-          _prd('윙크표1년',d.w1,'#3b82f6')+
+        '<table style="width:100%;border-collapse:collapse;">'+
+          '<thead><tr>'+
+            '<th style="font-size:8px;color:#94a3b8;font-weight:600;text-align:left;padding-bottom:4px;border-bottom:1px solid #f1f5f9;">상품</th>'+
+            '<th style="font-size:8px;color:#94a3b8;font-weight:600;text-align:right;padding-bottom:4px;border-bottom:1px solid #f1f5f9;">결제</th>'+
+            '<th style="font-size:8px;color:#94a3b8;font-weight:600;text-align:right;padding-bottom:4px;border-bottom:1px solid #f1f5f9;"></th>'+
+          '</tr></thead><tbody>'+
+          _row('엄마표 2년', d.m2, '#6366f1')+
+          _row('엄마표 1년', d.m1, '#6366f1')+
+          _row('윙크표 2년', d.w2, '#3b82f6')+
+          _row('윙크표 1년', d.w1, '#3b82f6')+
+          _row('무교재 엄마표 2년', d.wm2, '#8b5cf6')+
+          _row('무교재 엄마표 1년', d.wm1, '#8b5cf6')+
+          _row('무교재 윙크표 2년', d.ww2, '#60a5fa')+
+          _row('무교재 윙크표 1년', d.ww1, '#60a5fa')+
+          _row('단과 2년', d.da2, '#10b981')+
+          _row('단과 1년', d.da1, '#10b981')+
+          _row('단단과', d.dd, '#34d399')+
+          '<tr><td colspan="3" style="padding:6px 0 4px;border-top:1px solid #f1f5f9;"></td></tr>'+
+          _row('청약철회', d.wd, '#ef4444')+
+          _row('중도해지', d.ex, '#f97316')+
+        '</tbody></table>'+
+      '</div>';
+
+      // ── 오른쪽: 이번 주 바 차트 ──
+      var avgConvRate=_pct(_perfAvg.convRate||'11%');
+      var avgTalkSec=_timeToSec('1:22:26'); // 통화시간 창출실 평균
+      var avgLogin=65; // 로그인율 평균 추정
+
+      var wConvPct=_pct(w.convRate);
+      var wTalkSec=_timeToSec(w.avgTalk);
+      var wLogin=_pct(w.loginRate);
+
+      var maxConv=Math.max(avgConvRate*2, wConvPct, 30);
+      var maxTalk=Math.max(avgTalkSec*1.5, wTalkSec, _timeToSec('3:00:00'));
+      var maxLogin=100;
+
+      var right='<div style="padding:16px 20px;min-width:0;">'+
+        '<div style="font-size:9px;font-weight:700;color:#0369a1;letter-spacing:.07em;margin-bottom:12px;">📊 이번 주</div>'+
+        '<div style="font-size:8px;color:#94a3b8;margin-bottom:10px;display:flex;align-items:center;gap:6px;">'+
+          '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="display:inline-block;width:20px;height:3px;background:#3b82f6;border-radius:2px;"></span>본인</span>'+
+          '<span style="display:inline-flex;align-items:center;gap:3px;"><span style="display:inline-block;width:2px;height:12px;background:#94a3b8;border-radius:1px;"></span>창출실 평균</span>'+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:6px;">'+
-          _prd('무교재엄마2',d.wm2,'#a78bfa')+
-          _prd('무교재엄마1',d.wm1,'#a78bfa')+
-          _prd('무교재윙크2',d.ww2,'#60a5fa')+
-          _prd('무교재윙크1',d.ww1,'#60a5fa')+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-bottom:6px;">'+
-          _prd('단과2년',d.da2,'#10b981')+
-          _prd('단과1년',d.da1,'#10b981')+
-          _prd('단단과',d.dd,'#34d399')+
-          '<div></div>'+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">'+
-          _prd('청약철회',d.wd,'#dc2626')+
-          _prd('중도해지',d.ex,'#f97316')+
+        _bar('전환율 (최근 1주)', w.convRate||'-', '',
+             maxConv>0?wConvPct/maxConv*100:0, maxConv>0?avgConvRate/maxConv*100:0, '#3b82f6')+
+        _bar('평균 통화시간', w.avgTalk||'-', '',
+             maxTalk>0?wTalkSec/maxTalk*100:0, maxTalk>0?avgTalkSec/maxTalk*100:0, '#6366f1')+
+        _bar('로그인율', w.loginRate||'-', '',
+             wLogin, avgLogin, '#10b981')+
+        '<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:1fr 1fr;gap:8px;">'+
+          _mini('전환율순위', w.convRank||'-')+
+          _mini('주간결제', w.payCount?(w.payCount+'건'):'-')+
+          _mini('평균 콜수', w.avgCall||'-')+
+          _mini('월 전환율', m.convRate?(m.convRate+' ('+m.rank+')'):'-')+
         '</div>'+
       '</div>';
-      // ── 주간업뎃: 등급 + 전환율 + 통화 ──
-      html+='<div style="background:#f0f9ff;border-radius:12px;padding:12px 16px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#0369a1;letter-spacing:.06em;margin-bottom:8px;">'+
-          '📊 이번 주 &nbsp;'+
-          '<span style="background:'+(w.grade?'#0369a1':'#e2e8f0')+';color:'+(w.grade?'#fff':'#94a3b8')+
-          ';padding:1px 7px;border-radius:10px;font-size:10px;font-weight:900;">'+(w.grade||'-')+'</span>'+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">'+
-          _st('전환율(1주)', w.convRate||'-', '#0369a1')+
-          _st('전환율순위', w.convRank||'-', '#0369a1')+
-          _st('주간결제', w.payCount?(w.payCount+'건'):'-', '#0369a1')+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px;">'+
-          _st('일평균통화', w.avgTalk||'-', '#0369a1')+
-          _st('평균콜수', w.avgCall||'-', '#0369a1')+
-        '</div>'+
-      '</div>';
+
+      body2='<div style="display:grid;grid-template-columns:1fr 1fr;align-items:start;">'+left+right+'</div>';
     }
-    body.innerHTML=html;
+    body.innerHTML=hdr+body2;
   });
+}
+
+function _mini(lbl,val){
+  return '<div style="background:#f8fafc;border-radius:8px;padding:7px 10px;text-align:center;">'+
+    '<div style="font-size:13px;font-weight:800;color:#1a1a2e;">'+val+'</div>'+
+    '<div style="font-size:8px;color:#94a3b8;margin-top:2px;">'+lbl+'</div>'+
+  '</div>';
 }
 
 function closePerfPopup(){
@@ -2907,4 +2936,3 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closePerfPop
 </script>
 
 </body>
-</html>
