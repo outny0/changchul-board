@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 19:51</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 19:53</span></span>
 </div>
 
 <div class="page">
@@ -2737,19 +2737,37 @@ function _parseWeeklyCSV(csv){
 }
 
 /* CSV 두 개 병렬 로드 (캐시) */
+var _perfDebug = {};
 function _loadPerfData(cb){
   if(_perfDaily!==null&&_perfWeekly!==null){cb();return;}
   var done=0;
   function tick(){if(++done===2)cb();}
   var base='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid=';
   fetch(base+DAILY_PERF_GID)
-    .then(function(r){return r.text();})
-    .then(function(csv){_perfDaily=_parseDailyCSV(csv);tick();})
-    .catch(function(){_perfDaily={};tick();});
+    .then(function(r){
+      _perfDebug.dailyStatus=r.status;
+      return r.text();
+    })
+    .then(function(csv){
+      _perfDebug.dailyRaw=csv.slice(0,300);
+      _perfDaily=_parseDailyCSV(csv);
+      _perfDebug.dailyKeys=Object.keys(_perfDaily).slice(0,5);
+      tick();
+    })
+    .catch(function(e){_perfDebug.dailyErr=String(e);_perfDaily={};tick();});
   fetch(base+WEEKLY_PERF_GID)
-    .then(function(r){return r.text();})
-    .then(function(csv){var p=_parseWeeklyCSV(csv);_perfWeekly=p.weekly;_perfMonthly=p.monthly;tick();})
-    .catch(function(){_perfWeekly={};_perfMonthly={};tick();});
+    .then(function(r){
+      _perfDebug.weeklyStatus=r.status;
+      return r.text();
+    })
+    .then(function(csv){
+      _perfDebug.weeklyRaw=csv.slice(0,200);
+      var p=_parseWeeklyCSV(csv);
+      _perfWeekly=p.weekly;_perfMonthly=p.monthly;
+      _perfDebug.weeklyKeys=Object.keys(_perfWeekly).slice(0,5);
+      tick();
+    })
+    .catch(function(e){_perfDebug.weeklyErr=String(e);_perfWeekly={};_perfMonthly={};tick();});
 }
 
 /* 팝업 오픈 */
@@ -2789,7 +2807,16 @@ function showPerfPopup(el){
     '</div>';
 
     if(noData){
-      html+='<div style="text-align:center;padding:20px;color:#94a3b8;font-size:12px;">데이터를 불러올 수 없습니다.<br>시트 공유 설정을 확인해 주세요.</div>';
+      var dbg=_perfDebug;
+      var dbgHtml='<div style="font-size:10px;color:#64748b;background:#f8fafc;border-radius:8px;padding:10px;margin-top:8px;text-align:left;word-break:break-all;">'+
+        '<b>조회 이름:</b> '+name+'<br>'+
+        '<b>일일 HTTP:</b> '+(dbg.dailyStatus||'?')+' / 파싱키: '+(dbg.dailyKeys?(dbg.dailyKeys.join(', ')||'없음'):'?')+'<br>'+
+        '<b>일일 오류:</b> '+(dbg.dailyErr||'없음')+'<br>'+
+        '<b>주간 HTTP:</b> '+(dbg.weeklyStatus||'?')+' / 파싱키: '+(dbg.weeklyKeys?(dbg.weeklyKeys.join(', ')||'없음'):'?')+'<br>'+
+        '<b>주간 오류:</b> '+(dbg.weeklyErr||'없음')+'<br>'+
+        '<b>일일 CSV 앞:</b><br><pre style="font-size:9px;overflow:auto;max-height:80px;">'+((dbg.dailyRaw||'').replace(/</g,'&lt;'))+'</pre>'+
+      '</div>';
+      html+='<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12px;">데이터를 불러올 수 없습니다.</div>'+dbgHtml;
     } else {
       // 당일
       html+='<div style="background:#f8fafc;border-radius:12px;padding:12px 16px;margin-bottom:10px;">'+
