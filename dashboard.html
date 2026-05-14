@@ -199,7 +199,7 @@ tbody tr:hover td{background:var(--accent-lt);}
 .kv-bad{color:#dc2626;}
 
 /* ── LIVE 결제 ──────────────────────────────────────── */
-.live-section{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 6px rgba(30,50,120,.05);}
+.live-section{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 6px rgba(30,50,120,.05);display:flex;flex-direction:column;}
 .live-hdr{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
 .live-dot{width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2);animation:livepulse 1.5s infinite;}
 @keyframes livepulse{0%,100%{box-shadow:0 0 0 3px rgba(16,185,129,.2);}50%{box-shadow:0 0 0 6px rgba(16,185,129,.08);}}
@@ -217,6 +217,9 @@ tbody tr:hover td{background:var(--accent-lt);}
 .live-team-sub{font-size:10px;color:var(--txt3);margin-top:2px;}
 .live-timeline{border-top:1px solid var(--border);padding-top:10px;}
 .live-tl-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+#liveProdBody::-webkit-scrollbar,#liveTchBody::-webkit-scrollbar,#livePathBody::-webkit-scrollbar{width:3px;}
+#liveProdBody::-webkit-scrollbar-track,#liveTchBody::-webkit-scrollbar-track,#livePathBody::-webkit-scrollbar-track{background:transparent;}
+#liveProdBody::-webkit-scrollbar-thumb,#liveTchBody::-webkit-scrollbar-thumb,#livePathBody::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px;}
 .live-tl-table th{background:var(--card2);color:var(--txt3);font-size:10px;font-weight:700;padding:4px 6px;text-align:right;border:1px solid var(--border);}
 .live-tl-table th:first-child{text-align:left;width:36px;}
 .live-tl-table td{padding:4px 6px;text-align:right;font-size:11px;border:1px solid var(--border2);}
@@ -280,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 17:13</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 17:56</span></span>
 </div>
 
 <div class="page">
@@ -331,29 +334,29 @@ tbody tr:hover td{background:var(--accent-lt);}
         </div>
 
         <!-- 하단: 5열 정보 패널 -->
-        <div style="display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr;border-top:0;gap:0;">
+        <div style="display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr;border-top:0;gap:0;flex:1;min-height:0;overflow:hidden;">
 
           <!-- 상품별 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">상품별</div>
-            <div id="liveProdBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">상품별</div>
+            <div id="liveProdBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
 
           <!-- 시간순 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간순</div>
-            <div id="liveTchBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">시간순</div>
+            <div id="liveTchBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
           </div>
 
           <!-- 가입경로 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">가입경로</div>
-            <div id="livePathBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;min-height:0;overflow:hidden;">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">가입경로</div>
+            <div id="livePathBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
 
           <!-- 수기 결제 입력 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;min-height:0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-shrink:0;">
               <span style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;">수기 입력</span>
               <button onclick="clearManualEntries()" style="font-size:9px;padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">초기화</button>
             </div>
@@ -372,9 +375,9 @@ tbody tr:hover td{background:var(--accent-lt);}
           </div>
 
           <!-- 시간대별 결제 (테이블) -->
-          <div style="padding:5px 8px;">
-            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간대별</div>
-            <div style="overflow-x:auto;">
+          <div style="padding:5px 8px;display:flex;flex-direction:column;min-height:0;">
+            <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">시간대별</div>
+            <div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;">
               <table class="live-tl-table" style="min-width:140px;">
                 <thead><tr>
                   <th style="font-size:9px;padding:3px 4px;">시</th>
