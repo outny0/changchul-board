@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 18:09</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 18:11</span></span>
 </div>
 
 <div class="page">
@@ -337,25 +337,25 @@ tbody tr:hover td{background:var(--accent-lt);}
         <div id="liveBottomPanel" style="display:grid;grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr;border-top:0;gap:0;align-items:stretch;overflow:hidden;">
 
           <!-- 상품별 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;height:100%;">
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;">
             <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">상품별</div>
             <div id="liveProdBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
 
           <!-- 시간순 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;height:100%;">
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;">
             <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">시간순</div>
             <div id="liveTchBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
           </div>
 
           <!-- 가입경로 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;height:100%;">
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;">
             <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">가입경로</div>
             <div id="livePathBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
 
           <!-- 수기 결제 입력 -->
-          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;height:100%;">
+          <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-shrink:0;">
               <span style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;">수기 입력</span>
               <button onclick="clearManualEntries()" style="font-size:9px;padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">초기화</button>
@@ -2202,15 +2202,16 @@ function renderLive() {
   // 수기 입력 목록은 renderManualList()에서 독립 렌더링
   renderManualList();
 
-  // 시간대별 컬럼 높이 기준으로 패널 고정 (스크롤 처리)
-  requestAnimationFrame(function(){
-    var tlCol = document.getElementById('liveTlCol');
+  // 시간대별 행 수 기반 패널 고정 높이 계산
+  (function(){
     var panel = document.getElementById('liveBottomPanel');
-    if(tlCol && panel){
-      var h = tlCol.scrollHeight;
-      panel.style.height = h + 'px';
-    }
-  });
+    if(!panel) return;
+    // 헤더1행 + 데이터13행 × 행높이22px + 레이블22px + 상하패딩10px
+    var rowH = 22;
+    var rows = LIVE_HOURS.length + 1; // +1 헤더
+    var panelH = rows * rowH + 32; // 32 = 레이블+패딩
+    panel.style.height = panelH + 'px';
+  })();
 }
 
 
