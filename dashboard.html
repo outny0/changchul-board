@@ -225,12 +225,12 @@ tbody tr:hover td{background:var(--accent-lt);}
 /* ── 랭킹 ───────────────────────────────────────────── */
 .rank-section{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .rank-card{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 1px 4px rgba(30,50,120,.05);}
-.rank-card-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.rank-card-hdr{padding:8px 14px 10px;border-bottom:1px solid var(--border);border-top:3px solid transparent;display:flex;align-items:center;justify-content:space-between;}
 .rank-card-title{font-size:12px;font-weight:700;color:var(--txt);}
 .rank-card-formula{font-size:9px;color:var(--txt3);background:var(--card2);padding:2px 6px;border-radius:4px;}
 .rank-body{padding:4px 0;}
 .rank-group-lbl{font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 12px;color:var(--txt3);text-transform:uppercase;}
-.rank-row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:6px;padding:4px 12px;}
+.rank-row{display:flex;flex-direction:column;gap:0;padding:4px 12px;}
 .rank-badge{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;}
 .rank-badge.top{background:#dbeafe;color:#1d4ed8;}
 .rank-badge.bot{background:#fee2e2;color:#dc2626;}
@@ -277,7 +277,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 15:59</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 16:07</span></span>
 </div>
 
 <div class="page">
@@ -288,22 +288,32 @@ tbody tr:hover td{background:var(--accent-lt);}
     <div id="kpiGrid"></div>
   </div>
 
-  <!-- ── ROW 2: 주별차트 + 팀요약 + 실시간 ── -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 340px;gap:12px;align-items:start;">
+  <!-- ── ROW 2: 주별차트+마감 (좌) | 실시간 크게 (우) ── -->
+  <div style="display:grid;grid-template-columns:1fr 420px;gap:12px;align-items:start;">
 
-    <!-- 주별 결제 현황 -->
-    <div>
-      <div class="sec-lbl">주별 결제 현황</div>
-      <div id="weekChart"></div>
-      <!-- 팀별 요약 -->
-      <div id="summaryTbl" style="margin-top:10px;"></div>
-    </div>
+    <!-- 좌: 주별 결제 현황 + 팀요약 + 마감 + 채널 -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
 
-    <!-- 주별 마감 + 채널 전환율 -->
-    <div>
-      <div class="sec-lbl">주별 마감 현황</div>
-      <div class="week-list" id="weekList"></div>
-      <div style="margin-top:14px;">
+      <!-- 주별 결제 현황 -->
+      <div>
+        <div class="sec-lbl">주별 결제 현황</div>
+        <div id="weekChart"></div>
+      </div>
+
+      <!-- 팀별 요약 + 주별마감 2열 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;">
+        <div>
+          <div class="sec-lbl">팀별 요약</div>
+          <div id="summaryTbl"></div>
+        </div>
+        <div>
+          <div class="sec-lbl">주별 마감 현황</div>
+          <div class="week-list" id="weekList"></div>
+        </div>
+      </div>
+
+      <!-- 인입채널별 전환율 -->
+      <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div class="sec-lbl">인입채널별 전환율
             <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
@@ -316,45 +326,54 @@ tbody tr:hover td{background:var(--accent-lt);}
       </div>
     </div>
 
-    <!-- 실시간 결제 -->
+    <!-- 우: 실시간 결제 (크게) -->
     <div id="livePanel">
       <div class="sec-lbl">실시간 결제</div>
-      <div class="live-section">
-        <div class="live-hdr">
+      <div class="live-section" style="position:sticky;top:60px;">
+        <div class="live-hdr" style="background:linear-gradient(135deg,#1a3a6b,#2563eb);border-radius:13px 13px 0 0;">
           <div class="live-dot"></div>
-          <span class="live-title">오늘 결제</span>
-          <button class="live-btn" onclick="fetchLive()" style="margin-left:6px;">새로고침</button>
-          <span class="live-sub-txt" id="liveStatus" style="margin-left:auto;">불러오는 중...</span>
+          <span class="live-title" style="color:#fff;font-size:14px;">오늘 실시간 결제</span>
+          <button class="live-btn" onclick="fetchLive()" style="margin-left:6px;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;">새로고침</button>
+          <span class="live-sub-txt" id="liveStatus" style="margin-left:auto;color:rgba(255,255,255,.6);">불러오는 중...</span>
         </div>
-        <div class="live-body" style="padding:10px 12px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:10px;font-weight:700;color:var(--txt3);">오늘 결제 현황</span>
-            <span style="font-size:14px;font-weight:800;color:var(--txt);" id="liveTotalCnt">-</span>
+
+        <!-- 오늘 총 결제 크게 -->
+        <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border2);">
+          <div style="display:flex;align-items:baseline;gap:8px;justify-content:center;">
+            <span style="font-size:11px;color:var(--txt3);font-weight:600;">오늘 총 결제</span>
+            <span style="font-size:44px;font-weight:900;color:#1a3a6b;letter-spacing:-.04em;line-height:1;" id="liveTotalCnt">-</span>
+            <span style="font-size:16px;color:var(--txt3);font-weight:500;">건</span>
           </div>
-          <div class="live-team-row" id="liveTeamRow">
-            <div class="live-team-box" id="liveBox_땅이팀"><div class="live-team-name">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀">-</div><div class="live-team-sub">건</div></div>
-            <div class="live-team-box" id="liveBox_다래팀"><div class="live-team-name">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀">-</div><div class="live-team-sub">건</div></div>
-            <div class="live-team-box" id="liveBox_해태팀"><div class="live-team-name">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀">-</div><div class="live-team-sub">건</div></div>
-            <div class="live-team-box" id="liveBox_단비팀"><div class="live-team-name">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀">-</div><div class="live-team-sub">건</div></div>
+          <!-- 팀별 박스 -->
+          <div class="live-team-row" id="liveTeamRow" style="margin-top:10px;margin-bottom:0;">
+            <div class="live-team-box" id="liveBox_땅이팀" style="border-top:3px solid #f97316;"><div class="live-team-name" style="color:#ea580c;">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀" style="color:#ea580c;">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_다래팀" style="border-top:3px solid #ec4899;"><div class="live-team-name" style="color:#db2777;">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀" style="color:#db2777;">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_해태팀" style="border-top:3px solid #eab308;"><div class="live-team-name" style="color:#ca8a04;">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀" style="color:#ca8a04;">-</div><div class="live-team-sub">건</div></div>
+            <div class="live-team-box" id="liveBox_단비팀" style="border-top:3px solid #22c55e;"><div class="live-team-name" style="color:#16a34a;">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀" style="color:#16a34a;">-</div><div class="live-team-sub">건</div></div>
           </div>
+        </div>
+
+        <div class="live-body" style="padding:10px 14px;">
           <!-- 상품별 + 시간순 -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
             <div>
-              <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:4px;">상품별</div>
-              <div id="liveProdBody" style="max-height:180px;overflow-y:auto;"><div class="live-empty" style="padding:8px">-</div></div>
+              <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:5px;border-bottom:1px solid var(--border2);padding-bottom:4px;">상품별</div>
+              <div id="liveProdBody" style="max-height:220px;overflow-y:auto;"><div class="live-empty" style="padding:8px">-</div></div>
             </div>
             <div>
-              <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:4px;">시간순</div>
-              <div id="liveTchBody" style="max-height:180px;overflow-y:auto;"><div class="live-empty">-</div></div>
+              <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:5px;border-bottom:1px solid var(--border2);padding-bottom:4px;">시간순</div>
+              <div id="liveTchBody" style="max-height:220px;overflow-y:auto;"><div class="live-empty">-</div></div>
             </div>
           </div>
+
           <!-- 가입경로별 -->
-          <div style="margin-top:8px;border-top:1px solid var(--border2);padding-top:8px;">
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:6px;">가입경로별</div>
+          <div style="border-top:1px solid var(--border2);padding-top:8px;margin-bottom:8px;">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:5px;">가입경로별</div>
             <div id="livePathBody"><div class="live-empty" style="padding:4px">-</div></div>
           </div>
+
           <!-- 수기 결제 입력 -->
-          <div style="margin-top:8px;border-top:1px solid var(--border2);padding-top:8px;">
+          <div style="border-top:1px solid var(--border2);padding-top:8px;margin-bottom:10px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
               <span style="font-size:10px;font-weight:700;color:var(--txt3);">수기 결제 입력</span>
               <button onclick="clearManualEntries()" style="font-size:9px;padding:2px 8px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">전체 초기화</button>
@@ -372,9 +391,10 @@ tbody tr:hover td{background:var(--accent-lt);}
             </div>
             <div id="manualEntryList"></div>
           </div>
-          <!-- 시간대별 -->
-          <div style="margin-top:10px;border-top:1px solid var(--border2);padding-top:8px;">
-            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:6px;">시간대별</div>
+
+          <!-- 시간대별 결제 -->
+          <div style="border-top:1px solid var(--border2);padding-top:8px;">
+            <div style="font-size:10px;font-weight:700;color:var(--txt3);margin-bottom:6px;">시간대별 결제</div>
             <table class="live-tl-table">
               <thead><tr>
                 <th>시간</th>
@@ -1143,72 +1163,100 @@ function renderRanking(data) {
   var el = document.getElementById('rankingSection');
   if (!el) return;
 
-  // 종료 3건 이상 선생님만
-  // 종료 3건↑ AND 목표 3건↑ (목표=1~2는 휴직 등 비정상 제외)
-  var eligible = data.teachers.filter(function(t){ return (t.monthEnd||0)>=3 && (t.target||0)>=3; });
+  // 대상: 종료 1건 이상 & 목표 있는 선생님
+  var eligible = data.teachers.filter(function(t){
+    return (t.monthEnd||0) >= 1 && (t.target||0) >= 1;
+  });
   if (eligible.length < 2) {
-    el.innerHTML = '<div style="color:#9ca3af;font-size:11px;padding:8px 0;">데이터 부족 (종료 3건 이상 선생님이 2명 미만)</div>';
+    el.innerHTML = '<div style="color:var(--txt3);font-size:11px;padding:8px 0;">데이터 부족</div>';
     return;
   }
 
+  // monthPayment 기준으로 통일 (팀카드·KPI와 동일)
   var metrics = [
-    { title:'전환율', formula:'결제÷종료', icon:'🔄',
-      get: function(t){ return t.monthEnd>0 ? t.realPay/t.monthEnd*100 : 0; },
+    { title:'전환율', formula:'결제÷종료×100',
+      color:'#2563eb', colorLt:'#eff6ff',
+      get: function(t){ return t.monthEnd>0 ? t.monthPayment/t.monthEnd*100 : 0; },
       fmt: function(v){ return v.toFixed(1)+'%'; },
-      filter: function(t){ return t.monthEnd>0; }
+      filter: function(t){ return (t.monthEnd||0)>=1; },
+      maxVal: function(pool){ return Math.max.apply(null, pool.map(function(t){ return t.monthEnd>0?t.monthPayment/t.monthEnd*100:0; })); }
     },
-    { title:'달성률', formula:'결제÷목표', icon:'🎯',
-      get: function(t){ return t.target>0 ? t.realPay/t.target*100 : 0; },
+    { title:'달성률', formula:'결제÷목표×100',
+      color:'#0d9488', colorLt:'#f0fdfa',
+      get: function(t){ return t.target>0 ? t.monthPayment/t.target*100 : 0; },
       fmt: function(v){ return v.toFixed(1)+'%'; },
-      filter: function(t){ return t.target>0; }
+      filter: function(t){ return (t.target||0)>=1; },
+      maxVal: function(pool){ return Math.max.apply(null, pool.map(function(t){ return t.target>0?t.monthPayment/t.target*100:0; })); }
     },
-    { title:'전월대비', formula:data.prevMonthLabel||'전월', icon:'📈',
-      get: function(t){ return (t.realPay||0)-(t.prevPay||0); },
+    { title:'전월대비', formula: data.prevMonthLabel||'전월 대비',
+      color:'#7c3aed', colorLt:'#f5f3ff',
+      get: function(t){ return (t.monthPayment||0)-(t.prevPay||0); },
       fmt: function(v){ return (v>=0?'+':'')+v+'건'; },
-      filter: function(t){ return t.prevPay>0; }
+      filter: function(t){ return (t.prevPay||0)>0; },
+      maxVal: function(pool){ var vals=pool.map(function(t){return (t.monthPayment||0)-(t.prevPay||0);}); return Math.max.apply(null,vals.map(Math.abs))||1; }
     }
   ];
 
-  el.innerHTML = metrics.map(function(m){
+  el.innerHTML = metrics.map(function(m) {
     var pool = eligible.filter(m.filter);
-    if(pool.length < 2) return '<div class="rank-card"><div class="rank-card-hdr"><span class="rank-card-title">'+m.icon+' '+m.title+'</span><span class="rank-card-formula">'+m.formula+'</span></div><div style="padding:12px;font-size:11px;color:#9ca3af;">데이터 부족</div></div>';
+    if (pool.length < 2) {
+      return '<div class="rank-card">'
+        +'<div class="rank-card-hdr" style="border-top:3px solid '+m.color+';">'
+        +'<span class="rank-card-title" style="color:'+m.color+';">'+m.title+'</span>'
+        +'<span class="rank-card-formula">'+m.formula+'</span></div>'
+        +'<div style="padding:14px;font-size:11px;color:var(--txt3);">데이터 부족</div></div>';
+    }
 
     var sorted = pool.slice().sort(function(a,b){ return m.get(b)-m.get(a); });
-    var n = Math.min(3, Math.floor(sorted.length/2));
+    var n = Math.min(3, sorted.length);  // TOP 3 고정
     var top = sorted.slice(0, n);
-    var bot = sorted.slice(-n).reverse();
-    var avg = pool.reduce(function(s,t){ return s+m.get(t); },0)/pool.length;
+    var bot = sorted.slice(-Math.min(3, sorted.length)).reverse().filter(function(t){
+      return top.indexOf(t) === -1;
+    });
+    var avg = pool.reduce(function(s,t){ return s+m.get(t); }, 0) / pool.length;
+    var maxV = m.maxVal(pool) || 1;
 
-    var topRows = top.map(function(t,i){
-      return '<div class="rank-row">'+
-        '<div class="rank-badge top">'+(i+1)+'</div>'+
-        '<span class="rank-name" title="'+t.team+'">'+t.name+'</span>'+
-        '<span class="rank-val tv">'+m.fmt(m.get(t))+'</span>'+
-      '</div>';
-    }).join('');
+    function rankRow(t, rank, isTop) {
+      var val = m.get(t);
+      var barPct = Math.min(100, Math.abs(val) / Math.abs(maxV) * 100);
+      var cfg2 = TEAM_CFG[t.team] || {};
+      var dotColor = cfg2.bar || '#94a3b8';
+      var badgeBg  = isTop ? m.colorLt : '#fef2f2';
+      var badgeTxt = isTop ? m.color   : '#dc2626';
+      var valCls   = isTop ? 'rank-val tv' : 'rank-val bv';
+      var barColor = isTop ? m.color : '#dc2626';
+      var rankLabel = isTop ? (rank+1) : '↓';
+      return '<div class="rank-row" style="flex-direction:column;align-items:stretch;padding:6px 12px;">'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+        +'<div class="rank-badge" style="background:'+badgeBg+';color:'+badgeTxt+';flex-shrink:0;">'+rankLabel+'</div>'
+        +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+dotColor+';flex-shrink:0;" title="'+t.team+'"></span>'
+        +'<span class="rank-name" style="flex:1;" title="'+t.team+'">'+t.name+'</span>'
+        +'<span class="'+valCls+'" style="color:'+(isTop?m.color:(val>=0?m.color:'#dc2626'))+';">'+m.fmt(val)+'</span>'
+        +'</div>'
+        +'<div style="margin-top:3px;margin-left:46px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;">'
+        +'<div style="width:'+barPct.toFixed(1)+'%;height:100%;background:'+barColor+';border-radius:2px;opacity:.7;"></div>'
+        +'</div>'
+        +'</div>';
+    }
 
-    var botRows = bot.map(function(t){
-      return '<div class="rank-row">'+
-        '<div class="rank-badge bot">↓</div>'+
-        '<span class="rank-name" title="'+t.team+'">'+t.name+'</span>'+
-        '<span class="rank-val bv">'+m.fmt(m.get(t))+'</span>'+
-      '</div>';
-    }).join('');
+    var topRows = top.map(function(t,i){ return rankRow(t,i,true); }).join('');
+    var botRows = bot.map(function(t,i){ return rankRow(t,i,false); }).join('');
 
-    return '<div class="rank-card">'+
-      '<div class="rank-card-hdr">'+
-        '<span class="rank-card-title">'+m.icon+' '+m.title+'</span>'+
-        '<span class="rank-card-formula">'+m.formula+'</span>'+
-      '</div>'+
-      '<div class="rank-body">'+
-        '<div class="rank-group-lbl">TOP</div>'+topRows+
-        '<hr class="rank-divider">'+
-        '<div class="rank-group-lbl">하위</div>'+botRows+
-      '</div>'+
-      '<div class="rank-footer">평균 '+m.fmt(avg)+' · 대상 '+pool.length+'명</div>'+
-    '</div>';
+    return '<div class="rank-card">'
+      +'<div class="rank-card-hdr" style="border-top:3px solid '+m.color+';">'
+      +'<span class="rank-card-title" style="color:'+m.color+';">'+m.title+'</span>'
+      +'<span class="rank-card-formula">'+m.formula+'</span>'
+      +'</div>'
+      +'<div class="rank-body">'
+      +'<div class="rank-group-lbl" style="color:'+m.color+';margin-top:4px;">▲ TOP</div>'
+      + topRows
+      +(bot.length ? '<hr class="rank-divider"><div class="rank-group-lbl" style="color:#dc2626;">▼ 하위</div>'+botRows : '')
+      +'</div>'
+      +'<div class="rank-footer">평균 '+m.fmt(avg)+' · 대상 '+pool.length+'명</div>'
+      +'</div>';
   }).join('');
 }
+
 
 // ─── 주별 마감 렌더 ──────────────────────────────────────
 var _weekData=[];
