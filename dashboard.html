@@ -236,7 +236,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/13 17:40</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#6366f1;background:none;border:none;cursor:pointer;text-decoration:underline;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 14:03</span></span>
 </div>
 
 <div class="page">
@@ -1573,9 +1573,10 @@ function parseLiveCSV(text) {
     var timeStr  = rawTime.replace(/^\d{4}-\d{2}-\d{2}[T ]/,'');
     var time = timeStr.slice(0,5); // 표시용 HH:MM
     if(!time || time.length<4) continue;
-    // 시간 버킷: 정각(MM=0,SS=0)이면 해당 시, 이후면 다음 시
+    // 시간 버킷: 정각(MM=0,SS=0)이면 해당 시, 이후면 다음 시 / 22시 이후는 22시로 통합
     var _tp=timeStr.split(':'), _tH=parseInt(_tp[0])||0, _tM=parseInt(_tp[1])||0, _tS=parseInt(_tp[2])||0;
     var hrNum=(_tM===0&&_tS===0)?_tH:_tH+1;
+    if(hrNum>22) hrNum=22; // 22시 이후 결제는 22시 버킷에 합산
     var hr=hrNum<10?'0'+hrNum:String(hrNum);
 
     // 팀 결정: 이름→팀 매핑
@@ -1888,6 +1889,7 @@ function renderLive() {
   manualEntries.forEach(function(e){
     var _mp=(e.time||'').split(':'),_mH=parseInt(_mp[0])||0,_mM=parseInt(_mp[1])||0,_mS=parseInt(_mp[2])||0;
     var _mHrNum=(_mM===0&&_mS===0)?_mH:_mH+1;
+    if(_mHrNum>22) _mHrNum=22; // 22시 이후 수기결제도 22시 버킷으로
     var hr=_mHrNum<10?'0'+_mHrNum:String(_mHrNum);
     var team=nameToTeamMap[normName(e.name)]||'';
     if(team&&byTimeWithManual[hr]&&byTimeWithManual[hr][team]!==undefined) byTimeWithManual[hr][team]++;
