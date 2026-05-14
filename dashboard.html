@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 19:57</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:08</span></span>
 </div>
 
 <div class="page">
@@ -2761,7 +2761,7 @@ function _loadPerfData(cb){
       return r.text();
     })
     .then(function(csv){
-      _perfDebug.weeklyRaw=csv.slice(0,200);
+      _perfDebug.weeklyRaw=csv.slice(0,600);
       var p=_parseWeeklyCSV(csv);
       _perfWeekly=p.weekly;_perfMonthly=p.monthly;
       _perfDebug.weeklyKeys=Object.keys(_perfWeekly).slice(0,5);
@@ -2814,7 +2814,8 @@ function showPerfPopup(el){
         '<b>일일 오류:</b> '+(dbg.dailyErr||'없음')+'<br>'+
         '<b>주간 HTTP:</b> '+(dbg.weeklyStatus||'?')+' / 파싱키: '+(dbg.weeklyKeys?(dbg.weeklyKeys.join(', ')||'없음'):'?')+'<br>'+
         '<b>주간 오류:</b> '+(dbg.weeklyErr||'없음')+'<br>'+
-        '<b>일일 CSV 앞:</b><br><pre style="font-size:9px;overflow:auto;max-height:80px;">'+((dbg.dailyRaw||'').replace(/</g,'&lt;'))+'</pre>'+
+        '<b>일일 CSV 앞:</b><br><pre style="font-size:9px;overflow:auto;max-height:60px;">'+((dbg.dailyRaw||'').replace(/</g,'&lt;'))+'</pre>'+
+        '<b>주간 CSV 앞:</b><br><pre style="font-size:9px;overflow:auto;max-height:80px;">'+((dbg.weeklyRaw||'').replace(/</g,'&lt;'))+'</pre>'+
       '</div>';
       html+='<div style="text-align:center;padding:10px;color:#94a3b8;font-size:12px;">데이터를 불러올 수 없습니다.</div>'+dbgHtml;
     } else {
