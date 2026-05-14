@@ -206,9 +206,9 @@ tbody tr:hover td{background:var(--accent-lt);}
 .live-title{font-size:13px;font-weight:700;color:var(--txt);}
 .live-body{padding:12px 16px;}
 .live-team-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
-.live-team-box{border-radius:10px;padding:10px 12px;text-align:center;background:var(--card2);border:1px solid var(--border2);}
+.live-team-box{border-radius:10px;padding:6px 8px;text-align:center;background:var(--card2);border:1px solid var(--border2);}
 .live-team-name{font-size:10px;font-weight:700;margin-bottom:4px;color:var(--txt2);}
-.live-team-cnt{font-size:26px;font-weight:900;line-height:1;letter-spacing:-.02em;color:var(--txt);}
+.live-team-cnt{font-size:20px;font-weight:900;line-height:1;letter-spacing:-.02em;color:var(--txt);}
 .live-team-sub{font-size:10px;color:var(--txt3);margin-top:2px;}
 .live-timeline{border-top:1px solid var(--border);padding-top:10px;}
 .live-tl-table{width:100%;border-collapse:collapse;table-layout:fixed;}
@@ -242,7 +242,7 @@ tbody tr:hover td{background:var(--accent-lt);}
 .rank-footer{padding:4px 12px 6px;font-size:9px;color:var(--txt3);border-top:1px solid var(--border);margin-top:2px;}
 
 /* ── 주별 결제 현황 (게이지 카드) ──────────────────── */
-#weekChart{background:#fff;border-radius:12px;border:1px solid var(--border);border-top:3px solid var(--accent);padding:14px 12px 10px;}
+#weekChart{background:#fff;border-radius:12px;border:1px solid var(--border);border-top:3px solid var(--accent);padding:8px 10px 6px;}
 
 /* ── 인입채널 테이블 ────────────────────────────────── */
 #channelTable table{font-size:11px;}
@@ -277,7 +277,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 16:22</span></span>
+  <span class="up-hint">구글시트에서 자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 16:36</span></span>
 </div>
 
 <div class="page">
@@ -306,7 +306,7 @@ tbody tr:hover td{background:var(--accent-lt);}
         <div class="live-section">
 
           <!-- 상단 헤더 바 -->
-          <div class="live-hdr" style="background:linear-gradient(90deg,#1a3a6b,#2563eb);padding:10px 16px;">
+          <div class="live-hdr" style="background:linear-gradient(90deg,#1a3a6b,#2563eb);padding:6px 12px;">
             <div class="live-dot"></div>
             <span class="live-title" style="color:#fff;font-size:13px;">오늘 실시간 결제</span>
             <button class="live-btn" onclick="fetchLive()" style="margin-left:8px;background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3);color:#fff;font-size:10px;">새로고침</button>
@@ -316,17 +316,17 @@ tbody tr:hover td{background:var(--accent-lt);}
           <!-- 메인: 총 건수 + 팀별 박스 가로 나열 -->
           <div style="display:grid;grid-template-columns:120px 1fr;border-bottom:1px solid var(--border2);">
             <!-- 총 건수 -->
-            <div style="padding:12px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border2);background:var(--accent-lt);">
+            <div style="padding:8px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-right:1px solid var(--border2);background:var(--accent-lt);">
               <div style="font-size:9px;font-weight:700;color:var(--accent);letter-spacing:.05em;text-transform:uppercase;margin-bottom:2px;">오늘 총 결제</div>
-              <div style="font-size:40px;font-weight:900;color:#1a3a6b;letter-spacing:-.04em;line-height:1;" id="liveTotalCnt">-</div>
+              <div style="font-size:30px;font-weight:900;color:#1a3a6b;letter-spacing:-.04em;line-height:1;" id="liveTotalCnt">-</div>
               <div style="font-size:11px;color:var(--txt3);margin-top:2px;">건</div>
             </div>
             <!-- 팀별 4박스 가로 -->
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;" id="liveTeamRow">
-              <div class="live-team-box" id="liveBox_땅이팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #f97316;"><div class="live-team-name" style="color:#ea580c;">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀" style="color:#ea580c;font-size:28px;">-</div><div class="live-team-sub">건</div></div>
-              <div class="live-team-box" id="liveBox_다래팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #ec4899;"><div class="live-team-name" style="color:#db2777;">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀" style="color:#db2777;font-size:28px;">-</div><div class="live-team-sub">건</div></div>
-              <div class="live-team-box" id="liveBox_해태팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #eab308;"><div class="live-team-name" style="color:#ca8a04;">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀" style="color:#ca8a04;font-size:28px;">-</div><div class="live-team-sub">건</div></div>
-              <div class="live-team-box" id="liveBox_단비팀" style="border-radius:0;border-top:3px solid #22c55e;"><div class="live-team-name" style="color:#16a34a;">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀" style="color:#16a34a;font-size:28px;">-</div><div class="live-team-sub">건</div></div>
+              <div class="live-team-box" id="liveBox_땅이팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #f97316;"><div class="live-team-name" style="color:#ea580c;">땅이팀</div><div class="live-team-cnt" id="liveCnt_땅이팀" style="color:#ea580c;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+              <div class="live-team-box" id="liveBox_다래팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #ec4899;"><div class="live-team-name" style="color:#db2777;">다래팀</div><div class="live-team-cnt" id="liveCnt_다래팀" style="color:#db2777;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+              <div class="live-team-box" id="liveBox_해태팀" style="border-radius:0;border-right:1px solid var(--border2);border-top:3px solid #eab308;"><div class="live-team-name" style="color:#ca8a04;">해태팀</div><div class="live-team-cnt" id="liveCnt_해태팀" style="color:#ca8a04;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
+              <div class="live-team-box" id="liveBox_단비팀" style="border-radius:0;border-top:3px solid #22c55e;"><div class="live-team-name" style="color:#16a34a;">단비팀</div><div class="live-team-cnt" id="liveCnt_단비팀" style="color:#16a34a;font-size:22px;">-</div><div class="live-team-sub">건</div></div>
             </div>
           </div>
 
@@ -334,26 +334,26 @@ tbody tr:hover td{background:var(--accent-lt);}
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;border-top:0;gap:0;">
 
             <!-- 상품별 -->
-            <div style="padding:8px 10px;border-right:1px solid var(--border2);">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:5px;text-transform:uppercase;">상품별</div>
-              <div id="liveProdBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
+            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">상품별</div>
+              <div id="liveProdBody" style="max-height:110px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
             </div>
 
             <!-- 시간순 -->
-            <div style="padding:8px 10px;border-right:1px solid var(--border2);">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:5px;text-transform:uppercase;">시간순</div>
-              <div id="liveTchBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
+            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간순</div>
+              <div id="liveTchBody" style="max-height:110px;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
             </div>
 
             <!-- 가입경로 -->
-            <div style="padding:8px 10px;border-right:1px solid var(--border2);">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:5px;text-transform:uppercase;">가입경로</div>
-              <div id="livePathBody" style="max-height:160px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
+            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">가입경로</div>
+              <div id="livePathBody" style="max-height:110px;overflow-y:auto;font-size:11px;"><div class="live-empty" style="padding:4px">-</div></div>
             </div>
 
             <!-- 수기 결제 입력 -->
-            <div style="padding:8px 10px;border-right:1px solid var(--border2);">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <div style="padding:5px 8px;border-right:1px solid var(--border2);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
                 <span style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;">수기 입력</span>
                 <button onclick="clearManualEntries()" style="font-size:9px;padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">초기화</button>
               </div>
@@ -372,8 +372,8 @@ tbody tr:hover td{background:var(--accent-lt);}
             </div>
 
             <!-- 시간대별 결제 (테이블) -->
-            <div style="padding:8px 10px;">
-              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:5px;text-transform:uppercase;">시간대별</div>
+            <div style="padding:5px 8px;">
+              <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;">시간대별</div>
               <div style="overflow-x:auto;">
                 <table class="live-tl-table" style="min-width:140px;">
                   <thead><tr>
@@ -1029,59 +1029,141 @@ function renderKPI(data) {
         if(t.team&&endByTeamToday[t.team]!==undefined)endByTeamToday[t.team]+=(t.daily_end[dt]||0);}
     });
   });
-  var rate=displayTarget>0?Math.round(realPay/displayTarget*100):0;
-  var convRate=endUpToToday>0?(realPay/endUpToToday*100).toFixed(1):'0';
-  var rateColor=rate>=100?'#16a34a':rate>=80?'#f59e0b':'#2563eb';
-  var convColor=parseFloat(convRate)>=70?'#16a34a':parseFloat(convRate)>=50?'#f59e0b':'#0d9488';
+  var rate = displayTarget>0 ? Math.round(realPay/displayTarget*100) : 0;
+  var convRate = endUpToToday>0 ? (realPay/endUpToToday*100).toFixed(1) : '0';
+  var rateColor = rate>=100?'#16a34a':rate>=80?'#f59e0b':'#2563eb';
+  var convColor = parseFloat(convRate)>=70?'#16a34a':parseFloat(convRate)>=50?'#f59e0b':'#0d9488';
 
-  // 컴팩트 도넛 SVG (r=30)
-  function miniDonut(pct, color, label, sub) {
-    var r=30, sw=7, circ=2*Math.PI*r;
-    var dash=Math.min(pct,100)/100*circ, gap=circ-dash;
-    return '<div style="display:flex;align-items:center;gap:8px;">'
-      +'<div style="position:relative;flex-shrink:0;">'
-      +'<svg width="'+(r*2+sw*2)+'" height="'+(r*2+sw*2)+'" viewBox="0 0 '+(r*2+sw*2)+' '+(r*2+sw*2)+'" style="display:block;">'
+  // 이달 경과일
+  var now=new Date(), daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  var daysPassed=now.getDate(), daysPct=Math.round(daysPassed/daysInMonth*100);
+
+  // 도넛 SVG
+  function donut(pct,color,size){
+    var r=size||26,sw=6,circ=2*Math.PI*r;
+    var dash=Math.min(pct,100)/100*circ,gap=circ-dash;
+    return '<svg width="'+(r*2+sw*2)+'" height="'+(r*2+sw*2)+'" viewBox="0 0 '+(r*2+sw*2)+' '+(r*2+sw*2)+'">'
       +'<circle cx="'+(r+sw)+'" cy="'+(r+sw)+'" r="'+r+'" fill="none" stroke="#e8edf8" stroke-width="'+sw+'"/>'
       +'<circle cx="'+(r+sw)+'" cy="'+(r+sw)+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+sw+'"'
       +' stroke-dasharray="'+dash.toFixed(1)+' '+gap.toFixed(1)+'"'
       +' stroke-linecap="round" transform="rotate(-90 '+(r+sw)+' '+(r+sw)+')"/>'
-      +'</svg>'
-      +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;">'
-      +'<span style="font-size:13px;font-weight:800;color:'+color+';line-height:1;">'+pct+(typeof pct==='number'?'%':'')+'</span>'
-      +'</div></div>'
-      +'<div>'
-      +'<div style="font-size:10px;font-weight:700;color:#1a3a6b;letter-spacing:.04em;">'+label+'</div>'
-      +'<div style="font-size:11px;color:var(--txt3);margin-top:1px;">'+sub+'</div>'
-      +'</div></div>';
+      +'</svg>';
   }
 
-  // KPI 수치 아이템
-  function kpiItem(lbl, val, unit, color) {
-    return '<div style="padding:0 14px;border-left:1px solid var(--border2);first-of-type:border-left:none;">'
-      +'<div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px;">'+lbl+'</div>'
-      +'<div style="font-size:22px;font-weight:800;color:'+(color||'var(--txt)')+';letter-spacing:-.03em;line-height:1;">'+val+'<span style="font-size:11px;font-weight:500;color:var(--txt3);margin-left:2px;">'+unit+'</span></div>'
+  // 팀별 결제 기여 색상 분할 바
+  var teamBarHtml = '';
+  if(realPay>0) {
+    TEAM_NAMES.forEach(function(nm){
+      var m=data.teams[nm],cfg=TEAM_CFG[nm];
+      var w=(m.monthPayment/realPay*100).toFixed(1);
+      if(m.monthPayment>0) teamBarHtml+='<div style="flex:'+m.monthPayment+';background:'+cfg.bar+';height:100%;min-width:2px;" title="'+nm+' '+m.monthPayment+'건"></div>';
+    });
+  } else {
+    teamBarHtml='<div style="flex:1;background:var(--border2);height:100%;"></div>';
+  }
+
+  // 팀별 달성 미니 행 4개
+  var teamRows = TEAM_NAMES.map(function(nm){
+    var m=data.teams[nm],cfg=TEAM_CFG[nm];
+    var teamGoal = displayTarget>0 ? Math.round(displayTarget/4) : m.target;
+    var tw = teamGoal>0 ? Math.min(100,Math.round(m.monthPayment/teamGoal*100)) : 0;
+    var tr = teamGoal>0 ? Math.round(m.monthPayment/teamGoal*100) : 0;
+    var trCls = tr>=100?'kv-good':tr>=80?'kv-warn':'kv-bad';
+    return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">'
+      +'<span style="font-size:9px;font-weight:700;color:'+cfg.txt+';min-width:36px;white-space:nowrap;">'+nm.replace('팀','')+'팀</span>'
+      +'<div style="flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;">'
+      +'<div style="width:'+tw+'%;height:100%;background:'+cfg.bar+';border-radius:3px;transition:width .5s;"></div>'
+      +'</div>'
+      +'<span style="font-size:10px;font-weight:700;color:var(--txt);min-width:18px;text-align:right;">'+m.monthPayment+'</span>'
+      +'<span style="font-size:9px;min-width:28px;text-align:right;" class="'+trCls+'">'+tr+'%</span>'
       +'</div>';
-  }
+  }).join('');
 
-  var html = '<div class="card" style="padding:12px 16px;">'
-    +'<div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;row-gap:8px;">'
+  var html = '<div class="card" style="padding:0;overflow:hidden;">'
+    // ── 상단: 도넛 + 수치 + 도넛 ──
+    +'<div style="display:grid;grid-template-columns:auto 1px 1fr 1px auto;align-items:stretch;gap:0;">'
+
     // 달성률 도넛
-    +miniDonut(rate, rateColor, '월 달성률', '결제 '+realPay+' / 목표 '+displayTarget)
-    +'<div style="width:1px;height:52px;background:var(--border);margin:0 14px;flex-shrink:0;"></div>'
-    // KPI 수치들
-    +kpiItem('목표', displayTarget, '건', '#1a3a6b')
-    +kpiItem('결제', realPay, '건', rateColor)
-    +kpiItem('청철', tot.wd, '건', '#e63946')
-    +kpiItem('월종료', tot.end, '건', '#7c3aed')
-    +kpiItem('당일종료', endUpToToday, '건', '#0d9488')
-    +'<div style="width:1px;height:52px;background:var(--border);margin:0 14px;flex-shrink:0;"></div>'
+    +'<div style="padding:12px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:130px;">'
+    +'<div style="position:relative;display:inline-flex;">'
+    +donut(rate,rateColor,30)
+    +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'
+    +'<span style="font-size:12px;font-weight:800;color:'+rateColor+';">'+rate+'%</span>'
+    +'</div></div>'
+    +'<div style="text-align:center;">'
+    +'<div style="font-size:10px;font-weight:700;color:#1a3a6b;letter-spacing:.03em;">월 달성률</div>'
+    +'<div style="font-size:9px;color:var(--txt3);margin-top:1px;">'+realPay+' / '+displayTarget+'건</div>'
+    +'</div></div>'
+
+    +'<div style="background:var(--border2);"></div>'
+
+    // 중앙: KPI 숫자 5개 + 팀별 미니바
+    +'<div style="padding:10px 14px;">'
+    // KPI 수치 가로 5개
+    +'<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-bottom:10px;">'
+    +[
+      ['목표',displayTarget,'건','#1a3a6b'],
+      ['결제',realPay,'건',rateColor],
+      ['청철',tot.wd,'건','#e63946'],
+      ['월종료',tot.end,'건','#7c3aed'],
+      ['당일종료',endUpToToday,'건','#0d9488']
+    ].map(function(k,i){
+      return '<div style="padding:0 '+(i>0?'10px':'0')+' 0 '+(i>0?'10px':'0')+';'+(i>0?'border-left:1px solid var(--border2);':'')+'text-align:center;">'
+        +'<div style="font-size:8px;font-weight:700;color:var(--txt3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:2px;">'+k[0]+'</div>'
+        +'<div style="font-size:20px;font-weight:800;color:'+k[3]+';letter-spacing:-.03em;line-height:1.1;">'+k[1]+'</div>'
+        +'<div style="font-size:9px;color:var(--txt3);">'+k[2]+'</div>'
+        +'</div>';
+    }).join('')
+    +'</div>'
+    // 팀별 달성 미니 바 4개
+    + teamRows
+    +'</div>'
+
+    +'<div style="background:var(--border2);"></div>'
+
     // 전환율 도넛
-    +miniDonut(parseFloat(convRate), convColor, '전환율', '결제 ÷ 당일종료')
-    +'</div></div>';
+    +'<div style="padding:12px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:130px;">'
+    +'<div style="position:relative;display:inline-flex;">'
+    +donut(parseFloat(convRate),convColor,30)
+    +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'
+    +'<span style="font-size:12px;font-weight:800;color:'+convColor+';">'+convRate+'%</span>'
+    +'</div></div>'
+    +'<div style="text-align:center;">'
+    +'<div style="font-size:10px;font-weight:700;color:#0d9488;letter-spacing:.03em;">전환율</div>'
+    +'<div style="font-size:9px;color:var(--txt3);margin-top:1px;">결제÷당일종료</div>'
+    +'</div></div>'
+    +'</div>'
+
+    // ── 하단: 이달 진행도 + 팀별 컬러 분할 바 ──
+    +'<div style="border-top:1px solid var(--border2);padding:8px 16px;background:var(--card2);">'
+    +'<div style="display:flex;align-items:center;gap:10px;">'
+    // 날짜 진행
+    +'<div style="flex-shrink:0;">'
+    +'<span style="font-size:9px;color:var(--txt3);">'+daysPassed+'일 / '+daysInMonth+'일 경과 ('+daysPct+'%)</span>'
+    +'</div>'
+    // 이달 날짜 바
+    +'<div style="width:120px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;flex-shrink:0;">'
+    +'<div style="width:'+daysPct+'%;height:100%;background:#94a3b8;border-radius:2px;"></div>'
+    +'</div>'
+    +'<div style="width:1px;height:14px;background:var(--border2);flex-shrink:0;margin:0 4px;"></div>'
+    // 팀별 컬러 분할 바
+    +'<span style="font-size:9px;color:var(--txt3);flex-shrink:0;">팀별 결제 비중</span>'
+    +'<div style="flex:1;height:8px;border-radius:4px;overflow:hidden;display:flex;gap:1px;min-width:0;">'
+    + teamBarHtml
+    +'</div>'
+    // 팀 범례
+    + TEAM_NAMES.map(function(nm){
+        var cfg=TEAM_CFG[nm];
+        return '<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;color:var(--txt3);white-space:nowrap;flex-shrink:0;">'
+          +'<span style="display:inline-block;width:6px;height:6px;border-radius:2px;background:'+cfg.bar+';"></span>'
+          +nm.replace('팀','')+'</span>';
+      }).join('')
+    +'</div></div>'
+    +'</div>';
 
   document.getElementById('kpiGrid').innerHTML = html;
 
-  // 팀 요약
+  // 팀 요약 테이블
   var sumRows=TEAM_NAMES.map(function(nm){
     var m2=data.teams[nm],cfg2=TEAM_CFG[nm];
     var m2pay=m2.monthPayment, m2end=endByTeamToday[nm]||0;
@@ -1106,10 +1188,10 @@ function renderKPI(data) {
   if(stEl) stEl.innerHTML='<div class="card">'
     +'<table style="width:100%;border-collapse:collapse;">'
     +'<thead><tr style="background:var(--card2);border-bottom:1px solid var(--border);">'
-    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:left;">팀</th>'
-    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">종료</th>'
-    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">달성</th>'
-    +'<th style="padding:6px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">전환율</th>'
+    +'<th style="padding:5px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:left;">팀</th>'
+    +'<th style="padding:5px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">종료</th>'
+    +'<th style="padding:5px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">달성</th>'
+    +'<th style="padding:5px 10px;font-size:10px;font-weight:700;color:var(--txt3);text-align:right;">전환율</th>'
     +'</tr></thead>'
     +'<tbody>'+sumRows
     +'<tr style="background:var(--card2);font-weight:700;border-top:2px solid var(--border);">'
@@ -1117,8 +1199,7 @@ function renderKPI(data) {
     +'<td style="padding:5px 10px;font-size:12px;text-align:right;">'+endUpToToday+'<span style="font-size:9px;color:#94a3b8;"> /'+tot.end+'</span></td>'
     +'<td style="padding:5px 10px;font-size:12px;text-align:right;color:#2563eb;font-weight:800;">'+realPay+'</td>'
     +'<td style="padding:5px 10px;font-size:12px;text-align:right;" class="'+totRc2+'">'+totR2+'%</td>'
-    +'</tr>'
-    +'</tbody></table></div>';
+    +'</tr></tbody></table></div>';
 }
 
 function kpiBox(lbl,val,sub){
@@ -2369,9 +2450,9 @@ function renderWeekChart(data) {
     var subColor = over ? '#15803d' : '#9ca3af';
 
     html +=
-      '<div style="'+cardBorder+cardBg+'border-radius:8px;padding:8px 6px;text-align:center;opacity:'+opacity+';">'+
+      '<div style="'+cardBorder+cardBg+'border-radius:8px;padding:5px 4px;text-align:center;opacity:'+opacity+';">'+
         '<span style="display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+badgeBg+';color:'+badgeTxt+';">'+(s.wi+1)+'주</span>'+
-        '<div style="font-size:15px;font-weight:700;color:'+payColor+';margin:5px 0 1px;">'+
+        '<div style="font-size:13px;font-weight:700;color:'+payColor+';margin:3px 0 1px;">'+
           (s.isFuture ? '<span style="color:#d1d5db;">—</span>' : pay)+'</div>'+
         (hasGoals && !s.isFuture
           ? '<div style="margin:4px 0;height:4px;background:'+barBg+';border-radius:2px;">'+
