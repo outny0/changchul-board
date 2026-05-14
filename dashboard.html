@@ -283,7 +283,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:08</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 20:36</span></span>
 </div>
 
 <div class="page">
@@ -2821,22 +2821,31 @@ function showPerfPopup(el){
     } else {
       // 당일
       html+='<div style="background:#f8fafc;border-radius:12px;padding:12px 16px;margin-bottom:10px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.08em;margin-bottom:8px;">📅 당일 ('+
-          (d.rank?(d.rank+''):'데이터없음')+')</div>'+
+        '<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.08em;margin-bottom:8px;">📅 이번 달 누적 (일별 업뎃)</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;">'+
           _st('신규결제', d.pay?(d.pay+'건'):'-', '#1e40af')+
           _st('예상수수료', _fmtFee(d.fee), '#1e40af')+
           _st('랭킹', d.rank||'-', '#1e40af')+
         '</div></div>';
       // 주간
-      html+='<div style="background:#f0f9ff;border-radius:12px;padding:12px 16px;margin-bottom:10px;">'+
-        '<div style="font-size:9px;font-weight:700;color:#0369a1;letter-spacing:.08em;margin-bottom:8px;">📊 이번 주</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">'+
+      var weeklyContent;
+      if(w.convRate||w.payCount||w.avgTalk){
+        weeklyContent='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">'+
           _st('전환율', w.convRate||'-', '#0369a1')+
           _st('전환율랭킹', w.convRank||'-', '#0369a1')+
           _st('주간결제', w.payCount?(w.payCount+'건'):'-', '#0369a1')+
           _st('평균통화', w.avgTalk||'-', '#0369a1')+
-        '</div></div>';
+        '</div>';
+      } else {
+        // 주간 데이터 없으면 CSV 앞부분 표시 (구조 파악용)
+        weeklyContent='<div style="font-size:9px;color:#94a3b8;">주간 데이터 미파싱 — CSV 구조:<br>'+
+          '<pre style="font-size:8px;overflow:auto;max-height:70px;background:#f8fafc;padding:4px;border-radius:4px;">'+
+          ((_perfDebug.weeklyRaw||'없음').slice(0,400).replace(/</g,'&lt;'))+'</pre></div>';
+      }
+      html+='<div style="background:#f0f9ff;border-radius:12px;padding:12px 16px;margin-bottom:10px;">'+
+        '<div style="font-size:9px;font-weight:700;color:#0369a1;letter-spacing:.08em;margin-bottom:8px;">📊 이번 주</div>'+
+        weeklyContent+
+      '</div>';
       // 월누적
       html+='<div style="background:#f5f3ff;border-radius:12px;padding:12px 16px;">'+
         '<div style="font-size:9px;font-weight:700;color:#6d28d9;letter-spacing:.08em;margin-bottom:8px;">📈 이번 달</div>'+
