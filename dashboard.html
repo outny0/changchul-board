@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:54</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:00</span></span>
 </div>
 
 <div class="page">
@@ -2330,11 +2330,12 @@ function renderChannelStats() {
     sumAllTrial += totTrial;
     if(g.grpRate === null && totEnded > 0) g.grpRate = totPaid / totEnded;
   });
-  // 체험% = 소계 체험수 / 전체 체험수 (전체 row 있으면 그 값 우선, 없으면 합산)
-  var totalTrialBase = (totalRow && parseInt(totalRow[5]) > 0)
-    ? parseInt(totalRow[5]) : sumAllTrial;
+  // 체험% = 소계 종료수 / 전체 종료수 (채널별 통계 데이터 기준)
+  var totalEndedBase = (totalRow && parseInt(totalRow[1]) > 0)
+    ? parseInt(totalRow[1])
+    : groups.reduce(function(s,g){ return s + g.grpEnded; }, 0);
   groups.forEach(function(g){
-    g.grpTrial = (totalTrialBase > 0) ? g.grpTrialCount / totalTrialBase : null;
+    g.grpTrial = (totalEndedBase > 0) ? g.grpEnded / totalEndedBase : null;
   });
 
   var maxRate = 1.0; // 100% 고정 스케일
