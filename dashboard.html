@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:08</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:22</span></span>
 </div>
 
 <div class="page">
@@ -2161,7 +2161,9 @@ function renderLive() {
     var combined = (d.feed||[]).slice();
     manualEntries.forEach(function(e){
       var team=nameToTeamMap[normName(e.name)]||'';
-      combined.push({time:e.time,fullTime:e.time,name:e.name,team:team,product:e.product,manual:true});
+      var _now=new Date();
+      var _ds=_now.getFullYear()+'-'+('0'+(_now.getMonth()+1)).slice(-2)+'-'+('0'+_now.getDate()).slice(-2);
+      combined.push({time:e.time,fullTime:_ds+' '+e.time,name:e.name,team:team,product:e.product,manual:true});
     });
     // 전체 datetime 기준 정렬 → 오늘 날짜 항목이 맨 뒤에 정확히 위치
     combined.sort(function(a,b){return (a.fullTime||a.time)>(b.fullTime||b.time)?-1:1;}); // 내림차순: DOM첫번째=최신 → column-reverse로 시각적 맨아래
@@ -2184,6 +2186,7 @@ function renderLive() {
           '<span style="color:#6b7280;font-size:10px;overflow:hidden;">'+row.product+'</span>'+
         '</div>';
       }).join('');
+      tchBody.scrollTop = 0; // column-reverse: scrollTop=0 → 최신결제(맨 아래) 항상 노출
     }
   }
 
@@ -2966,10 +2969,4 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closePerfPop
   <div style="display:flex;align-items:center;gap:10px;">
     <div style="font-size:9px;color:rgba(255,255,255,.35);text-align:right;line-height:1.6;">윙크 브랜드<br>Wink Brand</div>
     <img src="./wink_logo.png" alt="wink" style="height:44px;object-fit:contain;"/>
-  </div>
-</footer>
-<script>
-  document.getElementById('footerYear').textContent = new Date().getFullYear();
-</script>
-
-</body>
+ 
