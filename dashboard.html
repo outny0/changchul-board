@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 16:42</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 16:46</span></span>
 </div>
 
 <div class="page">
@@ -351,7 +351,7 @@ tbody tr:hover td{background:var(--accent-lt);}
           <!-- 시간순 -->
           <div style="padding:5px 8px;border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;">
             <div style="font-size:9px;font-weight:700;color:var(--txt3);letter-spacing:.04em;margin-bottom:4px;text-transform:uppercase;flex-shrink:0;">시간순</div>
-            <div id="liveTchBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;"><div class="live-empty">-</div></div>
+            <div id="liveTchBody" style="flex:1;min-height:0;overflow-y:auto;font-size:11px;display:flex;flex-direction:column-reverse;"><div class="live-empty">-</div></div>
           </div>
 
           <!-- 가입경로 + 수기입력 (상하 배치) -->
@@ -2156,7 +2156,7 @@ function renderLive() {
       var team=nameToTeamMap[normName(e.name)]||'';
       combined.push({time:e.time,name:e.name,team:team,product:e.product,manual:true});
     });
-    combined.sort(function(a,b){return a.time<b.time?-1:1;}); // 시간순(오름차순)
+    combined.sort(function(a,b){return a.time>b.time?-1:1;}); // 내림차순(최신이 DOM 첫번째=시각 맨아래)
     if(!combined.length){
       tchBody.innerHTML='<div class="live-empty">결제 내역 없음</div>';
     } else {
@@ -2227,12 +2227,7 @@ function renderLive() {
     panel.style.height = panelH + 'px';
   })();
 
-  // 모든 렌더 완료 후 시간순 피드를 최신(맨 아래)으로 스크롤
-  // setTimeout 0: 현재 콜스택+레이아웃 리플로우 완료 뒤 실행
-  setTimeout(function(){
-    var el = document.getElementById('liveTchBody');
-    if(el) el.scrollTop = el.scrollHeight;
-  }, 0);
+
 }
 
 
