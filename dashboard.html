@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:39</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:45</span></span>
 </div>
 
 <div class="page">
@@ -829,10 +829,10 @@ function combineData() {
     var t=teacherMap[tid]; if(!t.name)return;
     t.teacherID=tid;
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
-    t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     t.todayEnd=(t.daily_end&&t.daily_end[dt.ymd])||0;
-    // 당일까지 누적 종료수
+    // 당일까지 누적 종료수 (먼저 계산)
     t.endUpToToday=Object.keys(t.daily_end||{}).reduce(function(s,d){return d<=dt.ymd?s+(t.daily_end[d]||0):s;},0);
+    t.monthRate=t.endUpToToday>0?(t.monthPayment/t.endUpToToday*100).toFixed(1)+'%':'0%';
     // 전월 실적 매칭 (이름 기준)
     var _prevMs=(state.pay&&state.pay.prevMonths)||[];
     var _nn=function(s){return String(s||'').replace(/[♥\s　]/g,'').toLowerCase();};
@@ -850,7 +850,7 @@ function combineData() {
   TEAM_NAMES.forEach(function(nm){
     var m=teams[nm];
     m.realPay=Math.max(0,m.monthPayment-m.withdrawal);
-    m.monthRate=m.monthEnd>0?Math.round(m.monthPayment/m.monthEnd*100)+'%':'0%';
+    m.monthRate=m.endUpToToday>0?Math.round(m.monthPayment/m.endUpToToday*100)+'%':'0%';
   });
 
   var _pml=(state.pay&&state.pay.prevMonths&&state.pay.prevMonths.length>0)?state.pay.prevMonths[0].label:'';
@@ -971,7 +971,7 @@ function renderTeams(data) {
           '<span class="tc-tname" style="'+(hasPay?'font-weight:700;color:'+cfg.txt+';':'')+'">'+t.name+'</span>'+
           (hasPay?'<div style="height:2px;background:'+cfg.bar+';border-radius:1px;width:'+tBarW+'%;margin-top:2px;opacity:.6;"></div>':'<div style="height:2px;background:#f1f5f9;border-radius:1px;margin-top:2px;"></div>')+
         '</div>'+
-        '<span class="tc-tnum" style="color:#475569;">'+(t.monthEnd||'-')+'</span>'+
+        '<span class="tc-tnum" style="color:#475569;">'+(t.endUpToToday||'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasPay?'font-weight:700;color:'+cfg.bar+';':'color:#e2e8f0;')+'">'+(hasPay?tPayFile:'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasTodayEnd?'font-weight:600;color:#2563eb;':'color:#e2e8f0;')+'">'+(hasTodayEnd?t.todayEnd:'-')+'</span>'+
         '<span class="tc-tnum" style="'+(hasLive?'font-weight:700;color:#f59e0b;':'color:#e2e8f0;')+'">'+(hasLive?'+'+t.livePayment:'-')+'</span>'+
@@ -1244,10 +1244,10 @@ function renderRanking(data) {
   var metrics = [
     { title:'전환율', formula:'결제÷종료×100',
       color:'#2563eb', colorLt:'#eff6ff',
-      get: function(t){ return t.monthEnd>0 ? t.monthPayment/t.monthEnd*100 : 0; },
+      get: function(t){ return t.endUpToToday>0 ? t.monthPayment/t.endUpToToday*100 : 0; },
       fmt: function(v){ return v.toFixed(1)+'%'; },
-      filter: function(t){ return (t.monthEnd||0)>=1; },
-      maxVal: function(pool){ return Math.max.apply(null, pool.map(function(t){ return t.monthEnd>0?t.monthPayment/t.monthEnd*100:0; })); }
+      filter: function(t){ return (t.endUpToToday||0)>=1; },
+      maxVal: function(pool){ return Math.max.apply(null, pool.map(function(t){ return t.endUpToToday>0?t.monthPayment/t.endUpToToday*100:0; })); }
     },
     { title:'달성률', formula:'결제÷목표×100',
       color:'#0d9488', colorLt:'#f0fdfa',
@@ -1520,7 +1520,7 @@ function renderTable(data, filter) {
       '<td class="td-name" style="cursor:pointer;" onclick="showPerfPopup(this)">'+t.name+'</td>'+
       '<td><span class="t-badge" style="background:'+cfg.bbg+';color:'+cfg.btxt+'">'+t.team+'</span></td>'+
       '<td>'+(t.target>0?'<b>'+t.target+'</b>':'<span style="color:#d1d5db">-</span>')+'</td>'+
-      '<td>'+t.monthEnd+'</td>'+
+      '<td>'+(t.endUpToToday||0)+'</td>'+
       '<td>'+t.realPay+(t.livePayment?'<span style="font-size:9px;color:#f59e0b;font-weight:600;"> +'+t.livePayment+'(오늘)</span>':'')+'</td>'+
       '<td style="color:#dc2626">'+t.withdrawal+'</td>'+
       '<td style="color:#6b7280">'+t.monthPayment+'</td>'+
