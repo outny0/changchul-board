@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 17:26</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 17:29</span></span>
 </div>
 
 <div class="page">
@@ -2111,8 +2111,6 @@ function renderLive() {
           (teamBars?'<div style="font-size:9px;color:#9ca3af;padding-left:2px;">'+teamBars+'</div>':'')+
         '</div>';
       }).join('');
-      // 렌더 완료 후 최신 항목(맨 아래)으로 스크롤
-      tchBody.scrollTop = tchBody.scrollHeight;
     }
   }
 
@@ -2172,7 +2170,7 @@ function renderLive() {
           '<span style="color:#6b7280;font-size:10px;overflow:hidden;">'+row.product+'</span>'+
         '</div>';
       }).join('');
-
+      tchBody.scrollTop = tchBody.scrollHeight;
     }
   }
 
