@@ -256,10 +256,10 @@ tbody tr:hover td{background:var(--accent-lt);}
 #channelTable table{font-size:11px;}
 
 /* ── 전광판 티커 ─────────────────────────────────────────── */
-@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 @keyframes tickerGlow{0%,100%{opacity:1;}50%{opacity:.55;}}
-.motivate-ticker{overflow:hidden;width:100%;background:linear-gradient(90deg,#0f2a56,#1a3a6b,#1e40af,#1a3a6b,#0f2a56);padding:7px 0;border-top:1px solid rgba(255,255,255,.08);}
-.motivate-ticker-inner{display:inline-block;animation:tickerScroll 22s linear infinite;font-size:11.5px;font-weight:700;color:#e0eaff;letter-spacing:.06em;white-space:nowrap;}
+.motivate-ticker{position:relative;height:30px;overflow:hidden;background:linear-gradient(90deg,#0f2a56,#1a3a6b,#1e40af,#1a3a6b,#0f2a56);border-top:1px solid rgba(255,255,255,.08);}
+.motivate-ticker-inner{position:absolute;top:50%;left:0;transform:translateY(-50%);animation:tickerScrollAbs 22s linear infinite;font-size:11.5px;font-weight:700;color:#e0eaff;letter-spacing:.06em;white-space:nowrap;}
+@keyframes tickerScrollAbs{0%{left:0;}100%{left:-50%;}}
 .motivate-ticker-inner .hi{color:#fde68a;animation:tickerGlow 1.8s ease-in-out infinite;}
 .motivate-ticker-inner .cnt{color:#34d399;font-size:14px;font-weight:900;}
 </style>
@@ -302,14 +302,14 @@ tbody tr:hover td{background:var(--accent-lt);}
 
   <!-- ── 메인 그리드: PPT 레이아웃 기반 ── -->
   <!-- 좌열: [월달성+팀별요약] / [주별결제] / [주별마감]  |  우열: [실시간결제 rowspan2] / [인입채널] -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:12px;align-items:start;">
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto auto;gap:12px;align-items:start;">
 
     <!-- ① 좌상: 월 달성 요약 + 팀별 요약 (합체) -->
-    <div style="grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:10px;">
+    <div style="grid-column:1;grid-row:1;display:flex;flex-direction:column;gap:10px;min-width:0;">
       <div>
         <div class="sec-lbl" style="margin-bottom:6px;">월 달성 요약 + 팀별 요약</div>
         <div id="kpiGrid"></div>
-        <div id="motivateTicker" style="margin-top:6px;overflow:hidden;border-radius:8px;"></div>
+        <div id="motivateTicker" style="margin-top:6px;min-width:0;border-radius:8px;"></div>
       </div>
       <div>
         <div id="summaryTbl"></div>
@@ -508,7 +508,7 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
-var VERSION = '05/15 20:39';  // ← push 후 날짜·시간 여기서만 업데이트
+var VERSION = '05/15 20:43';  // ← push 후 날짜·시간 여기서만 업데이트
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null, channel:null};
 var currentFilter = '전체';
