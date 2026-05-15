@@ -316,8 +316,9 @@ tbody tr:hover td{background:var(--accent-lt);}
       </div>
     </div>
 
-    <!-- ② 우: 실시간 결제 (row 1~2 span) -->
-    <div id="livePanel" style="grid-column:2;grid-row:1/3;">
+    <!-- ② 우: 실시간결제 + 채널 카드 flex 컨테이너 (row 1~3 전체) -->
+    <div style="grid-column:2;grid-row:1/4;display:flex;flex-direction:column;gap:12px;min-width:0;">
+    <div id="livePanel">
       <div class="sec-lbl" style="margin-bottom:6px;">실시간 결제 현황</div>
       <div class="live-section">
 
@@ -413,7 +414,21 @@ tbody tr:hover td{background:var(--accent-lt);}
 
         </div>
       </div>
-    </div><!-- end 실시간결제 -->
+    </div><!-- end livePanel -->
+
+    <!-- ⑤ 우하: 인입채널별 전환율 (flex 컨테이너 내부로 이동) -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="sec-lbl">인입채널별 전환율
+          <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
+        </div>
+        <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid var(--accent-md);background:var(--accent-lt);border-radius:10px;cursor:pointer;color:var(--accent);font-weight:600;">↻</button>
+      </div>
+      <div class="card" style="overflow:hidden;">
+        <div id="channelTable"></div>
+      </div>
+    </div>
+    </div><!-- end 우측 flex 컨테이너 -->
 
     <!-- ③ 좌중: 주별 결제 현황 -->
     <div style="grid-column:1;grid-row:2;">
@@ -427,18 +442,6 @@ tbody tr:hover td{background:var(--accent-lt);}
       <div class="week-list" id="weekList"></div>
     </div>
 
-    <!-- ⑤ 우하: 인입채널별 전환율 -->
-    <div style="grid-column:2;grid-row:3;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-        <div class="sec-lbl">인입채널별 전환율
-          <span id="channelUpdatedAt" style="font-size:9px;color:var(--txt3);font-weight:400;text-transform:none;letter-spacing:0;margin-left:4px;"></span>
-        </div>
-        <button onclick="fetchChannelStats()" style="font-size:9px;padding:2px 8px;border:1px solid var(--accent-md);background:var(--accent-lt);border-radius:10px;cursor:pointer;color:var(--accent);font-weight:600;">↻</button>
-      </div>
-      <div class="card" style="overflow:hidden;">
-        <div id="channelTable"></div>
-      </div>
-    </div>
 
   </div><!-- end 메인 그리드 -->
 
@@ -508,7 +511,7 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
-var VERSION = '05/15 20:43';  // ← push 후 날짜·시간 여기서만 업데이트
+var VERSION = '05/15 20:48';  // ← push 후 날짜·시간 여기서만 업데이트
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null, channel:null};
 var currentFilter = '전체';
@@ -2413,7 +2416,7 @@ function renderChannelStats() {
     var grpBarW = (g.grpRate !== null) ? Math.min(100, (g.grpRate / maxRate) * 100) : 0;
 
     // ── 그룹 헤더 (클릭 시 접기/펼치기) ──
-    html += '<tr style="background:#f0f1f8;cursor:pointer;user-select:none;" onclick="toggleChannelGroup(\''+gid+'\')">';
+    html += '<tr style="background:#fff;cursor:pointer;user-select:none;border-bottom:1px solid #e5e7eb;" onclick="toggleChannelGroup(\''+gid+'\')">';
     // 셀1: 채널명 컬럼 — 화살표 + 그룹명 + N개 + 체험%
     html += '<td style="padding:5px 8px;">';
     html += '<span id="arr_'+gid+'" style="font-size:8px;color:#9ca3af;margin-right:4px;">▶</span>';
