@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:02</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:39</span></span>
 </div>
 
 <div class="page">
@@ -831,6 +831,8 @@ function combineData() {
     t.realPay=Math.max(0,t.monthPayment-t.withdrawal);
     t.monthRate=t.monthEnd>0?(t.monthPayment/t.monthEnd*100).toFixed(1)+'%':'0%';
     t.todayEnd=(t.daily_end&&t.daily_end[dt.ymd])||0;
+    // 당일까지 누적 종료수
+    t.endUpToToday=Object.keys(t.daily_end||{}).reduce(function(s,d){return d<=dt.ymd?s+(t.daily_end[d]||0):s;},0);
     // 전월 실적 매칭 (이름 기준)
     var _prevMs=(state.pay&&state.pay.prevMonths)||[];
     var _nn=function(s){return String(s||'').replace(/[♥\s　]/g,'').toLowerCase();};
@@ -842,7 +844,7 @@ function combineData() {
     t.prevPay=t.prevMonths.length>0?t.prevMonths[0].pay:0;
     teachers.push(t);
     var tm=t.team&&teams[t.team];
-    if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);tm.todayEnd=(tm.todayEnd||0)+t.todayEnd;}
+    if(tm){tm.headcount++;tm.monthPayment+=t.monthPayment;tm.monthEnd+=t.monthEnd;tm.withdrawal+=t.withdrawal;tm.livePayment=(tm.livePayment||0)+(t.livePayment||0);tm.todayEnd=(tm.todayEnd||0)+t.todayEnd;tm.endUpToToday=(tm.endUpToToday||0)+t.endUpToToday;}
   });
 
   TEAM_NAMES.forEach(function(nm){
@@ -940,8 +942,9 @@ function renderTeams(data) {
     var totalPay=m.monthPayment;
     var rate=m.target>0?Math.round(totalPay/m.target*100):0;
     var rCls=rate>=100?'kv-good':rate>=80?'kv-warn':'kv-bad';
-    var conv=m.monthEnd>0?Math.round(totalPay/m.monthEnd*100)+'%':'-';
-    var convCls=m.monthEnd>0?(totalPay/m.monthEnd>=0.7?'kv-good':totalPay/m.monthEnd>=0.5?'kv-warn':'kv-bad'):'';
+    var _endBase=m.endUpToToday||0;
+    var conv=_endBase>0?Math.round(totalPay/_endBase*100)+'%':'-';
+    var convCls=_endBase>0?(totalPay/_endBase>=0.7?'kv-good':totalPay/_endBase>=0.5?'kv-warn':'kv-bad'):'';
 
     // 팀 달성률 프로그레스 바
     var barPct = Math.min(100, rate);
@@ -1000,7 +1003,7 @@ function renderTeams(data) {
       '<div class="tc-kpi-3">'+
         '<div class="tc-kpi-cell">'+
           '<div class="tc-kpi-lbl">종료</div>'+
-          '<div class="tc-kpi-num">'+m.monthEnd+'</div>'+
+          '<div class="tc-kpi-num">'+(m.endUpToToday||0)+'</div>'+
         '</div>'+
         '<div class="tc-kpi-cell" style="border-left:1px solid var(--border2);border-right:1px solid var(--border2);">'+
           '<div class="tc-kpi-lbl">달성</div>'+
@@ -1016,7 +1019,7 @@ function renderTeams(data) {
         '<div class="tc-group"><span></span><span class="tc-group-lbl g-acc">── 누적 ──</span><span class="tc-group-lbl g-tod">── 오늘 ──</span></div>'+
         '<div class="tc-thead"><span>이름</span><span style="text-align:right;color:#2563eb;">종료</span><span style="text-align:right;color:'+cfg.bar+';">달성</span><span style="text-align:right;color:#2563eb;">종료</span><span style="text-align:right;color:#f59e0b;">달성</span></div>'+
         tRows+
-        '<div class="tc-total"><span>총계</span><span style="color:#475569;">'+(m.monthEnd||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+((m.monthPayment-(m.livePayment||0))||'-')+'</span><span style="color:#2563eb;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
+        '<div class="tc-total"><span>총계</span><span style="color:#475569;">'+(m.endUpToToday||'-')+'</span><span style="color:'+cfg.bar+';font-weight:700;">'+((m.monthPayment-(m.livePayment||0))||'-')+'</span><span style="color:#2563eb;">'+(m.todayEnd||'-')+'</span><span style="color:#f59e0b;">'+(m.livePayment?'+'+m.livePayment:'-')+'</span></div>'+
       '</div>'+
     '</div>';
   }).join('');
