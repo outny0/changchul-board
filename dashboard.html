@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:55</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 20:00</span></span>
 </div>
 
 <div class="page">
@@ -850,7 +850,7 @@ function combineData() {
   TEAM_NAMES.forEach(function(nm){
     var m=teams[nm];
     m.realPay=Math.max(0,m.monthPayment-m.withdrawal);
-    m.monthRate=m.endUpToToday>0?Math.round(m.monthPayment/m.endUpToToday*100)+'%':'0%';
+    m.monthRate=m.endUpToToday>0?(m.monthPayment/m.endUpToToday*100).toFixed(1)+'%':'0%';
   });
 
   var _pml=(state.pay&&state.pay.prevMonths&&state.pay.prevMonths.length>0)?state.pay.prevMonths[0].label:'';
@@ -940,10 +940,10 @@ function renderTeams(data) {
       .sort(function(a,b){return b.monthPayment-a.monthPayment;});
 
     var totalPay=m.monthPayment;
-    var rate=m.target>0?Math.round(totalPay/m.target*100):0;
+    var rate=m.target>0?parseFloat((totalPay/m.target*100).toFixed(1)):0;
     var rCls=rate>=100?'kv-good':rate>=80?'kv-warn':'kv-bad';
     var _endBase=m.endUpToToday||0;
-    var conv=_endBase>0?Math.round(totalPay/_endBase*100)+'%':'-';
+    var conv=_endBase>0?(totalPay/_endBase*100).toFixed(1)+'%':'-';
     var convCls=_endBase>0?(totalPay/_endBase>=0.7?'kv-good':totalPay/_endBase>=0.5?'kv-warn':'kv-bad'):'';
 
     // 팀 달성률 프로그레스 바
@@ -1039,13 +1039,13 @@ function renderKPI(data) {
         if(t.team&&endByTeamToday[t.team]!==undefined)endByTeamToday[t.team]+=(t.daily_end[dt]||0);}
     });
   });
-  var rate = displayTarget>0 ? Math.round(realPay/displayTarget*100) : 0;
+  var rate = displayTarget>0 ? parseFloat((realPay/displayTarget*100).toFixed(1)) : 0;
   var convRate = endUpToToday>0 ? (realPay/endUpToToday*100).toFixed(1) : '0';
   var adjPay = Math.max(0, realPay - tot.wd); // 청철 제외
   var convRateAdj = endUpToToday>0 ? (adjPay/endUpToToday*100).toFixed(1) : '0';
   var rateColor = rate>=100?'#16a34a':rate>=80?'#f59e0b':'#2563eb';
   var convColor    = parseFloat(convRate)>=70?'#16a34a':parseFloat(convRate)>=50?'#f59e0b':'#0d9488';
-  var convColorAdj = parseFloat(convRateAdj)>=70?'#16a34a':parseFloat(convRateAdj)>=50?'#f59e0b':'#0d9488';
+  var convColorAdj = parseFloat(convRateAdj)>=70?'#7c3aed':parseFloat(convRateAdj)>=50?'#a855f7':'#c084fc';
 
   // 이달 경과일
   var now=new Date(), daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
@@ -1080,7 +1080,7 @@ function renderKPI(data) {
     var m=data.teams[nm],cfg=TEAM_CFG[nm];
     var teamGoal = displayTarget>0 ? Math.round(displayTarget/4) : m.target;
     var tw = teamGoal>0 ? Math.min(100,Math.round(m.monthPayment/teamGoal*100)) : 0;
-    var tr = teamGoal>0 ? Math.round(m.monthPayment/teamGoal*100) : 0;
+    var tr = teamGoal>0 ? parseFloat((m.monthPayment/teamGoal*100).toFixed(1)) : 0;
     var trCls = tr>=100?'kv-good':tr>=80?'kv-warn':'kv-bad';
     return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;">'
       +'<span style="font-size:9px;font-weight:700;color:'+cfg.txt+';min-width:36px;white-space:nowrap;">'+nm.replace('팀','')+'팀</span>'
@@ -1147,11 +1147,15 @@ function renderKPI(data) {
     +'<div style="font-size:9px;font-weight:700;color:#0d9488;letter-spacing:.03em;">전환율</div>'
     +'<div style="font-size:8px;color:var(--txt3);">결제÷당일종료</div>'
     +'</div></div>'
-    // 하단: 청철제외 전환율
-    +'<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--card2);">'
-    +'<span style="font-size:18px;font-weight:800;color:'+convColorAdj+';">'+convRateAdj+'%</span>'
+    // 하단: 청철제외 전환율 (자색 계열)
+    +'<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:#faf5ff;">'
+    +'<div style="position:relative;display:inline-flex;">'
+    +donut(parseFloat(convRateAdj),convColorAdj,26)
+    +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'
+    +'<span style="font-size:11px;font-weight:800;color:'+convColorAdj+';">'+convRateAdj+'%</span>'
+    +'</div></div>'
     +'<div style="text-align:center;">'
-    +'<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.02em;">청철제외</div>'
+    +'<div style="font-size:9px;font-weight:700;color:#7c3aed;letter-spacing:.02em;">청철제외</div>'
     +'<div style="font-size:8px;color:var(--txt3);">(결제-청철)÷종료</div>'
     +'</div></div>'
     +'</div>'
@@ -1190,7 +1194,7 @@ function renderKPI(data) {
   var sumRows=TEAM_NAMES.map(function(nm){
     var m2=data.teams[nm],cfg2=TEAM_CFG[nm];
     var m2pay=m2.monthPayment, m2end=endByTeamToday[nm]||0;
-    var r2=m2end>0?Math.round(m2pay/m2end*100):0;
+    var r2=m2end>0?parseFloat((m2pay/m2end*100).toFixed(1)):0;
     var rc2=r2>=70?'kv-good':r2>=50?'kv-warn':'kv-bad';
     var barW=displayTarget>0?Math.min(100,Math.round(m2pay/(displayTarget/4)*100)):0;
     return '<tr style="border-bottom:1px solid var(--border2);">'
@@ -1205,7 +1209,7 @@ function renderKPI(data) {
       +'</div></td>'
       +'</tr>';
   }).join('');
-  var totR2=endUpToToday>0?Math.round(realPay/endUpToToday*100):0;
+  var totR2=endUpToToday>0?parseFloat((realPay/endUpToToday*100).toFixed(1)):0;
   var totRc2=totR2>=70?'kv-good':totR2>=50?'kv-warn':'kv-bad';
   var stEl=document.getElementById('summaryTbl');
   if(stEl) stEl.innerHTML='<div class="card">'
