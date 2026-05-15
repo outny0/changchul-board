@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 17:29</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 17:33</span></span>
 </div>
 
 <div class="page">
@@ -1884,7 +1884,7 @@ function parseLiveCSV(text) {
       products[prod]=(products[prod]||0)+1;
       if(teamProducts[team]) teamProducts[team][prod]=(teamProducts[team][prod]||0)+1;
     }
-    feed.push({time:time,name:rawTeach||'미배정',team:team,product:prod,path:rawPath,pathCat:pathCat});
+    feed.push({time:time,fullTime:rawTime,name:rawTeach||'미배정',team:team,product:prod,path:rawPath,pathCat:pathCat});
     if(pathCat) channelCounts[pathCat]=(channelCounts[pathCat]||0)+1;
     total++;
   }
@@ -2154,9 +2154,14 @@ function renderLive() {
     var combined = (d.feed||[]).slice();
     manualEntries.forEach(function(e){
       var team=nameToTeamMap[normName(e.name)]||'';
-      combined.push({time:e.time,name:e.name,team:team,product:e.product,manual:true});
+      combined.push({time:e.time,fullTime:e.time,name:e.name,team:team,product:e.product,manual:true});
     });
-    combined.sort(function(a,b){return a.time<b.time?-1:1;}); // 오름차순(시간순)
+    // 전체 datetime 기준 정렬 → 오늘 날짜 항목이 맨 뒤에 정확히 위치
+    combined.sort(function(a,b){return (a.fullTime||a.time)<(b.fullTime||b.time)?-1:1;});
+    // 가장 최신 날짜(오늘) 항목만 필터링
+    var latestDate='';
+    combined.forEach(function(r){ var d=(r.fullTime||'').slice(0,10); if(d>latestDate) latestDate=d; });
+    if(latestDate) combined=combined.filter(function(r){ return (r.fullTime||'').slice(0,10)===latestDate||r.manual; });
     if(!combined.length){
       tchBody.innerHTML='<div class="live-empty">결제 내역 없음</div>';
     } else {
