@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:22</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:29</span></span>
 </div>
 
 <div class="page">
@@ -793,15 +793,11 @@ function combineData() {
         if(n) liveByName[n]=(liveByName[n]||0)+1;
       });
     }
-    // 수기 입력
-    try{
-      var today=new Date().toISOString().slice(0,10);
-      var manuals=JSON.parse(localStorage.getItem('liveManualEntries')||'[]');
-      manuals.filter(function(e){return e.date===today;}).forEach(function(e){
-        var n=normName(e.name);
-        if(n) liveByName[n]=(liveByName[n]||0)+1;
-      });
-    }catch(ex){}
+    // 수기 입력 (Apps Script / localStorage 공통 — _manualCache 사용)
+    getManualEntries().forEach(function(e){
+      var n=normName(e.name);
+      if(n) liveByName[n]=(liveByName[n]||0)+1;
+    });
     // 디버그: 매핑 현황 출력
     console.log('[Live 매핑] 이름목록:', Object.keys(liveByName));
     console.log('[Settings 이름]:', Object.keys(nameToId));
@@ -1896,7 +1892,8 @@ function parseLiveCSV(text) {
     total++;
   }
 
-  console.log('[Live] 총'+total+'건 / 제외'+skipped+'건 / 미배정'+unassigned.length+'건');
+  console.log('[Live] 총'+total+'건 / 제외'+skipped+'건 / 미배정'+unassigned.length+'건 / feed:'+feed.length+'건');
+  if(feed.length) console.log('[Live] feed 마지막항목:', JSON.stringify(feed[feed.length-1]));
   var productList=Object.keys(products).sort(function(a,b){return products[b]-products[a];});
   return{teamTotals:teamTotals,byTime:byTime,products:products,teamProducts:teamProducts,productList:productList,feed:feed,rawNames:rawNames,total:total,channelCounts:channelCounts};
 }
@@ -1948,6 +1945,7 @@ function fetchSharedManual() {
     } catch(e){ _manualCache = []; }
     renderManualList();
     if(state.live) renderLive();
+    tryRender(); // 수기결제 반영 → 팀통계 재계산
     return;
   }
   var today = new Date().toISOString().slice(0,10);
@@ -1965,6 +1963,7 @@ function fetchSharedManual() {
       }
       renderManualList();
       if(state.live) renderLive();
+      tryRender(); // 수기결제 반영 → 팀통계·주별마감 등 전체 재계산
     })
     .catch(function(err){
       console.warn('[Manual] 목록 조회 실패:', err.message);
@@ -2186,7 +2185,8 @@ function renderLive() {
           '<span style="color:#6b7280;font-size:10px;overflow:hidden;">'+row.product+'</span>'+
         '</div>';
       }).join('');
-      tchBody.scrollTop = 0; // column-reverse: scrollTop=0 → 최신결제(맨 아래) 항상 노출
+      // column-reverse: rAF 후 scrollTop=0 → 레이아웃 완성 후 최신결제(맨 아래) 확실히 노출
+      requestAnimationFrame(function(){ tchBody.scrollTop = 0; });
     }
   }
 
