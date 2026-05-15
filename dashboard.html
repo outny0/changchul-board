@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 17:55</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:08</span></span>
 </div>
 
 <div class="page">
@@ -1827,7 +1827,7 @@ function parseLiveCSV(text) {
   if(!hasHeader){hdr=[];dataStart=0;}
 
   var iTime  = findCol(hdr,['시간','결제일','날짜'], 1);
-  var iGubun = findCol(hdr,['구분'],                    2);
+  var iGubun = findCol(hdr,['구분'],                   -1); // -1 = 컬럼 없음 → 신규 필터 미적용
   var iStu   = findCol(hdr,['학생명','학생'],           10);
   var iProd  = findCol(hdr,['상품명','상품'],           12);
   var iCoup  = findCol(hdr,['쿠폰'],                   15);
@@ -1850,7 +1850,7 @@ function parseLiveCSV(text) {
 
   for(var i=dataStart;i<rows.length;i++){
     var r=rows[i];
-    var gubun=String(r[iGubun]||'').trim();
+    var gubun= iGubun>=0 ? String(r[iGubun]||'').trim() : '신규'; // 구분 컬럼 없으면 전부 신규로 처리
     var stuNm=String(r[iStu]  ||'').trim();
     var coup =String(r[iCoup] ||'').trim();
     if(gubun!=='신규')          {skipped++;continue;}
