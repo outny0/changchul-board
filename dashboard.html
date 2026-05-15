@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:48</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 18:54</span></span>
 </div>
 
 <div class="page">
@@ -2310,13 +2310,13 @@ function renderChannelStats() {
       curGrp = { name: grp, grpRate: null, grpTrial: null, channels: [] };
       groups.push(curGrp);
     }
-    // 그룹 내 첫 번째 non-null 소계값 사용 (어느 행에 있어도 잡힘)
+    // 그룹 내 첫 번째 non-null 소계 전환율만 사용 (체험%는 나중에 전체 대비로 계산)
     if(curGrp.grpRate === null) { var rt = parseRate(r[4]); if(rt !== null) curGrp.grpRate = rt; }
-    if(curGrp.grpTrial === null) { var rt2 = parseRate(r[6]); if(rt2 !== null) curGrp.grpTrial = rt2; }
     curGrp.channels.push(r);
   });
 
-  // grpRate/grpTrial 없는 그룹은 채널 합산으로 직접 계산
+  // 그룹별 합산 (체험수는 전체 대비 비율 계산용으로 별도 저장)
+  var sumAllTrial = 0;
   groups.forEach(function(g){
     var totEnded = 0, totPaid = 0, totTrial = 0;
     g.channels.forEach(function(r){
@@ -2326,8 +2326,15 @@ function renderChannelStats() {
     });
     g.grpEnded = totEnded;
     g.grpPaid  = totPaid;
-    if(g.grpRate  === null && totEnded > 0) g.grpRate  = totPaid  / totEnded;
-    if(g.grpTrial === null && totEnded > 0) g.grpTrial = totTrial / totEnded;
+    g.grpTrialCount = totTrial;
+    sumAllTrial += totTrial;
+    if(g.grpRate === null && totEnded > 0) g.grpRate = totPaid / totEnded;
+  });
+  // 체험% = 소계 체험수 / 전체 체험수 (전체 row 있으면 그 값 우선, 없으면 합산)
+  var totalTrialBase = (totalRow && parseInt(totalRow[5]) > 0)
+    ? parseInt(totalRow[5]) : sumAllTrial;
+  groups.forEach(function(g){
+    g.grpTrial = (totalTrialBase > 0) ? g.grpTrialCount / totalTrialBase : null;
   });
 
   var maxRate = 1.0; // 100% 고정 스케일
