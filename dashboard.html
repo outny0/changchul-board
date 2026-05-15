@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 20:00</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span id="versionBadge" style="color:#9ca3af;font-size:9px;"></span></span>
 </div>
 
 <div class="page">
@@ -370,9 +370,10 @@ tbody tr:hover td{background:var(--accent-lt);}
                 <button onclick="clearManualEntries()" style="font-size:9px;padding:1px 6px;border:1px solid #fee2e2;background:#fef2f2;color:#dc2626;border-radius:4px;cursor:pointer;">초기화</button>
               </div>
               <div style="display:flex;flex-direction:column;gap:3px;" id="manualInputRow">
-                <input id="manualName" placeholder="선생님 이름" list="manualNameList"
+                <input id="manualName" placeholder="선생님 이름" list="manualNameList" oninput="validateManualName(this.value)"
                   style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;">
                 <datalist id="manualNameList"></datalist>
+                <span id="manualNameWarn" style="display:none;font-size:10px;color:#d97706;background:#fffbeb;border:1px solid #fde68a;border-radius:4px;padding:2px 6px;line-height:1.4;">⚠ 팀 매핑 불가 — 통계에 미반영됩니다</span>
                 <input id="manualTime" placeholder="시간 13:00" maxlength="5"
                   style="font-size:11px;padding:4px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;width:100%;text-align:center;">
                 <input id="manualProd" placeholder="상품명"
@@ -500,9 +501,14 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
+var VERSION = '05/15';  // ← 배포 날짜만 여기서 관리
+
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null, channel:null};
 var currentFilter = '전체';
 var sortKey = 'monthPayment', sortDir = -1; // -1=내림차순, 1=오름차순
+
+// ─── 자동 새로고침 중복 방지 플래그 ─────────────────────────
+var _v1Fetching = false, _payFetching = false, _liveFetching = false;
 
 function p2(n){return String(n).padStart(2,'0');}
 
@@ -552,7 +558,7 @@ function parseV1CSV(text) {
       else{if(ch==='"')inQ=true;else if(ch===','){cols.push(cur.trim());cur='';}else cur+=ch;}}
     cols.push(cur.trim()); rows.push(cols);
   });
-  if(rows.length<2){console.warn('[V1] CSV 행이 2개 미만');return null;}
+  if(rows.length<2){return null;}
 
   var header=rows[0];
   var dateIdxs={}, totalIdx=-1;
@@ -564,9 +570,6 @@ function parseV1CSV(text) {
   if(totalIdx<0)totalIdx=header.length-1;
 
   var dates=Object.keys(dateIdxs).sort();
-  console.log('[V1] 헤더 앞 10개:', header.slice(0,10));
-  console.log('[V1] CSV 날짜 범위:', dates[0],'~',dates[dates.length-1],'('+dates.length+'일)');
-  if(dates.length===0) console.warn('[V1] ⚠️ 날짜 컬럼을 하나도 못찾음! 헤더형식 확인필요');
 
   var result={};
   for(var i=1;i<rows.length;i++){
@@ -586,7 +589,6 @@ function parseV1CSV(text) {
     for(var ds in dateIdxs){var v=parseInt(r[dateIdxs[ds]])||0;if(v>0)daily[ds]=v;}
     result[tid]={name:name, daily:daily};
   }
-  console.log('[V1] CSV 파싱 완료:', Object.keys(result).length,'명');
   return result;
 }
 
@@ -602,7 +604,7 @@ function parsePayCSV(text) {
       else{if(ch==='"')inQ=true;else if(ch===','){cols.push(cur.trim());cur='';}else cur+=ch;}}
     cols.push(cur.trim()); rows.push(cols);
   });
-  if(rows.length<2){console.warn('[Pay] 행이 2개 미만');return null;}
+  if(rows.length<2){return null;}
 
   var hdr=rows[0];
   var dayIdxs={}, iTotal=-1, iWd=-1;
@@ -615,7 +617,6 @@ function parsePayCSV(text) {
   });
 
   var dayCount=Object.keys(dayIdxs).length;
-  console.log('[Pay] 헤더:', hdr.slice(0,5),'...총',hdr.length,'열 / 일별컬럼:',dayCount,'개 / 합계idx:',iTotal,'/ 청철idx:',iWd);
 
   var dailyTotals=new Array(31).fill(0);
   var map={}, teacherCount=0;
@@ -636,7 +637,6 @@ function parsePayCSV(text) {
     var withdrawal = iWd>=0   ? (parseInt(row[iWd])  ||0) : 0;
     map[id]={monthTotal:monthTotal, withdrawal:withdrawal, daily:daily};
   }
-  console.log('[Pay] 파싱 완료:', teacherCount,'명 / 월결제=일별합산 / 청철방식:', iWd>=0?'청철컬럼':'없음(0)');
 
   // 전월 실적 추출: 헤더가 'XX년 N월' 패턴인 컬럼 쌍 (이름col, 건수col+1)
   var prevMonths = [];
@@ -652,7 +652,7 @@ function parsePayCSV(text) {
         if(nm && !isNaN(cnt) && cnt>0) mData[nm]=cnt;
       }
       var cnt=Object.keys(mData).length;
-      if(cnt>0){prevMonths.push({label:label,data:mData}); console.log('[Pay] 전월실적 파싱:',label,cnt,'명');}
+      if(cnt>0){prevMonths.push({label:label,data:mData});}
     }
   });
 
@@ -701,13 +701,6 @@ function combineData() {
 
   if(state.v1){
     var v1Ids=Object.keys(state.v1);
-    var settingsIds=Object.keys(allowed);
-    console.log('[V1] V1 교사ID 샘플(앞5):', v1Ids.slice(0,5));
-    console.log('[V1] Settings 교사ID 샘플(앞5):', settingsIds.slice(0,5));
-    console.log('[V1] V1 이름 샘플:', v1Ids.slice(0,3).map(function(id){return id+'→'+state.v1[id].name;}));
-    console.log('[V1] Settings 이름 샘플:', settingsIds.slice(0,3).map(function(id){return id+'→'+allowed[id].name;}));
-    console.log('[V1] 현재 ym:', ym);
-
     var v1Matched=0, v1Skipped=[];
     v1Ids.forEach(function(tid){
       var v=state.v1[tid];
@@ -720,12 +713,9 @@ function combineData() {
       Object.keys(v.daily).forEach(function(ds){
         if(ds.slice(0,7)===ym){mEnd+=(v.daily[ds]||0);if(v.daily[ds]>0)datesThisMonth.push(ds+'='+v.daily[ds]);}
       });
-      if(v1Matched<3) console.log('[V1] 교사',v.name,'('+resolvedId+') 이번달 종료:', mEnd, '| 날짜:', datesThisMonth.slice(0,5));
       teacherMap[resolvedId]={name:info.name||v.name,team:info.team||'',daily_end:v.daily,daily_pay:{},monthEnd:mEnd,monthPayment:0,withdrawal:0,target:localTargetMap[String(resolvedId)]||parseInt(info.target)||0};
       v1Matched++;
     });
-    console.log('[V1] 매칭 성공:',v1Matched,'명 / 스킵:',v1Skipped.length,'명');
-    if(v1Skipped.length) console.warn('[V1] 매칭 실패(settings에 없음):', v1Skipped.join(', '));
   }
 
   // 결제: settings에 있는 선생님만
@@ -798,11 +788,7 @@ function combineData() {
       var n=normName(e.name);
       if(n) liveByName[n]=(liveByName[n]||0)+1;
     });
-    // 디버그: 매핑 현황 출력
-    console.log('[Live 매핑] 이름목록:', Object.keys(liveByName));
-    console.log('[Settings 이름]:', Object.keys(nameToId));
     var unmatched=Object.keys(liveByName).filter(function(n){return !nameToId[n];});
-    if(unmatched.length) console.warn('[미매핑 이름]:', unmatched);
 
     // teacherMap에 추가
     Object.keys(liveByName).forEach(function(n){
@@ -1607,7 +1593,6 @@ function parseSettingsCSV(text) {
     var tgt=tgtCol>=0?parseInt(row[tgtCol])||0:0;
     result[tid]={name:name,team:team,target:tgt};
   }
-  console.log('[Settings] 파싱 완료:', Object.keys(result).length,'명');
   return result;
 }
 
@@ -1621,7 +1606,6 @@ function fetchSettings() {
     state.settings=parseSettingsCSV(text);
     tryRender();
   }).catch(function(err){
-    console.warn('[Settings] fetch 실패, localStorage 사용:', err.message);
     var s={};
     try{
       var cfg=JSON.parse(localStorage.getItem('changchul_settings')||'{}');
@@ -1636,11 +1620,12 @@ function fetchSettings() {
 
 // ─── V1 fetch ────────────────────────────────────────────
 function fetchV1() {
+  if(_v1Fetching) return;
+  _v1Fetching = true;
   var el=document.getElementById('v1Status'), spn=document.getElementById('v1Spin');
   el.textContent='불러오는 중...'; el.className='up-status';
   if(spn)spn.style.display='inline-block';
   var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid='+V1_GID;
-  console.log('[V1] fetch URL:', url);
   fetch(url,{redirect:'follow'}).then(function(r){
     if(!r.ok)throw new Error('HTTP '+r.status);
     return r.text();
@@ -1657,6 +1642,7 @@ function fetchV1() {
     el.textContent='✓ '+cnt+'명 | '+ym0+' 종료 '+thisMonthEnd.toLocaleString();
     el.className='up-status ok';
     if(spn)spn.style.display='none';
+    _v1Fetching = false;
     tryRender();
   }).catch(function(err){
     var msg=err.message||'';
@@ -1667,6 +1653,7 @@ function fetchV1() {
     }
     el.className='up-status err';
     if(spn)spn.style.display='none';
+    _v1Fetching = false;
     if(state.v1===undefined) state.v1=null;
     tryRender();
   });
@@ -1674,22 +1661,23 @@ function fetchV1() {
 
 // ─── 결제 fetch ──────────────────────────────────────────
 function fetchPay() {
+  if(_payFetching) return;
+  _payFetching = true;
   var el=document.getElementById('payStatus'), spn=document.getElementById('paySpin');
   el.textContent='불러오는 중...'; el.className='up-status';
   spn.style.display='inline-block';
   var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid='+PAYMENT_GID;
-  console.log('[Pay] fetch URL:', url);
   fetch(url, {redirect:'follow'}).then(function(r){
     if(!r.ok)throw new Error('HTTP '+r.status);
     return r.text();
   }).then(function(text){
-    console.log('[Pay] CSV 앞 200자:', text.slice(0,200));
     var parsed=parsePayCSV(text);
     if(!parsed)throw new Error('데이터 없음');
     state.pay=parsed;
     var cnt=Object.keys(parsed.map).length;
     el.textContent='✓ '+cnt+'명 로드됨'; el.className='up-status ok';
     spn.style.display='none';
+    _payFetching = false;
     tryRender();
   }).catch(function(err){
     var msg = err.message||'';
@@ -1700,23 +1688,32 @@ function fetchPay() {
     }
     el.className='up-status err';
     spn.style.display='none';
-    if(state.pay===undefined) state.pay=null; // 실패 표시
+    _payFetching = false;
+    if(state.pay===undefined) state.pay=null;
     tryRender();
   });
 }
 
 // ─── 초기화 ─────────────────────────────────────────────
 document.getElementById('hdrDate').textContent=getDate().label;
+// 버전 배지
+(function(){ var el=document.getElementById('versionBadge'); if(el) el.textContent='v'+VERSION; })();
 fetchSettings();
 fetchV1();
 fetchPay();
 fetchLive();
 fetchSharedManual();
 setInterval(fetchSharedManual, 30000);
+// 자동 새로고침: Live 3분, V1·결제 5분
+setInterval(function(){ if(!_liveFetching) fetchLive(); }, 3*60*1000);
+setInterval(function(){ if(!_v1Fetching)  fetchV1();  }, 5*60*1000);
+setInterval(function(){ if(!_payFetching) fetchPay(); }, 5*60*1000);
 // ─── 실시간 결제 fetch ────────────────────────────────────
 // 탭 구조: 선생님이름(A) | 시간HH:mm(B) | 상품명(C)
 // 이름 → settings → 팀 매핑
 function fetchLive() {
+  if(_liveFetching) return;
+  _liveFetching = true;
   var el=document.getElementById('liveStatus');
   el.textContent='불러오는 중...';
   var url='https://docs.google.com/spreadsheets/d/'+PAYMENT_FILE_ID+'/export?format=csv&gid='+LIVE_GID;
@@ -1728,10 +1725,12 @@ function fetchLive() {
     state.live=parseLiveCSV(text);
     var tot=state.live.total;
     el.textContent='✓ 총 '+tot.toLocaleString()+' · '+new Date().toTimeString().slice(0,5)+' 기준';
+    _liveFetching = false;
     renderLive();
-    tryRender(); // live 데이터 도착 후 팀 카드 재계산
+    tryRender();
   }).catch(function(err){
     el.textContent='오류: '+err.message;
+    _liveFetching = false;
     console.error('[Live]',err);
   });
 }
@@ -1912,8 +1911,6 @@ function parseLiveCSV(text) {
     total++;
   }
 
-  console.log('[Live] 총'+total+'건 / 제외'+skipped+'건 / 미배정'+unassigned.length+'건 / feed:'+feed.length+'건');
-  if(feed.length) console.log('[Live] feed 마지막항목:', JSON.stringify(feed[feed.length-1]));
   var productList=Object.keys(products).sort(function(a,b){return products[b]-products[a];});
   return{teamTotals:teamTotals,byTime:byTime,products:products,teamProducts:teamProducts,productList:productList,feed:feed,rawNames:rawNames,total:total,channelCounts:channelCounts};
 }
@@ -1986,9 +1983,16 @@ function fetchSharedManual() {
       tryRender(); // 수기결제 반영 → 팀통계·주별마감 등 전체 재계산
     })
     .catch(function(err){
-      console.warn('[Manual] 목록 조회 실패:', err.message);
       renderManualList();
     });
+}
+
+function validateManualName(val) {
+  var warnEl = document.getElementById('manualNameWarn');
+  if(!warnEl) return;
+  if(!val || !val.trim() || !state.settings) { warnEl.style.display='none'; return; }
+  var found = Object.values(state.settings).some(function(s){ return normName(s.name)===normName(val); });
+  warnEl.style.display = found ? 'none' : 'block';
 }
 
 function addManualEntry() {
@@ -2019,6 +2023,7 @@ function addManualEntry() {
         document.getElementById('manualName').value='';
         document.getElementById('manualTime').value='';
         document.getElementById('manualProd').value='';
+        validateManualName('');
         renderManualList();
         if(state.live) renderLive();
         // 백그라운드에서 시트 동기화
@@ -2269,7 +2274,6 @@ function fetchChannelStats() {
       else { setTimeout(fetchChannelStats, 5000); } // 실패 시 5초 후 재시도
     })
     .catch(function(err){
-      console.warn('[Channel] 조회 실패:', err.message);
       setTimeout(fetchChannelStats, 8000); // 네트워크 오류 시 8초 후 재시도
     });
 }
