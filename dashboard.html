@@ -260,12 +260,26 @@ tbody tr:hover td{background:var(--accent-lt);}
 
 <div class="hdr">
   <div class="hdr-top">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="hdr-logo" style="font-size:13px;font-weight:900;">W</div>
+    <!-- 왼쪽: wink 로고 + 타이틀 -->
+    <div style="display:flex;align-items:center;gap:12px;">
+      <svg viewBox="0 0 88 44" xmlns="http://www.w3.org/2000/svg" style="height:36px;flex-shrink:0;" aria-label="wink">
+        <text x="1" y="30" font-family="Arial Rounded MT Bold,Arial Black,Arial,sans-serif" font-size="26" font-weight="900" fill="#e8187d" letter-spacing="-1">wi</text>
+        <text x="33" y="30" font-family="Arial Rounded MT Bold,Arial Black,Arial,sans-serif" font-size="26" font-weight="900" fill="#00aeef" letter-spacing="-1">nk</text>
+        <path d="M 8 38 Q 44 54 80 38" stroke="#00aeef" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      </svg>
       <div>
-        <div class="hdr-title"><span class="wink-now">WINK NOW</span></div>
-        <div class="hdr-date" id="hdrDate" style="font-size:10px;color:rgba(255,255,255,.55);margin-top:2px;"></div>
+        <div style="font-size:13px;font-weight:800;color:#fff;letter-spacing:.02em;">창출팀 월요약 대시보드</div>
+        <div id="hdrDate" style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;"></div>
       </div>
+    </div>
+    <!-- 오른쪽: danbi CI -->
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <svg viewBox="0 0 115 38" xmlns="http://www.w3.org/2000/svg" style="height:28px;flex-shrink:0;opacity:.92;" aria-label="danbi">
+        <ellipse cx="15" cy="14" rx="7" ry="11" fill="#2db44a" transform="rotate(-18 15 14)"/>
+        <ellipse cx="24" cy="12" rx="7" ry="11" fill="#2db44a" transform="rotate(18 24 12)"/>
+        <text x="35" y="28" font-family="Arial Rounded MT Bold,Arial Black,Arial,sans-serif" font-size="20" font-weight="900" fill="#ffffff" letter-spacing="-0.5">danbi</text>
+      </svg>
+      <div style="font-size:9px;color:rgba(255,255,255,.35);line-height:1.5;">단비교육<br>Danbi Education</div>
     </div>
     <div id="hdrPills" style="display:none;"></div>
   </div>
@@ -283,7 +297,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/14 21:06</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 10:55</span></span>
 </div>
 
 <div class="page">
@@ -2933,6 +2947,37 @@ function closePerfPopup(){
   if(p) p.style.display='none';
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closePerfPopup();});
+</script>
+
+
+<!-- ── 푸터 ───────────────────────────────────────────── -->
+<footer style="background:#1a3a6b;border-top:4px solid #e63946;padding:18px 24px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <!-- danbi CI -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <svg viewBox="0 0 115 40" xmlns="http://www.w3.org/2000/svg" style="height:32px;" aria-label="danbi">
+      <ellipse cx="15" cy="15" rx="7" ry="11" fill="#2db44a" transform="rotate(-18 15 15)"/>
+      <ellipse cx="24" cy="13" rx="7" ry="11" fill="#2db44a" transform="rotate(18 24 13)"/>
+      <text x="35" y="30" font-family="Arial Rounded MT Bold,Arial Black,Arial,sans-serif" font-size="20" font-weight="900" fill="#ffffff" letter-spacing="-0.5">danbi</text>
+    </svg>
+    <div style="font-size:10px;color:rgba(255,255,255,.45);line-height:1.6;">(주) 단비교육<br>Danbi Education Co., Ltd.</div>
+  </div>
+  <!-- 중앙 카피라이트 -->
+  <div style="font-size:10px;color:rgba(255,255,255,.3);text-align:center;">
+    창출팀 월요약 대시보드 &nbsp;·&nbsp; Internal Use Only<br>
+    <span id="footerYear"></span> © Danbi Education. All rights reserved.
+  </div>
+  <!-- wink BI -->
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="font-size:9px;color:rgba(255,255,255,.35);text-align:right;line-height:1.6;">윙크 브랜드<br>Wink Brand</div>
+    <svg viewBox="0 0 90 46" xmlns="http://www.w3.org/2000/svg" style="height:34px;" aria-label="wink">
+      <text x="1" y="31" font-family="Arial Rounded MT Bold,Arial Black,Arial,sans-serif" font-size="27" font-weight="900" fill="#e8187d" letter-spacing="-1">wi</text>
+      <text x="34" y="31" font-family="Arial Rounded MT Bold,Arial Black,Arial,sans-serif" font-size="27" font-weight="900" fill="#00aeef" letter-spacing="-1">nk</text>
+      <path d="M 8 40 Q 45 57 82 40" stroke="#00aeef" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    </svg>
+  </div>
+</footer>
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
 </script>
 
 </body>
