@@ -279,15 +279,13 @@ tbody tr:hover td{background:var(--accent-lt);}
 
 <div class="upload-bar">
   <div class="up-item">
-    <span class="up-label">📊 RAW DATA</span>
-    <button class="pay-btn" onclick="fetchV1()"><span class="spn" id="v1Spin" style="display:none"></span>새로고침</button>
-    <span class="up-status" id="v1Status">불러오는 중...</span>
+    <button class="pay-btn" onclick="fetchV1()"><span class="spn" id="v1Spin" style="display:none"></span>RAW DATA 새로고침</button>
+    <span class="up-status" id="v1Status" style="display:none"></span>
   </div>
   <div class="vd"></div>
   <div class="up-item">
-    <span class="up-label">💳 결제</span>
-    <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
-    <span class="up-status" id="payStatus">불러오는 중...</span>
+    <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>결제 새로고침</button>
+    <span class="up-status" id="payStatus" style="display:none"></span>
   </div>
   <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span id="versionBadge" style="color:#9ca3af;font-size:9px;"></span></span>
 </div>
@@ -501,7 +499,7 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
-var VERSION = '05/15';  // ← 배포 날짜만 여기서 관리
+var VERSION = '05/15 17:00';  // ← push 후 날짜·시간 여기서만 업데이트
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null, channel:null};
 var currentFilter = '전체';
