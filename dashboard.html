@@ -309,6 +309,7 @@ tbody tr:hover td{background:var(--accent-lt);}
       <div>
         <div class="sec-lbl" style="margin-bottom:6px;">월 달성 요약 + 팀별 요약</div>
         <div id="kpiGrid"></div>
+        <div id="motivateTicker" style="margin-top:6px;overflow:hidden;border-radius:8px;"></div>
       </div>
       <div>
         <div id="summaryTbl"></div>
@@ -507,7 +508,7 @@ var TEAM_CFG = {
   '단비팀':{hdr:'#f0fdf4',txt:'#16a34a',bar:'#22c55e',dot:'#22c55e',bbg:'#dcfce7',btxt:'#15803d',bdr:'3px solid #22c55e'},
 };
 
-var VERSION = '05/15 20:36';  // ← push 후 날짜·시간 여기서만 업데이트
+var VERSION = '05/15 20:39';  // ← push 후 날짜·시간 여기서만 업데이트
 
 var state = {v1:undefined, pay:undefined, settings:undefined, live:null, channel:null};
 var currentFilter = '전체';
@@ -1153,32 +1154,6 @@ function renderKPI(data) {
     +'</div>'
     +'</div>'
 
-    // ── 전광판 티커 ──────────────────────────────────────────
-    +(function(){
-      var remaining = Math.max(0, displayTarget - realPay);
-      var daysLeft  = Math.max(0, daysInMonth - daysPassed);
-      var msgs = [];
-      if(remaining <= 0){
-        msgs = [
-          '🎉 <span class="hi">이번 달 목표 달성!</span> 창출팀 모두 수고하셨습니다!',
-          '🏆 <span class="hi">대박!</span> 이번 달도 창출팀이 최고예요!',
-          '✨ 다음 달도 파이팅! 쭉쭉 달려봅시다 🚀',
-        ];
-      } else {
-        var pace = daysLeft > 0 ? Math.ceil(remaining / daysLeft) : remaining;
-        msgs = [
-          '🎯 목표까지 <span class="cnt">'+remaining+'건</span> 남았어요!&nbsp;&nbsp;<span class="hi">창출팀 화이팅!</span>',
-          '💪 하루 <span class="cnt">'+pace+'건</span> 페이스면 이번 달 목표 달성!',
-          '✨ 오늘도 최고의 하루 만들어봅시다!&nbsp;&nbsp;<span class="hi">우리 할 수 있어요 🔥</span>',
-        ];
-      }
-      // 3문구를 구분자로 이어붙이고 × 2 (seamless loop)
-      var sep = '&nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;';
-      var inner = msgs.join(sep);
-      var doubled = inner + sep + inner + sep; // 2배로 무한 루프
-      return '<div class="motivate-ticker"><span class="motivate-ticker-inner">'+doubled+'</span></div>';
-    })()
-
     // ── 하단: 이달 진행도 + 팀별 컬러 분할 바 ──
     +'<div style="border-top:1px solid var(--border2);padding:8px 16px;background:var(--card2);">'
     +'<div style="display:flex;align-items:center;gap:10px;">'
@@ -1207,6 +1182,32 @@ function renderKPI(data) {
     +'</div>';
 
   document.getElementById('kpiGrid').innerHTML = html;
+
+  // ── 전광판 티커 (카드 밖 독립 렌더링) ────────────────────
+  (function(){
+    var tickerEl = document.getElementById('motivateTicker');
+    if(!tickerEl) return;
+    var remaining = Math.max(0, displayTarget - realPay);
+    var daysLeft  = Math.max(0, daysInMonth - daysPassed);
+    var msgs;
+    if(remaining <= 0){
+      msgs = [
+        '🎉 <span class="hi">이번 달 목표 달성!</span> 창출팀 모두 수고하셨습니다!',
+        '🏆 <span class="hi">대박!</span> 이번 달도 창출팀이 최고예요!',
+        '✨ 다음 달도 파이팅! 쭉쭉 달려봅시다 🚀',
+      ];
+    } else {
+      var pace = daysLeft > 0 ? Math.ceil(remaining / daysLeft) : remaining;
+      msgs = [
+        '🎯 목표까지 <span class="cnt">'+remaining+'건</span> 남았어요!&nbsp;&nbsp;<span class="hi">창출팀 화이팅!</span>',
+        '💪 하루 <span class="cnt">'+pace+'건</span> 페이스면 이번 달 목표 달성!',
+        '✨ 오늘도 최고의 하루 만들어봅시다!&nbsp;&nbsp;<span class="hi">우리 할 수 있어요 🔥</span>',
+      ];
+    }
+    var sep = '&nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;';
+    var inner = msgs.join(sep);
+    tickerEl.innerHTML = '<div class="motivate-ticker"><span class="motivate-ticker-inner">'+inner+sep+inner+sep+'</span></div>';
+  })();
 
   // 팀 요약 테이블
   var sumRows=TEAM_NAMES.map(function(nm){
@@ -1575,6 +1576,7 @@ function clearCache() {
   document.getElementById('hdrPills').innerHTML='<span class="pill p-gray">데이터 불러오는 중...</span>';
   document.getElementById('teamRow').innerHTML='<div class="empty-note" style="grid-column:1/-1;padding:20px">V1 가공파일을 선택해 주세요</div>';
   document.getElementById('kpiGrid').innerHTML='';
+  var _mt=document.getElementById('motivateTicker'); if(_mt) _mt.innerHTML='';
   document.getElementById('weekList').innerHTML='<div class="empty-note">데이터가 없습니다</div>';
   document.getElementById('tblBody').innerHTML='<tr><td colspan="9" class="empty-note">데이터 없음</td></tr>';
 }
