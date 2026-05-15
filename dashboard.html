@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:45</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 19:55</span></span>
 </div>
 
 <div class="page">
@@ -1041,8 +1041,11 @@ function renderKPI(data) {
   });
   var rate = displayTarget>0 ? Math.round(realPay/displayTarget*100) : 0;
   var convRate = endUpToToday>0 ? (realPay/endUpToToday*100).toFixed(1) : '0';
+  var adjPay = Math.max(0, realPay - tot.wd); // 청철 제외
+  var convRateAdj = endUpToToday>0 ? (adjPay/endUpToToday*100).toFixed(1) : '0';
   var rateColor = rate>=100?'#16a34a':rate>=80?'#f59e0b':'#2563eb';
-  var convColor = parseFloat(convRate)>=70?'#16a34a':parseFloat(convRate)>=50?'#f59e0b':'#0d9488';
+  var convColor    = parseFloat(convRate)>=70?'#16a34a':parseFloat(convRate)>=50?'#f59e0b':'#0d9488';
+  var convColorAdj = parseFloat(convRateAdj)>=70?'#16a34a':parseFloat(convRateAdj)>=50?'#f59e0b':'#0d9488';
 
   // 이달 경과일
   var now=new Date(), daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
@@ -1131,17 +1134,27 @@ function renderKPI(data) {
 
     +'<div style="background:var(--border2);"></div>'
 
-    // 전환율 도넛
-    +'<div style="padding:12px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:130px;">'
+    // 전환율 패널 (2분할)
+    +'<div style="display:flex;flex-direction:column;min-width:120px;align-self:stretch;">'
+    // 상단: 전환율
+    +'<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-bottom:1px solid var(--border2);">'
     +'<div style="position:relative;display:inline-flex;">'
-    +donut(parseFloat(convRate),convColor,30)
+    +donut(parseFloat(convRate),convColor,26)
     +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'
-    +'<span style="font-size:12px;font-weight:800;color:'+convColor+';">'+convRate+'%</span>'
+    +'<span style="font-size:11px;font-weight:800;color:'+convColor+';">'+convRate+'%</span>'
     +'</div></div>'
     +'<div style="text-align:center;">'
-    +'<div style="font-size:10px;font-weight:700;color:#0d9488;letter-spacing:.03em;">전환율</div>'
-    +'<div style="font-size:9px;color:var(--txt3);margin-top:1px;">결제÷당일종료</div>'
+    +'<div style="font-size:9px;font-weight:700;color:#0d9488;letter-spacing:.03em;">전환율</div>'
+    +'<div style="font-size:8px;color:var(--txt3);">결제÷당일종료</div>'
     +'</div></div>'
+    // 하단: 청철제외 전환율
+    +'<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:var(--card2);">'
+    +'<span style="font-size:18px;font-weight:800;color:'+convColorAdj+';">'+convRateAdj+'%</span>'
+    +'<div style="text-align:center;">'
+    +'<div style="font-size:9px;font-weight:700;color:#64748b;letter-spacing:.02em;">청철제외</div>'
+    +'<div style="font-size:8px;color:var(--txt3);">(결제-청철)÷종료</div>'
+    +'</div></div>'
+    +'</div>'
     +'</div>'
 
     // ── 하단: 이달 진행도 + 팀별 컬러 분할 바 ──
