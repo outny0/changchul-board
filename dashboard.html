@@ -254,6 +254,14 @@ tbody tr:hover td{background:var(--accent-lt);}
 
 /* ── 인입채널 테이블 ────────────────────────────────── */
 #channelTable table{font-size:11px;}
+
+/* ── 전광판 티커 ─────────────────────────────────────────── */
+@keyframes tickerScroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+@keyframes tickerGlow{0%,100%{opacity:1;}50%{opacity:.55;}}
+.motivate-ticker{overflow:hidden;white-space:nowrap;background:linear-gradient(90deg,#0f2a56,#1a3a6b,#1e40af,#1a3a6b,#0f2a56);padding:7px 0;border-top:1px solid rgba(255,255,255,.08);}
+.motivate-ticker-inner{display:inline-block;animation:tickerScroll 22s linear infinite;font-size:11.5px;font-weight:700;color:#e0eaff;letter-spacing:.06em;white-space:nowrap;}
+.motivate-ticker-inner .hi{color:#fde68a;animation:tickerGlow 1.8s ease-in-out infinite;}
+.motivate-ticker-inner .cnt{color:#34d399;font-size:14px;font-weight:900;}
 </style>
 </head>
 <body>
@@ -1144,6 +1152,32 @@ function renderKPI(data) {
     +'</div></div>'
     +'</div>'
     +'</div>'
+
+    // ── 전광판 티커 ──────────────────────────────────────────
+    +(function(){
+      var remaining = Math.max(0, displayTarget - realPay);
+      var daysLeft  = Math.max(0, daysInMonth - daysPassed);
+      var msgs = [];
+      if(remaining <= 0){
+        msgs = [
+          '🎉 <span class="hi">이번 달 목표 달성!</span> 창출팀 모두 수고하셨습니다!',
+          '🏆 <span class="hi">대박!</span> 이번 달도 창출팀이 최고예요!',
+          '✨ 다음 달도 파이팅! 쭉쭉 달려봅시다 🚀',
+        ];
+      } else {
+        var pace = daysLeft > 0 ? Math.ceil(remaining / daysLeft) : remaining;
+        msgs = [
+          '🎯 목표까지 <span class="cnt">'+remaining+'건</span> 남았어요!&nbsp;&nbsp;<span class="hi">창출팀 화이팅!</span>',
+          '💪 하루 <span class="cnt">'+pace+'건</span> 페이스면 이번 달 목표 달성!',
+          '✨ 오늘도 최고의 하루 만들어봅시다!&nbsp;&nbsp;<span class="hi">우리 할 수 있어요 🔥</span>',
+        ];
+      }
+      // 3문구를 구분자로 이어붙이고 × 2 (seamless loop)
+      var sep = '&nbsp;&nbsp;&nbsp;✦&nbsp;&nbsp;&nbsp;';
+      var inner = msgs.join(sep);
+      var doubled = inner + sep + inner + sep; // 2배로 무한 루프
+      return '<div class="motivate-ticker"><span class="motivate-ticker-inner">'+doubled+'</span></div>';
+    })()
 
     // ── 하단: 이달 진행도 + 팀별 컬러 분할 바 ──
     +'<div style="border-top:1px solid var(--border2);padding:8px 16px;background:var(--card2);">'
