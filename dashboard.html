@@ -289,7 +289,7 @@ tbody tr:hover td{background:var(--accent-lt);}
     <button class="pay-btn" onclick="fetchPay()"><span class="spn" id="paySpin" style="display:none"></span>새로고침</button>
     <span class="up-status" id="payStatus">불러오는 중...</span>
   </div>
-  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 16:09</span></span>
+  <span class="up-hint">자동으로 데이터를 불러옵니다 &nbsp;|&nbsp; <button onclick="clearCache()" style="font-size:10px;color:#1a3a6b;background:none;border:none;cursor:pointer;text-decoration:underline;font-weight:600;">전체 새로고침</button> &nbsp;<span style="color:#9ca3af;font-size:9px;">v05/15 16:15</span></span>
 </div>
 
 <div class="page">
@@ -1876,13 +1876,7 @@ function parseLiveCSV(text) {
     var team = nameToTeam[normName(rawTeach)]||'';
     // 팀 미배정이어도 rawTeach는 rawNames에 항상 저장 (combineData에서 직접 매핑)
     if(rawTeach) rawNames.push(rawTeach);
-    if(!rawTeach) { total++; continue; }
-    if(!team) {
-      // 팀 미배정이어도 피드에는 포함 (미배정 표시)
-      feed.push({time:time,name:rawTeach,team:'',product:prod,path:rawPath,pathCat:pathCat,unassigned:true});
-      total++;
-      continue;
-    }
+    if(!team || !rawTeach) { total++; continue; }
     if(teamTotals[team]!==undefined) teamTotals[team]++;
     if(!byTime[hr]) byTime[hr]={'땅이팀':0,'다래팀':0,'해태팀':0,'단비팀':0};
     if(byTime[hr][team]!==undefined) byTime[hr][team]++;
@@ -2170,8 +2164,8 @@ function renderLive() {
         var c=TEAM_CFG[row.team]||{bar:'#9ca3af'};
         return '<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:11px;border-bottom:1px solid #f9f9f9;'+(row.manual?'background:#fffbeb;':'')+'">'+
           '<span style="color:#9ca3af;font-size:10px;min-width:36px;flex-shrink:0;">'+row.time+'</span>'+
-          '<span class="team-dot" style="background:'+(row.unassigned?'#f59e0b':c.bar)+';flex-shrink:0;width:7px;height:7px;"></span>'+
-          '<span style="font-weight:600;color:'+(row.unassigned?'#b45309':'#1a1a2e')+';min-width:60px;">'+row.name+(row.manual?' ✏':'')+(row.unassigned?' ?':'')+'</span>'+
+          '<span class="team-dot" style="background:'+c.bar+';flex-shrink:0;width:7px;height:7px;"></span>'+
+          '<span style="font-weight:600;color:#1a1a2e;min-width:60px;">'+row.name+(row.manual?' ✏':'')+'</span>'+
           '<span style="color:#6b7280;font-size:10px;overflow:hidden;">'+row.product+'</span>'+
         '</div>';
       }).join('');
